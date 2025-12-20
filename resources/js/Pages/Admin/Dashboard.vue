@@ -1,3 +1,28 @@
+<template>
+    <AdminLayout>
+        <div class="flex flex-col gap-4">
+            <div class="flex justify-between">
+
+            </div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <CardInfo title="Total Kas" content="Rp18,600,000" :percentage="5" />
+                <CardInfo title="Total Penjualan" content="Rp108,600,000" :percentage="-3" />
+                <CardInfo title="Jumlah Anggota Aktif" content="1213" :percentage="2" />
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CardStaticticBar title="Statistik Penjualan" />
+                <div class="row-span-4 lg:row-span-4">
+                    <CardTable title="Permohonan Keanggotaan Terbaru" :columns="user_columns" :data="members" />
+                </div>
+                <div class="row-span-4 lg:row-span-4">
+                    <CardTable title="Transaksi Terbaru" :columns="trans_columns" :data="transactions" />
+                </div>
+                <CardSingleInfo title="Pengajuan Pembiayaan Murabahah" subTitle="39289348" :data="data" />
+            </div>
+        </div>
+    </AdminLayout>
+</template>
+
 <script setup>
 import { ref } from 'vue'
 
@@ -46,41 +71,3 @@ const data = [
 ]
 
 </script>
-
-<template>
-    <AdminLayout>
-        <div class="flex flex-col gap-4">
-            <div class="flex justify-between">
-
-            </div>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <CardInfo
-                    title="Total Kas"
-                    content="Rp18,600,000"
-                    :percentage="5"/>
-                <CardInfo
-                    title="Total Penjualan"
-                    content="Rp108,600,000"
-                    :percentage="-3"/>
-                <CardInfo
-                    title="Jumlah Anggota Aktif"
-                    content="1213"
-                    :percentage="2"/>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CardStaticticBar title="Statistik Penjualan"/>
-                <div class="row-span-4 lg:row-span-4">
-                    <CardTable title="Permohonan Keanggotaan Terbaru" :columns="user_columns" :data="members" />
-                </div>
-                <div class="row-span-4 lg:row-span-4">
-                    <CardTable title="Transaksi Terbaru" :columns="trans_columns" :data="transactions" />
-                </div>
-                <CardSingleInfo
-                    title="Pengajuan Pembiayaan Murabahah"
-                    subTitle="39289348"
-                    :data="data"
-                />
-            </div>
-        </div>
-    </AdminLayout>
-</template>
