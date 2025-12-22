@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('saving_accounts', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->decimal('balance', 15, 2);
-            $table->enum('type', ['Simpanan Pokok', 'Simpanan Wajib', 'Simpanan Sukarela']);
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('set null');
+        Schema::create('work_units', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('saving_accounts');
+        Schema::dropIfExists('work_units');
     }
 };

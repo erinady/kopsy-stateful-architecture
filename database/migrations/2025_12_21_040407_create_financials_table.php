@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->integer('stock')->default(0);
-            $table->decimal('price', 15, 2);
-            $table->decimal('profit', 15, 2);
+        Schema::create('financials', function (Blueprint $table) {
+            $table->foreignUuid('user_id')->primary()->constrained('users')->onDelete('cascade');
+            $table->enum('financial_type', ['Penghasilan bulanan', 'Pengeluaran bulanan', 'Sisa penghasilan bulanan']);
+            $table->decimal('amount', 15, 2);
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('financials');
     }
 };
