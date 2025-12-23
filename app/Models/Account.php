@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Account extends Model
+{
+
+    protected $primaryKey = 'account_number';
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $fillable = [
+        'account_number',
+        'bank_name',
+        'account_name',
+        'user_id',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
