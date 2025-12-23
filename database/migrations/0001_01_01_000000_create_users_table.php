@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('role_id')->constrained('roles');
-            // TODO: Add work units relationship
+            $table->foreignId('work_unit_id')->constrained('work_units');
             $table->rememberToken();
             $table->timestamps();
         });
