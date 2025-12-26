@@ -100,8 +100,6 @@ class UserController extends Controller
                 'search' => $request->search,
                 'work_unit_id' => $request->work_unit_id,
                 'per_page' => $perPage,
-                'sort_by' => $sortBy,
-                'sort_dir' => $sortDir,
             ],
             'workUnits' => WorkUnit::select('id', 'name')->get(),
             'title' => 'Verifikasi Calon Anggota',
