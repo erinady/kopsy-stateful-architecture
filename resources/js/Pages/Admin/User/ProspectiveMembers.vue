@@ -16,6 +16,8 @@ const filters = reactive({
     search: props.filters.search ?? '',
     work_unit_id: props.filters.work_unit_id ?? '',
     per_page: props.filters.per_page ?? 10,
+    sort_by: props.filters.sort_by ?? 'created_at',
+    sort_dir: props.filters.sort_dir ?? 'desc',
 })
 
 const applyFilters = () => {
@@ -25,6 +27,8 @@ const applyFilters = () => {
             search: filters.search || undefined,
             work_unit_id: filters.work_unit_id || undefined,
             per_page: filters.per_page,
+            sort_by: filters.sort_by,
+            sort_dir: filters.sort_dir,
         },
         {
             preserveScroll: true,
@@ -42,6 +46,16 @@ watch(() => filters.search, () => {
 
 watch(() => filters.per_page, applyFilters)
 watch(() => filters.work_unit_id, applyFilters)
+
+const toggleSort = (column) => {
+    if (filters.sort_by === column) {
+        filters.sort_dir = filters.sort_dir === 'asc' ? 'desc' : 'asc'
+    } else {
+        filters.sort_by = column
+        filters.sort_dir = 'asc'
+    }
+    applyFilters()
+}
 </script>
 
 <template>
@@ -142,7 +156,30 @@ watch(() => filters.work_unit_id, applyFilters)
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th class="font-heading px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200">No</th>
-                            <th class="font-heading px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Nama</th>
+                            <th
+                                @click="toggleSort('name')"
+                                class="font-heading px-6 py-3 text-left text-sm font-medium
+                                    text-gray-700 dark:text-gray-200 cursor-pointer select-none"
+                            >
+                                <div class="flex items-center gap-1">
+                                    Nama
+                                    <Icon
+                                        v-if="filters.sort_by === 'name' && filters.sort_dir === 'asc'"
+                                        icon="tabler:chevron-down"
+                                        class="w-4 h-4"
+                                    />
+                                    <Icon
+                                        v-else-if="filters.sort_by === 'name' && filters.sort_dir === 'desc'"
+                                        icon="tabler:chevron-up"
+                                        class="w-4 h-4"
+                                    />
+                                    <Icon
+                                        v-else
+                                        icon="tabler:chevrons-up-down"
+                                        class="w-4 h-4 opacity-40"
+                                    />
+                                </div>
+                            </th>
                             <th class="font-heading px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200">NIK</th>
                             <th class="font-heading px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Unit Kerja</th>
                             <th class="font-heading px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200">Email</th>
