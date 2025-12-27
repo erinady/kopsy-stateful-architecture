@@ -22,11 +22,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/savings/show/{id}', [SavingController::class, 'show']);
     Route::get('/users/show/{id}', [UserController::class, 'show']);
 
+    Route::get('/admins', [AdminController::class, 'list']);
     Route::get('/create', [AdminController::class, 'create']);
     Route::get('/show/{id}', [AdminController::class, 'show']);
 
-    Route::get('/admin', function() {
-        return
-        Inertia::render('Admin/Admins/List');
-    });
 });
