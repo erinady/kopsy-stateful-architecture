@@ -7,9 +7,9 @@
                     <div class="flex gap-6">
                         <img class="rounded-full w-20" src="/public/images/user/owner.jpg"></img>
                         <div class="flex flex-col justify-center gap-1">
-                            <h1 class="card-title">User Name</h1>
+                            <h1 class="card-title">{{ user.name }}</h1>
                             <p class="text-gray-500">
-                                User Status
+                                {{ user.role.name }}
                             </p>
                         </div>
                     </div>
@@ -35,21 +35,21 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jenis Kelamin</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.gender }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.gender ?? '-' }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Lahir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.birth_date
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.birth_date ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Pendidikan Terakhir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.last_education
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.last_education ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit.name }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Lembaga</span>
@@ -58,18 +58,18 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Status Pernikahan</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.marital_status
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.marital_status ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Pasangan</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.spouse_name
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.spouse_name ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jumlah Tanggungan
                                         Keluarga</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.dependents
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.dependents ?? '-'
                                         }}</span>
                                 </li>
                             </ul>
@@ -102,7 +102,7 @@
                             <ul class="grid grid-cols-2 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Telepon</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.phone_number
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.phone_number ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
@@ -111,11 +111,11 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Sesuai KTP</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.address }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.address ?? '-' }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Domisili</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.residential_address
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.residential_address ?? '-'
                                         }}</span>
                                 </li>
                             </ul>
@@ -125,23 +125,23 @@
                             <ul class="grid grid-cols-2 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Ahli Waris</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ heirs[0].name }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.name ?? '-' }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Hubungan Keluarga</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ heirs[0].relationship
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.relationship ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Kontak Ahli Waris</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ heirs[0].contact
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.contact ?? '-'
                                         }}</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-                <div class="card-layout">
+                <!-- <div class="card-layout">
                     <div class="grid grid-cols-3 gap-4">
                         <div class="card-layout flex flex-col gap-12">
                             <h1>Simpanan Pokok</h1>
@@ -237,7 +237,7 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </AdminLayout>
@@ -248,45 +248,6 @@ import AdminLayout from '@/Layouts/Admin/Layout.vue';
 import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
 
 const props = defineProps({
-    user: {
-        nik: String,
-        gender: String,
-        birth_date: String,
-        last_education: String,
-        work_unit: String,
-        institution: String,
-        marital_status: String,
-        spouse_name: String,
-        dependents: Number,
-        phone_number: String,
-        email: String,
-        address: String,
-        residential_address: String,
-    },
-    heirs: {
-        name: String,
-        relationship: String,
-        contact: String,
-    },
-    saving_accounts: {
-        pokok: {
-            balance: Number,
-            last_updated: String,
-            last_transaction: String,
-            transaction_date: String,
-        },
-        wajib: {
-            balance: Number,
-            last_updated: String,
-            last_transaction: String,
-            transaction_date: String,
-        },
-        sukarela: {
-            balance: Number,
-            last_updated: String,
-            last_transaction: String,
-            transaction_date: String,
-        },
-    },
+    user: { type: Object, required: true },
 });
 </script>
