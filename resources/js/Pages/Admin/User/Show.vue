@@ -35,42 +35,46 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jenis Kelamin</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.gender ?? '-' }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.gender ?? '-'
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Lahir</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.birth_date ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Pendidikan Terakhir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.last_education ?? '-'
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.last_education ??
+                                        '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit.name }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit.name
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Lembaga</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.institution
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Status Pernikahan</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.marital_status ?? '-'
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.marital_status ??
+                                        '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Pasangan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.spouse_name ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jumlah Tanggungan
                                         Keluarga</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.dependents ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -103,7 +107,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Telepon</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.phone_number ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Email</span>
@@ -111,11 +115,13 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Sesuai KTP</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.address ?? '-' }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.address ?? '-'
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Domisili</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.residential_address ?? '-'
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.residential_address
+                                        ?? '-'
                                         }}</span>
                                 </li>
                             </ul>
@@ -125,108 +131,49 @@
                             <ul class="grid grid-cols-2 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Ahli Waris</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.name ?? '-' }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.name ?? '-'
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Hubungan Keluarga</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.relationship ?? '-'
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.relationship
+                                        ?? '-'
                                         }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Kontak Ahli Waris</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.contact ?? '-'
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.contact ??
+                                        '-'
                                         }}</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-                <!-- <div class="card-layout">
+                <div class="card-layout flex flex-col gap-4">
                     <div class="grid grid-cols-3 gap-4">
-                        <div class="card-layout flex flex-col gap-12">
-                            <h1>Simpanan Pokok</h1>
+                        <div v-for="account in user.saving_accounts" class="card-layout flex flex-col gap-12">
+                            <h1>{{ account.type }}</h1>
                             <ul class="grid grid-cols-2 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Saldo</span>
                                     <span class="font-medium text-dark-text dark:text-white">Rp{{
-                                        saving_accounts.pokok.balance }}</span>
+                                        account.balance }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Terakhir Diperbarui</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.pokok.last_updated }}</span>
+                                        account.last_updated }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Transaksi Terakhir</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.pokok.last_transaction }}</span>
+                                        account.last_transaction }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.pokok.transaction_date }}</span>
-                                </li>
-                            </ul>
-                            <button
-                                class="flex justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-                                <span class="icon-[material-symbols--info-outline-rounded]"
-                                    style="width: 24px; height: 24px;"></span>
-                                Mutasi
-                            </button>
-                        </div>
-                        <div class="card-layout flex flex-col gap-12">
-                            <h1>Simpanan Wajib</h1>
-                            <ul class="grid grid-cols-2 gap-6">
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Saldo</span>
-                                    <span class="font-medium text-dark-text dark:text-white">Rp{{
-                                        saving_accounts.wajib.balance }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Terakhir Diperbarui</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.wajib.last_updated }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Transaksi Terakhir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.wajib.last_transaction }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.wajib.transaction_date }}</span>
-                                </li>
-                            </ul>
-                            <button
-                                class="flex justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-                                <span class="icon-[material-symbols--info-outline-rounded]"
-                                    style="width: 24px; height: 24px;"></span>
-                                Mutasi
-                            </button>
-                        </div>
-                        <div class="card-layout flex flex-col gap-12">
-                            <h1>Simpanan Sukarela</h1>
-                            <ul class="grid grid-cols-2 gap-6">
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Saldo</span>
-                                    <span class="font-medium text-dark-text dark:text-white">Rp{{
-                                        saving_accounts.sukarela.balance }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Terakhir Diperbarui</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.sukarela.last_updated }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Transaksi Terakhir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.sukarela.last_transaction }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        saving_accounts.sukarela.transaction_date }}</span>
+                                        account.transaction_date }}</span>
                                 </li>
                             </ul>
                             <button
@@ -237,7 +184,65 @@
                             </button>
                         </div>
                     </div>
-                </div> -->
+                    <div class="grid grid-cols-2">
+                        <div v-for="financing in user.financings" class="card-layout flex flex-col gap-12 px-0!">
+                            <div class="border-b-2 border-gray-200 dark:border-gray-700 pb-4 px-8">
+                                <h1 class="font-semibold text-dark-text dark:text-white/90">Pembiayaan Murabahah</h1>
+                            </div>
+                            <ul class="grid grid-cols-1 gap-6 px-8">
+                                <li class="flex justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-300">Objek Pembiayaan</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{
+                                        financing.product_type }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-300">Terakhir Diperbarui</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{
+                                        financing.created_at }}</span>
+                                </li>
+                                <li class="flex flex-col gap-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-500 dark:text-gray-300">Sisa Pembiayaan</span>
+                                        <span class="font-medium text-dark-text dark:text-white">{{
+                                            financing.status }}</span>
+                                    </div>
+                                    <div class="progress-container">
+                                        <div class="progress-bar" :style="{ width: '50%' }"></div>
+                                    </div>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-300">Angsuran Per-Bulan</span>
+                                    <span class="font-medium text-dark-text dark:text-white">Rp{{
+                                        financing.loan.amount_ins }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-300">Jatuh Tempo Berikutnya</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{
+                                        financing.created_at }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-sm text-gray-500 dark:text-gray-300">Posisi Angsuran</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{
+                                        financing.created_at }}</span>
+                                </li>
+                            </ul>
+                            <div class="flex gap-4 w-full px-8">
+                                <button
+                                    class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                    <span class="icon-[material-symbols--info-outline-rounded]"
+                                        style="width: 24px; height: 24px;"></span>
+                                    Detail
+                                </button>
+                                <button
+                                    class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                    <span class="icon-[material-symbols--info-outline-rounded]"
+                                        style="width: 24px; height: 24px;"></span>
+                                    Riwayat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </AdminLayout>
@@ -246,8 +251,11 @@
 <script setup>
 import AdminLayout from '@/Layouts/Admin/Layout.vue';
 import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
+import ProgressBar from 'primevue/progressbar';
 
 const props = defineProps({
     user: { type: Object, required: true },
 });
+
+console.log('loaded user', props.user)
 </script>

@@ -97,4 +97,6 @@ import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
 const props = defineProps({
     user: { type: Object, required: true },
 });
+
+console.log('loaded data', props.user);
 </script>
