@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\WorkUnit;
@@ -81,15 +82,41 @@ class AdminController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $admin = User::with('role', 'workUnit')->findOrFail($id);
+        $work_units = WorkUnit::all()->map(fn($unit) => [
+            'id' => $unit->id,
+            'name' => $unit->name
+        ]);
+        $roles = Role::all()->map(fn($role) => [
+            'id' => $role->id,
+            'name' => $role->name
+        ]);
+
+        return inertia('Admin/Admins/Edit', [
+            'admin' => $admin,
+            'work_units' => $work_units,
+            'roles' => $roles,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateAdminRequest $request, string $id)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $data = $request->validated();
+
+            $admin = User::findOrFail($id);
+            $admin->update($data);
+            DB::commit();
+
+            return redirect()->route('admin.dashboard')->with('success', 'Admin berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memperbarui admin: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
