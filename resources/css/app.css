@@ -814,3 +814,9 @@ span.flatpickr-weekday,
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); } /* geser satu track penuh */
 }
+
+.progress-container {
+    @apply w-full h-2 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-bar { height: 100%; background: #4caf50; transition: width 0.3s ease; }

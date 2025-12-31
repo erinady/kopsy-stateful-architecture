@@ -28,7 +28,7 @@
                     <div class="card-layout py-0! grid grid-cols-2">
                         <div class="grid grid-cols-1 gap-8 py-6">
                             <h1 class="card-title">Identitas</h1>
-                            <ul class="grid grid-cols-2 gap-6">
+                            <ul class="grid xl:grid-cols-2 grid-cols-1 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">NIK</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.nik }}</span>
@@ -62,7 +62,7 @@
                     <div class="card-layout py-0! grid grid-cols-2">
                         <div class="grid grid-cols-1 gap-8 py-6">
                             <h1 class="card-title">Kontak dan Alamat</h1>
-                            <ul class="grid grid-cols-2 gap-6">
+                            <ul class="grid xl:grid-cols-2 grid-cols-1 gap-6">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Telepon</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.phone_number ?? '-'
@@ -97,4 +97,6 @@ import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
 const props = defineProps({
     user: { type: Object, required: true },
 });
+
+console.log('loaded data', props.user);
 </script>
