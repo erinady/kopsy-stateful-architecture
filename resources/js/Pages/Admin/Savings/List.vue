@@ -65,7 +65,7 @@ const tableTitle = computed(() => {
     <AdminLayout>
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-blue-900">
+            <h1 class="text-2xl font-bold text-blue-900 dark:text-blue-300">
                 Pengelolaan Simpanan
             </h1>
 
@@ -82,9 +82,9 @@ const tableTitle = computed(() => {
         </div>
 
         <!-- Ringkasan -->
-        <div class="bg-white rounded-xl p-6 mb-10 relative">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 mb-10 relative">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="font-semibold">Ringkasan</h2>
+                <h2 class="font-semibold dark:text-white">Ringkasan</h2>
 
                 <!-- Tombol Tambah -->
                 <Link
@@ -102,11 +102,11 @@ const tableTitle = computed(() => {
                     :key="item.title"
                     class="border rounded-xl p-5"
                 >
-                    <p class="text-sm text-gray-500">
+                    <p class="text-sm text-gray-500 dark:text-gray-100">
                         {{ item.title }}
                     </p>
 
-                    <p class="text-xl font-bold mt-1">
+                    <p class="text-xl font-bold mt-1 dark:text-gray-100">
                         {{ item.value }}
                     </p>
 
@@ -126,30 +126,30 @@ const tableTitle = computed(() => {
             </div>
         </div>
 
-        <div class="relative">
+        <div class="relative mt-15">
             <!-- Tabs -->
             <div class="flex gap-2 absolute -top-8 left-6 z-10">
                 <button
                     v-for="tab in tabs"
                     :key="tab.key"
                     @click="activeTab = tab.key"
-                    class="px-4 py-2 rounded-lg text-sm border transition"
-                    :class="activeTab === tab.key
-                        ? 'bg-white text-blue-600 font-medium shadow'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+                    class="px-4 py-2 rounded-lg text-sm border transition border-gray-200 dark:border-slate-700"
+                     :class="activeTab === tab.key
+                        ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-medium shadow'
+                        : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'"
                 >
                     {{ tab.label }}
                 </button>
             </div>
 
             <!-- Table Card -->
-            <div class="bg-white rounded-xl shadow overflow-hidden relative z-10">
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden relative z-10">
                 <!-- Header Table -->
                 <div class="px-6 pb-4 p-7">
-                    <h3 class="font-semibold">
+                    <h3 class="font-semibold text-gray-900 dark:text-slate-100">
                         {{ tableTitle }}
                     </h3>
-                    <p class="text-sm text-gray-500">
+                    <p class="text-sm text-gray-500 dark:text-slate-400">
                         Lacak transaksi simpanan koperasi di sini
                     </p>
                 </div>
@@ -158,7 +158,7 @@ const tableTitle = computed(() => {
                 <div class="flex justify-between items-center px-6 py-4 border-b">
                     <div class="flex items-center gap-3">
                         <span class="text-sm text-gray-500">Tampilkan</span>
-                        <select class="border rounded px-3 py-1 text-sm">
+                        <select class="border rounded px-3 py-1 text-sm bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-slate-100">
                             <option>10</option>
                             <option>25</option>
                             <option>50</option>
@@ -171,7 +171,7 @@ const tableTitle = computed(() => {
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                class="pl-10 pr-4 py-2 border rounded-lg text-sm"
+                                class="pl-10 pr-4 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-400"
                             />
                             <Icon
                                 icon="mdi:magnify"
@@ -179,7 +179,7 @@ const tableTitle = computed(() => {
                             />
                         </div>
 
-                        <button class="flex items-center gap-2 border rounded-lg px-4 py-2 text-sm">
+                        <button class="flex items-center gap-2 border rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-slate-100">
                             <Icon icon="mdi:filter-variant" />
                             Filter
                         </button>
@@ -189,7 +189,7 @@ const tableTitle = computed(() => {
                 <!-- Table -->
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-gray-50 dark:bg-slate-700 dark:text-gray-100">
                             <tr>
                                 <th class="px-6 py-3 text-left text-sm font-medium">No. Transaksi</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium">Tanggal</th>
@@ -201,11 +201,11 @@ const tableTitle = computed(() => {
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y">
+                        <tbody class="divide-y divide-gray-200 dark:divide-slate-700 dark:text-gray-100">
                             <tr
                                 v-for="trx in transactions"
                                 :key="trx.id"
-                                class="hover:bg-gray-50"
+                                class="hover:bg-gray-50 dark:hover:bg-slate-700"
                             >
                                 <td class="px-6 py-4 text-sm">
                                     {{ trx.no_transaksi }}
@@ -258,7 +258,7 @@ const tableTitle = computed(() => {
             </div>
 
             <!-- Pagination -->
-            <div class="p-6 flex justify-center gap-3 text-sm text-gray-600">
+            <div class="p-6 flex justify-center gap-3 text-sm text-gray-600 dark:text-slate-400">
                 <button class="px-4 py-2 border rounded-lg">
                     Sebelumnya
                 </button>
