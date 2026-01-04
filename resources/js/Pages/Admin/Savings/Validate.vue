@@ -1,7 +1,7 @@
 <template>
     <AdminLayout>
         <div class="flex flex-col px-20">
-            <PageBreadcrumb :page-title="'Detail Simpanan'" />
+            <PageBreadcrumb :page-title="'Validasi Permohonan Simpanan'" />
             <div class="card-layout flex mb-4 justify-between">
                 <div class="flex gap-2 items-center">
                     <h1 class="font-semibold text-dark-text dark:text-white">No. Transaksi #{{ data.id }}
