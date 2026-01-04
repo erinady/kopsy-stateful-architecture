@@ -2,6 +2,7 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SavingController;
@@ -13,9 +14,12 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/auth/register', function () {
-    return Inertia::render('Auth/Register');
-})->name('register');
+Route::get('/auth/register', [RegisterController::class, 'create'])
+    ->middleware('guest')
+    ->name('register');
+
+Route::post('/auth/register', [RegisterController::class, 'store'])
+    ->name('register.store');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
