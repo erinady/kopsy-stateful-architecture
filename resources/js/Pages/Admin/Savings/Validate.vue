@@ -1,0 +1,134 @@
+<template>
+    <AdminLayout>
+        <div class="flex flex-col px-20">
+            <PageBreadcrumb :page-title="'Detail Simpanan'" />
+            <div class="card-layout flex mb-4 justify-between">
+                <div class="flex gap-2 items-center">
+                    <h1 class="font-semibold text-dark-text dark:text-white">No. Transaksi #{{ data.id }}
+                    </h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        class="inline-flex items-center gap-2 rounded-lg border bg-blue-accent px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                        Lihat Bukti
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                <div class="flex flex-col justify-end col-span-1 lg:col-span-3">
+                    <div class="card-layout pb-40!">
+                        <h2 class="card-title mb-4">Permohonan Simpanan Baru</h2>
+                        <ul class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Nominal Simpanan</span>
+                                <span class="font-medium text-dark-text dark:text-white">Rp {{ data.amount
+                                    }}</span>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Kategori Simpanan</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{ data.saving_account.type
+                                    }}</span>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Akad</span>
+                                <span class="font-medium text-dark-text dark:text-white">
+                                    {{ data.saving_account.type === 'Simpanan Sukarela' ? 'Wadiah Yad Dhamanah' :
+                                        'Musyarakah'
+                                    }}
+                                </span>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Jenis Transaksi</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{ data.type }}</span>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{ data.transaction_date
+                                    }}</span>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Metode Pembayaran</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{ data.method }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="flex items-center gap-4 justify-end mt-4">
+                        <form @submit.prevent="form.put('/admin/savings/validate/' + data.id)">
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 rounded-lg border bg-success-500 px-8 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-success-400 dark:border-gray-700 dark:text-white dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                Terima
+                            </button>
+                        </form>
+                        <button @click="showModal()"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-error-500 px-8 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-error-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                            Tolak
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-col col-span-1 lg:col-span-2 gap-2">
+                    <div class="card-layout h-fit flex flex-col gap-6">
+                        <h1 class="card-title">Detail Pemohon</h1>
+                        <ul class="grid grid-cols-1 gap-6">
+                            <li class="flex lg:flex-row flex-col gap-2 justify-between">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Anggota</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{ data.saving_account.user.id
+                                    }}</span>
+                            </li>
+                            <li class="flex lg:flex-row flex-col gap-2 justify-between">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Nama Anggota</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{
+                                    data.saving_account.user.name }}</span>
+                            </li>
+                            <li class="flex lg:flex-row flex-col gap-2 justify-between">
+                                <span class="text-sm text-gray-500 dark:text-gray-300">Status Keanggotaan</span>
+                                <span class="font-medium text-dark-text dark:text-white">{{
+                                    data.saving_account.user.status }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden">
+            <form @submit.prevent="form.put('/admin/savings/validate/' + data.id)"
+                class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96">
+                <h2 class="text-lg font-semibold mb-4 text-dark-text dark:text-white">Alasan Penolakan</h2>
+                <textarea rows="4" v-model="form.description"
+                    class="w-full p-2 border font-body border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    placeholder="Masukkan alasan penolakan..."></textarea>
+                <div class="flex justify-end mt-4 gap-2">
+                    <button @click="hideModal()" type="button"
+                        class="px-8 text-theme-sm py-2.5 bg-gray-300 text-dark-text dark:text-gray-800 rounded-lg hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="px-8 py-2.5 text-theme-sm bg-primary text-white rounded-lg hover:bg-brand-800">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </AdminLayout>
+</template>
+
+<script setup>
+import AdminLayout from '../../../Layouts/Admin/Layout.vue'
+import PageBreadcrumb from '../../../Components/PageBreadcrumb.vue'
+import { useForm } from '@inertiajs/vue3'
+
+const props = defineProps({
+    data: { type: Object, required: true },
+});
+
+const showModal = () => {
+    document.getElementById('modal').classList.remove('hidden');
+};
+const hideModal = () => {
+    document.getElementById('modal').classList.add('hidden');
+};
+
+const form = useForm({
+    description: '',
+})
+
+</script>
