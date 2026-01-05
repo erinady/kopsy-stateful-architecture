@@ -1,12 +1,14 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/Admin/Layout.vue'
+import ReadonlyField from '@/Components/Form/ReadonlyField.vue'
 
 const props = defineProps({
 	member: {
 		type: Object,
 		default: () => ({
+			id: '',
 			name: '',
 			nik: '',
 			work_unit: '',
@@ -23,6 +25,7 @@ const note = ref(props.member.note ?? '')
 const decision = ref(null)
 
 const member = computed(() => ({
+	id: props.member?.id ?? '',
 	name: props.member?.name ?? '',
 	nik: props.member?.nik ?? '',
 	work_unit: props.member?.work_unit ?? '',
@@ -37,7 +40,23 @@ const setDecision = (value) => {
 }
 
 const handleContinue = () => {
-	// TODO: integrate submit/approval logic
+    if (!decision.value) {
+        alert('Silakan pilih keputusan terlebih dahulu')
+        return
+    }
+    
+    router.post(
+        `/admin/verifikasi/${props.member.id}/approval`,
+        {
+            decision: decision.value,
+            note: decision.value === 'rejected' ? note.value : '',
+        },
+        {
+            onSuccess: () => {
+                window.location.href = '/admin/verifikasi'
+            },
+        }
+    )
 }
 </script>
 
@@ -56,87 +75,54 @@ const handleContinue = () => {
 			</div>
 
 			<div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-				<section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100 xl:col-span-2">
-					<div class="pb-4">
-						<h2 class="text-lg font-semibold text-gray-900">Detail Data Calon Anggota</h2>
-						<div class="mt-3 h-px bg-gray-200"></div>
+				<section class="rounded-xl bg-white shadow-sm ring-1 ring-gray-100 xl:col-span-2">
+					<div
+						class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+						<h2 class="font-heading text-xl font-semibold text-gray-900 dark:text-white">
+							Detail Data Calon Anggota
+						</h2>
 					</div>
 
-					<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-						<div class="flex flex-col gap-2">
-							<label class="text-sm font-medium text-gray-600">Nama Lengkap</label>
-							<input
-								:value="member.name"
-								disabled
-								class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							/>
-						</div>
-						<div class="flex flex-col gap-2">
-							<label class="text-sm font-medium text-gray-600">NIK</label>
-							<input
-								:value="member.nik"
-								disabled
-								class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							/>
-						</div>
-						<div class="flex flex-col gap-2">
-							<label class="text-sm font-medium text-gray-600">Unit Kerja</label>
-							<input
-								:value="member.work_unit"
-								disabled
-								class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							/>
-						</div>
-						<div class="flex flex-col gap-2">
-							<label class="text-sm font-medium text-gray-600">Nama Lembaga</label>
-							<input
-								:value="member.institution"
-								disabled
-								class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							/>
-						</div>
-						<div class="flex flex-col gap-2">
-							<label class="text-sm font-medium text-gray-600">Email</label>
-							<input
-								:value="member.email"
-								disabled
-								class="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							/>
-						</div>
-						<div class="flex items-end justify-start gap-3 md:justify-end">
-							<button
-								type="button"
-								@click="setDecision('approved')"
-								:class="[
-									'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
-									decision === 'approved'
-										? 'bg-blue-800 text-white shadow'
-										: 'bg-blue-800 text-white hover:bg-blue-900'
-								]"
-							>
-								Diterima
-							</button>
-							<button
-								type="button"
-								@click="setDecision('rejected')"
-								:class="[
-									'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
-									decision === 'rejected'
-										? 'bg-red-700 text-white shadow'
-										: 'bg-red-700 text-white hover:bg-red-900'
-								]"
-							>
-								Ditolak
-							</button>
-						</div>
-						<div v-if="decision === 'rejected'" class="flex flex-col gap-2 md:col-span-2">
-							<label class="text-sm font-medium text-gray-600">Catatan</label>
-							<textarea
-								v-model="note"
-								rows="3"
-								placeholder="Catatan jika ditolak"
-								class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-							></textarea>
+					<div class="px-6 py-4 mt-4 gap-4">
+						<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+						<ReadonlyField label="Nama Lengkap" :model-value="member.name" />
+						<ReadonlyField label="NIK" :model-value="member.nik" />
+						<ReadonlyField label="Unit Kerja" :model-value="member.work_unit" />
+						<ReadonlyField label="Nama Lembaga" :model-value="member.institution" />
+						<ReadonlyField label="Email" :model-value="member.email" type="email" />
+							<div class="flex items-end justify-start gap-3 md:justify-end">
+								<button
+									type="button"
+									@click="() => { decision = 'approved'; handleContinue(); }"
+									:class="[
+										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
+										'bg-blue-800 text-white hover:bg-blue-900'
+									]"
+								>
+									Diterima
+								</button>
+								<button
+									type="button"
+									@click="setDecision('rejected')"
+									:class="[
+										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
+										decision === 'rejected'
+											? 'bg-red-700 text-white shadow'
+											: 'bg-red-700 text-white hover:bg-red-900'
+									]"
+								>
+									Ditolak
+								</button>
+							</div>
+							<div v-if="decision === 'rejected'" class="flex flex-col gap-2 md:col-span-2">
+								<label class="text-sm font-medium text-gray-600 mt-4">Catatan</label>
+								<textarea
+									v-model="note"
+									rows="3"
+									placeholder="Catatan jika ditolak"
+									class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+								></textarea>
+							</div>
 						</div>
 					</div>
 
@@ -154,39 +140,15 @@ const handleContinue = () => {
 				<div class="flex flex-col gap-4">
 					<section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
 						<h3 class="mb-4 text-base font-semibold text-gray-900">Foto Calon Anggota</h3>
-						<div class="flex h-56 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
-							<template v-if="member.photo_url">
-								<img :src="member.photo_url" alt="Foto calon anggota" class="h-full w-full rounded-lg object-cover" />
-							</template>
-							<template v-else>
-								<div class="text-center text-gray-400">
-									<svg class="mx-auto mb-3 h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-										<rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
-										<circle cx="8.5" cy="11.5" r="1.5" />
-										<path d="m21 15-3.5-3.5a2 2 0 0 0-3 0L9 17" />
-									</svg>
-									<p class="text-sm">Belum ada foto diunggah</p>
-								</div>
-							</template>
+						<div class="mx-auto flex w-60 aspect-square items-center justify-center rounded-lg border-2 bg-gray-50">
+							<img v-if="member.photo_url" :src="member.photo_url" alt="Foto calon anggota" class="h-full w-full rounded-lg object-cover" />
 						</div>
 					</section>
 
 					<section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
 						<h3 class="mb-4 text-base font-semibold text-gray-900">Foto KTP</h3>
-						<div class="flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
-							<template v-if="member.id_card_url">
-								<img :src="member.id_card_url" alt="Foto KTP" class="h-full w-full rounded-lg object-cover" />
-							</template>
-							<template v-else>
-								<div class="text-center text-gray-400">
-									<svg class="mx-auto mb-3 h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-										<rect x="3" y="7" width="18" height="10" rx="2" ry="2" />
-										<path d="M7 11h6" />
-										<path d="M7 13h4" />
-									</svg>
-									<p class="text-sm">Belum ada foto KTP</p>
-								</div>
-							</template>
+						<div class="flex w-full aspect-[16/10] items-center justify-center rounded-lg border-2 bg-gray-50">
+							<img v-if="member.id_card_url" :src="member.id_card_url" alt="Foto KTP" class="h-full w-full rounded-lg object-cover" />
 						</div>
 					</section>
 				</div>
