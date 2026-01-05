@@ -21,8 +21,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/savings/show/{id}', [SavingController::class, 'show'])->name('savings.show');
-    Route::get('/savings/validate/{id}', [SavingController::class, 'validation'])->name('savings.validation');
-    Route::put('/savings/validate/{id}', [SavingController::class, 'validate'])->name('savings.validate');
+    Route::put('/savings/validate/{id}', [SavingController::class, 'validateRequest'])->name('savings.validate');
 
     Route::get('/users/show/{id}', [UserController::class, 'show'])->name('users.show');
 

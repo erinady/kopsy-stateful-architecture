@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\TransactionStatus;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSavingTransactionValidationRequest extends FormRequest
@@ -23,6 +22,7 @@ class StoreSavingTransactionValidationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => 'required|in:accepted,rejected',
             'description' => 'nullable|string', // this is rejection reason
         ];
     }
