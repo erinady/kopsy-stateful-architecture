@@ -42,6 +42,29 @@ class UserController extends Controller
         $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
         return inertia('Admin/User/Show', ['user' => $user]);
     }
+
+    public function verificationDetail(string $id)
+    {
+        $user = User::with(['workUnit:id,name', 'userDocs'])->findOrFail($id);
+
+        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+        $idCard = $user->userDocs
+            ->first(fn ($doc) => strtolower($doc->name) === 'ktp');
+        $idCardUrl = $idCard?->attachment ? asset('storage/' . $idCard->attachment) : null;
+
+        return Inertia::render('Admin/User/Verification/Show', [
+            'member' => [
+                'name' => $user->name,
+                'nik' => $user->nik,
+                'work_unit' => $user->workUnit->name ?? '-',
+                'institution' => $user->institution,
+                'email' => $user->email,
+                'photo_url' => $photoUrl,
+                'id_card_url' => $idCardUrl,
+            ],
+        ]);
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
