@@ -162,7 +162,7 @@ class UserController extends Controller
                 ->with('success', 'Persetujuan berhasil dikirim dan email notifikasi sudah dikirim ke ' . $user->email);
         } else {
             // Update status user menjadi Ditolak
-            $user->update(['status' => 'Ditolak dengan alasan']);
+            $user->update(['status' => 'Ditolak']);
             Mail::to($user->email)->send(new RejectionNotificationMail($user, $validated['note'] ?? ''));
 
             return redirect()->route('admin.users.prospective')
