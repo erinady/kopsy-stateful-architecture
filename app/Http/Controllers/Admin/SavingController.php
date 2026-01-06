@@ -7,15 +7,111 @@ use App\Http\Requests\StoreSavingTransactionValidationRequest;
 use App\Models\SavingTransaction;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\SavingTransaction;
+use Inertia\Inertia;
+use Carbon\Carbon;
 
 class SavingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        $tab = $request->input('tab', 'semua');
 
+        $sortBy = $request->input('sort_by', 'transaction_date');
+        $sortDir = $request->input('sort_dir', 'desc');
+
+        $alloweSorts = ['transaction_date'];
+
+        if (!in_array($sortBy, $alloweSorts)) {
+            $sortBy = 'transaction_date';
+        }
+
+        $query = SavingTransaction::with([
+            'savingAccount.user.workUnit'
+        ])
+        ->when($search, function ($q) use ($search) {
+            $q->whereHas('savingAccount.user', function ($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%");
+            });
+        })
+        ->when($tab === 'permohonan', function ($q) {
+            $q->whereIn('type', ['Penarikan', 'Penyetoran']);
+        })
+        ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab) {
+            $map = [
+                'pokok' => 'Simpanan Pokok',
+                'wajib' => 'Simpanan Wajib',
+                'sukarela' => 'Simpanan Sukarela',
+            ];
+
+            $q->whereHas('savingAccount', function ($sa) use ($map, $tab) {
+                $sa->where('type', $map[$tab]);
+            });
+        })
+        ->orderBy($sortBy, $sortDir);
+
+        $transactions = $query
+            ->paginate($perPage)
+            ->withQueryString()
+            ->through(function ($trx) {
+                return [
+                    'id' => $trx->id,
+                    'no_transaksi' => 'TRX-' . str_pad($trx->id, 6, '0', STR_PAD_LEFT),
+                    'tanggal' => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
+                    'anggota' => $trx->savingAccount->user->nik
+                        . ' - '
+                        . $trx->savingAccount->user->name,
+                    'nominal' => $trx->type === 'Penarikan'
+                        ? -$trx->amount
+                        : $trx->amount,
+                    'produk' => str_replace('Simpanan ', '', $trx->savingAccount->type),
+                    'jenis' => $trx->type,
+                ];
+            });
+
+        $summarySource = collect($transactions->items());
+
+        $summary = [
+            [
+                'title' => 'Total Kas',
+                'value' => 'Rp.' . number_format($summarySource->sum('nominal'), 0, ',', '.'),
+                'up' => true,
+            ],
+            [
+                'title' => 'Total Simpanan Keluar',
+                'value' => 'Rp.' . number_format(
+                    abs($summarySource->where('nominal', '<', 0)->sum('nominal')),
+                    0, ',', '.'
+                ),
+                'up' => false,
+            ],
+            [
+                'title' => 'Total Simpanan Masuk',
+                'value' => 'Rp.' . number_format(
+                    $summarySource->where('nominal', '>', 0)->sum('nominal'),
+                    0, ',', '.'
+                ),
+                'up' => true,
+            ],
+        ];
+
+        return Inertia::render('Admin/Savings/List', [
+            'transactions' => $transactions,
+            'summary' => $summary,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'tab' => $tab,
+                'sort_by' => $sortBy,
+                'sort_dir' => $sortDir,
+            ],
+        ]);
     }
 
     /**
