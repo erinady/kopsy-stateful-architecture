@@ -11,7 +11,7 @@
                 <CardInfo title="Jumlah Anggota Aktif" :content="active_user_count" :percentage="2" />
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CardStatisticBar title="Statistik Penjualan" />
+                <CardStatisticBar title="Statistik Pembiayaan" />
                 <div class="row-span-4 lg:row-span-4">
                     <div class="overflow-hidden card-layout h-full w-full">
                         <div class="flex flex-col gap-2 mb-5 sm:flex-row sm:items-center sm:justify-between">
@@ -73,7 +73,7 @@
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody v-if="registration_data?.length">
                                     <tr v-for="data in registration_data" :key="index"
                                         class="border-t border-gray-100 dark:border-gray-800">
                                         <td class="py-5 whitespace-nowrap">
@@ -108,6 +108,17 @@
                                                 </svg>
                                                 Tinjau
                                             </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody v-else>
+                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                        <td colspan="5" class="py-5 text-center">
+                                            <span class="icon-[streamline-freehand-color--archive-box]"
+                                                style="width: 120px; height: 120px;"></span>
+                                            <p class="text-dark-text text-sm dark:text-gray-400 pt-4">
+                                                Tidak ada data registrasi terbaru.
+                                            </p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -178,7 +189,7 @@
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody v-if="transaction_data?.length">
                                     <tr v-for="data in transaction_data" :key="index"
                                         class="border-t border-gray-100 dark:border-gray-800">
                                         <td class="py-5 whitespace-nowrap">
@@ -216,6 +227,17 @@
                                         </td>
                                     </tr>
                                 </tbody>
+                                <tbody v-else>
+                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                        <td colspan="5" class="py-5 text-center">
+                                            <span class="icon-[streamline-freehand-color--archive-box]"
+                                                style="width: 120px; height: 120px;"></span>
+                                            <p class="text-dark-text text-sm dark:text-gray-400 pt-4">
+                                                Tidak ada data transaksi terbaru.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -225,7 +247,7 @@
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col gap-2">
                             <h1 class="card-title">Pengajuan Pembiayaan Murabahah</h1>
-                            <p class="text-gray-500">No. Transaksi #{{ financing_data[activeIndex]?.id ?? '' }}</p>
+                            <p v-if="financing_data?.length" class="text-gray-500">No. Transaksi #{{ financing_data[activeIndex]?.id ?? '' }}</p>
                         </div>
                         <button
                             class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
@@ -234,27 +256,36 @@
                     </div>
                     <div
                         class="card-info bg-white dark:bg-gray-800 py-6 rounded-xl border border-stroke dark:border-gray-700 flex flex-col gap-2">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 pb-5 pt-2">
+                        <div v-if="financing_data?.length" class="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 pb-5 pt-2">
                             <div class="flex flex-col">
                                 <p>Permintaan Produk</p>
-                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.product_type ?? '' }}</h1>
+                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.product_type
+                                    ?? '' }}</h1>
                             </div>
                             <div class="flex flex-col">
                                 <p>Nomor Anggota</p>
-                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.member_number ?? '' }}</h1>
+                                <h1 class="font-semibold font-body text-lg">{{
+                                    financing_data[activeIndex]?.member_number ?? '' }}</h1>
                             </div>
                             <div class="flex flex-col">
                                 <p>Status</p>
-                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.status ?? '' }}</h1>
+                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.status ?? ''
+                                }}</h1>
                             </div>
                             <div class="flex flex-col">
                                 <p>Nama Anggota</p>
-                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.user_name ?? '' }}</h1>
+                                <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.user_name ??
+                                    '' }}</h1>
                             </div>
                         </div>
-                        <div class="border border-stroke"></div>
+                        <div v-else class="flex flex-col items-center justify-center gap-4 pb-2">
+                            <span class="icon-[streamline-freehand-color--task-list-pin-1]" style="width: 100px; height: 100px;"></span>
+                            <p class="text-center text-dark-text dark:text-gray-400">Tidak ada data pengajuan
+                                pembiayaan.</p>
+                        </div>
+                        <div v-if="financing_data?.length" class="border border-stroke"></div>
                         <div class="flex justify-end px-8 pt-2">
-                            <button
+                            <button v-if="financing_data?.length"
                                 class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-secondary px-5 py-2.5 text-white font-medium shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
                                     fill="none"
