@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
 import UserIcon from '../Icons/UserIcon.vue'
 
 const isMenuOpen = ref(true)
