@@ -41,15 +41,25 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
+        $user->load([
+            'role',
+            'workUnit',
+            'savingAccounts.transactions' => function ($query) {
+                $query->latest('created_at')->take(1);
+            },
+            'heirs',
+            'userDocs',
+            'financings.loan.payments'
+        ]);
+
         return inertia('Admin/User/Show', ['user' => $user]);
     }
 
-    public function verificationDetail(string $id)
+    public function verificationDetail(User $user)
     {
-        $user = User::with(['workUnit:id,name', 'userDocs'])->findOrFail($id);
+        $user->load(['workUnit:id,name', 'userDocs']);
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         $idCard = $user->userDocs
@@ -59,6 +69,7 @@ class UserController extends Controller
         return Inertia::render('Admin/User/Verification/Show', [
             'member' => [
                 'id' => $user->id,
+                'member_number' => $user->member_number,
                 'name' => $user->name,
                 'nik' => $user->nik,
                 'work_unit' => $user->workUnit->name,
@@ -125,6 +136,7 @@ class UserController extends Controller
             ->withQueryString()
             ->through(fn ($user) => [
                 'id' => $user->id,
+                'member_number' => $user->member_number,
                 'name' => $user->name,
                 'nik' => $user->nik,
                 'email' => $user->email,
@@ -145,14 +157,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function submitApproval(Request $request, string $id)
+    public function submitApproval(Request $request, User $user)
     {
         $validated = $request->validate([
             'decision' => 'required|in:approved,rejected',
             'note' => 'nullable|string',
         ]);
 
-        $user = User::findOrFail($id);
         $emailSent = true;
 
         if ($validated['decision'] === 'approved') {
@@ -207,15 +218,16 @@ class UserController extends Controller
     /**
      * Display the user's public profile
      */
-    public function profile(string $id)
+    public function profile(User $user)
     {
-        $user = User::with(['role', 'workUnit'])->findOrFail($id);
-        
+        $user->load(['role', 'workUnit']);
+
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         
         return Inertia::render('User/Profile/Show', [
             'user' => [
                 'id' => $user->id,
+                'member_number' => $user->member_number,
                 'name' => $user->name,
                 'nik' => $user->nik,
                 'birth_date' => $user->birth_date,
@@ -231,19 +243,20 @@ class UserController extends Controller
     /**
      * Show the form for editing user profile
      */
-    public function editProfile(string $id)
+    public function editProfile(User $user)
     {
-        if (request()->user()->id !== $id) {
+        if (request()->user()->isNot($user)) {
             abort(403, 'Anda tidak berhak mengedit profil ini.');
         }
 
-        $user = User::with(['role', 'workUnit'])->findOrFail($id);
-        
+        $user->load(['role', 'workUnit']);
+
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         
         return Inertia::render('User/Profile/Edit', [
             'user' => [
                 'id' => $user->id,
+                'member_number' => $user->member_number,
                 'name' => $user->name,
                 'nik' => $user->nik,
                 'birth_date' => $user->birth_date,
@@ -259,9 +272,9 @@ class UserController extends Controller
     /**
      * Update user profile
      */
-    public function updateProfile(Request $request, string $id)
+    public function updateProfile(Request $request, User $user)
     {
-        if ($request->user()->id !== $id) {
+        if ($request->user()->isNot($user)) {
             abort(403, 'Anda tidak berhak memperbarui profil ini.');
         }
 
@@ -272,33 +285,30 @@ class UserController extends Controller
                 'required',
                 'string',
                 'size:16',
-                \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($id, 'id'),
+                \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id, 'id'),
             ],
             'birth_date' => 'required|date|before_or_equal:today|after_or_equal:1900-01-01',
             'gender' => 'required|string|in:Laki-laki,Perempuan',
         ]);
 
-        $user = User::findOrFail($id);
         $user->update($validated);
 
-        return redirect()->route('user.profile.show', $id)
+        return redirect()->route('user.profile.show', $user)
             ->with('success', 'Profil berhasil diperbarui');
     }
 
     /**
      * Update user's profile picture
      */
-    public function updateProfilePicture(Request $request, string $id)
+    public function updateProfilePicture(Request $request, User $user)
     {
-        if ($request->user()->id !== $id) {
+        if ($request->user()->isNot($user)) {
             abort(403, 'Anda tidak berhak mengubah foto profil ini.');
         }
 
         $request->validate([
             'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
-        $user = User::findOrFail($id);
 
         $tmpPath = $request->file('profile_picture')->getPathname();
         if (! @getimagesize($tmpPath)) {
@@ -322,14 +332,12 @@ class UserController extends Controller
     /**
      * Delete user's profile picture
      */
-    public function deleteProfilePicture(string $id)
+    public function deleteProfilePicture(User $user)
     {
         // Authorization: only allow deleting own profile picture
-        if (request()->user()->id !== $id) {
+        if (request()->user()->isNot($user)) {
             abort(403, 'Anda tidak berhak menghapus foto profil ini.');
         }
-
-        $user = User::findOrFail($id);
 
         if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
             \Storage::disk('public')->delete($user->profile_picture);
