@@ -38,6 +38,7 @@ class User extends Authenticatable
         'dependents',
         'status',
         'joined_date',
+        'member_number',
         'email',
         'password',
         'role_id',
@@ -121,5 +122,13 @@ class User extends Authenticatable
     public function financings()
     {
         return $this->hasMany(Financing::class);
+    }
+
+    /**
+     * Use member_number for route model binding
+     */
+    public function getRouteKeyName()
+    {
+        return 'member_number';
     }
 }
