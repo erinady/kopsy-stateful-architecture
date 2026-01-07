@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\WorkUnit;
 use App\Enums\UserStatus;
 use Illuminate\Http\Request;
+use SweetAlert2\Laravel\Swal;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
+use App\Http\Requests\UpdateAdminRequest;
 
 class AdminController extends Controller
 {
@@ -53,15 +54,27 @@ class AdminController extends Controller
 
             User::create([
                 ...$data,
+                'member_number' => 'KSP' . $data['role_id'] . $data['work_unit_id'] . (User::count() + 1),
                 'password' => bcrypt('Password123'),
                 'status' => UserStatus::ACTIVE->value,
             ]);
 
             DB::commit();
-            return redirect()->route('admin.dashboard')->with('success', 'Admin berhasil ditambahkan.');
+
+            Swal::success([
+                'title' => 'Sukses!',
+                'text' => 'Admin berhasil ditambahkan.',
+                'icon' => 'success',
+            ]);
+            return redirect()->route('admin.dashboard');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menambahkan admin: ' . $e->getMessage())->withInput();
+            Swal::error([
+                'title' => 'Gagal!',
+                'text' => 'Gagal membuat admin' . $e->getMessage(),
+                'icon' => 'error',
+            ]);
+            return redirect()->back()->withInput();
         }
     }
 
@@ -115,7 +128,7 @@ class AdminController extends Controller
             return redirect()->route('admin.dashboard')->with('success', 'Admin berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal memperbarui admin: ' . $e->getMessage())->withInput();
+            return redirect()->back()->withInput();
         }
     }
 
