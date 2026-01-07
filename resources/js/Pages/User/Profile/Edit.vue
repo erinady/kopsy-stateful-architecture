@@ -115,7 +115,7 @@ const submit = () => {
                         <div class="relative flex-shrink-0">
                             <img
                                 :src="user.photo_url || '/images/default-avatar.png'"
-                                :alt="user.name"
+                                :alt="'Profile picture of ' + (user.name || 'user')"
                                 class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                             />
                             <div v-if="uploading || deleting" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
@@ -161,12 +161,14 @@ const submit = () => {
                             <BaseInput 
                                 label="Nama Anggota" 
                                 v-model="form.name" 
+                                :disabled="form.processing"
                                 :error="form.errors.name"
                                 required
                             />
                             <BaseInput 
                                 label="NIK" 
                                 v-model="form.nik" 
+                                :disabled="form.processing"
                                 :error="form.errors.nik"
                                 required
                             />
@@ -174,12 +176,14 @@ const submit = () => {
                                 label="Tanggal Lahir" 
                                 v-model="form.birth_date" 
                                 type="date"
+                                :disabled="form.processing"
                                 :error="form.errors.birth_date"
                                 required
                             />
                             <BaseSelect 
                                 label="Jenis Kelamin" 
                                 v-model="form.gender" 
+                                :disabled="form.processing"
                                 :error="form.errors.gender"
                                 required
                             >
@@ -192,7 +196,15 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-end gap-4">
+                    <div class="mt-8 flex justify-end gap-4 relative">
+                        <!-- Loading overlay during submit -->
+                        <div v-if="form.processing" class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                            <svg class="animate-spin h-6 w-6 text-blue-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span class="ml-2 text-blue-900 font-semibold">Menyimpan...</span>
+                        </div>
                         <button
                             type="button"
                             @click="router.visit(`/user/profile/${user.id}`)"
