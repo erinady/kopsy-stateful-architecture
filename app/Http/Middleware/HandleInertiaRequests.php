@@ -2,8 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Http\Request;
+use SweetAlert2\Laravel\Swal;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,9 +36,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return [
-            ...parent::share($request),
-            //
-        ];
+        return array_merge(parent::share($request), [
+            'flash' => [
+                Swal::SESSION_KEY => fn () => $request->session()->pull(Swal::SESSION_KEY),
+            ],
+        ]);
     }
 }
