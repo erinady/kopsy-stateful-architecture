@@ -55,23 +55,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/create', [AdminController::class, 'create']);
     Route::post('/store', [AdminController::class, 'store']);
     Route::get('/show/{id}', [AdminController::class, 'show']);
-    Route::get('/verifikasi', [UserController::class, 'prospectiveMembers'])->name('users.prospective');
-
     Route::get('/verifikasi', [UserController::class, 'prospectiveMembers'])
         ->name('users.prospective');
     
-    Route::get('/verifikasi/{id}', [UserController::class, 'verificationDetail'])
+    Route::get('/verifikasi/{user:member_number}', [UserController::class, 'verificationDetail'])
         ->name('users.verification.show');
     
-    Route::post('/verifikasi/{id}/approval', [UserController::class, 'submitApproval'])
+    Route::post('/verifikasi/{user:member_number}/approval', [UserController::class, 'submitApproval'])
         ->name('users.verification.submit');
 });
 
 // User Routes
 Route::prefix('user')->name('user.')->group(function () {
-    Route::get('/profile/{id}', [UserController::class, 'profile'])->name('profile.show');
-    Route::get('/profile/{id}/edit', [UserController::class, 'editProfile'])->name('profile.edit');
-    Route::put('/profile/{id}', [UserController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/{id}/picture', [UserController::class, 'updateProfilePicture'])->name('profile.picture.update');
-    Route::delete('/profile/{id}/picture', [UserController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+    Route::get('/profile/{user:member_number}', [UserController::class, 'profile'])->name('profile.show');
+    Route::get('/profile/{user:member_number}/edit', [UserController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile/{user:member_number}', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/{user:member_number}/picture', [UserController::class, 'updateProfilePicture'])->name('profile.picture.update');
+    Route::delete('/profile/{user:member_number}/picture', [UserController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
 });
