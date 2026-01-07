@@ -2,6 +2,7 @@ import './bootstrap';
 import '../css/app.css';
 import ThemeProvider from '@/Layouts/Admin/ThemeProvider.vue'
 import SidebarProvider from '@/Layouts/Admin/SidebarProvider.vue'
+import Swal from 'sweetalert2'
 
 import { createApp, h } from 'vue'
 import { createInertiaApp } from '@inertiajs/vue3'
