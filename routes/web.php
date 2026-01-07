@@ -41,8 +41,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/admins', [AdminController::class, 'list']);
     Route::get('/create', [AdminController::class, 'create']);
-    Route::post('/store', [AdminController::class, 'store']);
+    Route::get('/show/{id}', [AdminController::class, 'store']);
     Route::get('/show/{id}', [AdminController::class, 'show']);
+
     Route::get('/verifikasi', [UserController::class, 'prospectiveMembers'])->name('users.prospective');
 
     Route::get('/verifikasi', [UserController::class, 'prospectiveMembers'])
