@@ -38,6 +38,7 @@ class User extends Authenticatable
         'dependents',
         'status',
         'joined_date',
+        'member_number',
         'email',
         'password',
         'role_id',
