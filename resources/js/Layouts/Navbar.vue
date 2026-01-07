@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { usePage } from '@inertiajs/vue3'
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import UserIcon from '../Icons/UserIcon.vue'
 import ThemeToggler from '../Components/ThemeToggler.vue'
 
