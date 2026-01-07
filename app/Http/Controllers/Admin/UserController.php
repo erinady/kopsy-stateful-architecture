@@ -65,7 +65,7 @@ class UserController extends Controller
                 ),
                 'avatar' => $user->profile_picture
                     ? asset('storage/' . $user->profile_picture)
-                    : "https://i.pravatar.cc/40?u= $user->id",
+                    : "https://i.pravatar.cc/40?u=$user->id",
             ]);
 
         return Inertia::render('Admin/User/ListMember', [
