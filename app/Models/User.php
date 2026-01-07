@@ -123,4 +123,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Financing::class);
     }
+
+    /**
+     * Use member_number for route model binding
+     */
+    public function getRouteKeyName()
+    {
+        return 'member_number';
+    }
 }
