@@ -233,6 +233,10 @@ class UserController extends Controller
      */
     public function editProfile(string $id)
     {
+        if (request()->user()->id !== $id) {
+            abort(403, 'Anda tidak berhak mengedit profil ini.');
+        }
+
         $user = User::with(['role', 'workUnit'])->findOrFail($id);
         
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
@@ -257,10 +261,20 @@ class UserController extends Controller
      */
     public function updateProfile(Request $request, string $id)
     {
+        if ($request->user()->id !== $id) {
+            abort(403, 'Anda tidak berhak memperbarui profil ini.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'nik' => 'required|string|max:16',
-            'birth_date' => 'required|date',
+            // Ensure NIK is unique except for current user
+            'nik' => [
+                'required',
+                'string',
+                'size:16',
+                \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($id, 'id'),
+            ],
+            'birth_date' => 'required|date|before_or_equal:today|after_or_equal:1900-01-01',
             'gender' => 'required|string|in:Laki-laki,Perempuan',
         ]);
 
@@ -276,13 +290,21 @@ class UserController extends Controller
      */
     public function updateProfilePicture(Request $request, string $id)
     {
+        if ($request->user()->id !== $id) {
+            abort(403, 'Anda tidak berhak mengubah foto profil ini.');
+        }
+
         $request->validate([
             'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user = User::findOrFail($id);
 
-        // Delete old profile picture if exists
+        $tmpPath = $request->file('profile_picture')->getPathname();
+        if (! @getimagesize($tmpPath)) {
+            return back()->withErrors(['profile_picture' => 'File tidak valid sebagai gambar.']);
+        }
+
         if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
             \Storage::disk('public')->delete($user->profile_picture);
         }
@@ -302,6 +324,11 @@ class UserController extends Controller
      */
     public function deleteProfilePicture(string $id)
     {
+        // Authorization: only allow deleting own profile picture
+        if (request()->user()->id !== $id) {
+            abort(403, 'Anda tidak berhak menghapus foto profil ini.');
+        }
+
         $user = User::findOrFail($id);
 
         if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
