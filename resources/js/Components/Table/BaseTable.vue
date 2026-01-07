@@ -8,9 +8,13 @@ type Column = {
     align?: 'left' | 'center' | 'right'
 }
 
+type TableRow = Record<string, any> & {
+    id?: string | number
+}
+
 defineProps<{
     columns: Column[]
-    data: any[]
+    data: TableRow[]
     pagination?: {
         current_page: number
         per_page: number
