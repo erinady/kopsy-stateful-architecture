@@ -164,7 +164,7 @@ const toggleSort = (column) => {
                 <template #cell-aksi="{ row }">
                     <div class="flex justify-center gap-3">
                         <Link
-                            :href="`/admin/${row.id}/edit`"
+                            :href="`/admin/edit/${row.id}`"
                             class="text-gray-500 hover:text-blue-600 transition"
                             title="Edit"
                         >
