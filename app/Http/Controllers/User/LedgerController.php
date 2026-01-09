@@ -10,6 +10,45 @@ use Inertia\Inertia;
 class LedgerController extends Controller
 {
     /**
+     * running balance calculation
+     */
+    private function transformTransactions($transactions, $includeId = false)
+    {
+        $runningBalance = 0;
+        return $transactions->map(function ($transaction) use (&$runningBalance, $includeId) {
+            $isDeposit = in_array(strtolower($transaction->type), ['penyetoran', 'deposit']);
+            $amount = (float) $transaction->amount;
+
+            if ($isDeposit) {
+                $runningBalance += $amount;
+            } else {
+                $runningBalance -= $amount;
+                if ($runningBalance < 0) {
+                    $runningBalance = 0;
+                }
+            }
+
+            $result = [
+                'tanggal' => optional($transaction->transaction_date)->format('d/m/Y'),
+                'produk' => $transaction->savingAccount->type ?? 'N/A',
+                'jenis' => $transaction->type,
+                'metode' => $transaction->method ?? 'N/A',
+                'petugas' => $transaction->updatedBy?->name ?? 'System',
+                'debit' => $isDeposit ? $amount : 0,
+                'kredit' => !$isDeposit ? $amount : 0,
+                'saldo' => $runningBalance,
+                'status' => $transaction->status,
+            ];
+
+            if ($includeId) {
+                $result['id'] = $transaction->id;
+            }
+
+            return $result;
+        });
+    }
+
+    /**
      * Display ledger page with transactions
      */
     public function index(Request $request)
@@ -51,7 +90,6 @@ class LedgerController extends Controller
             $query->where(function ($q) use ($searchLower) {
                 $q->whereRaw('LOWER(type) LIKE ?', ['%' . $searchLower . '%'])
                     ->orWhereRaw('LOWER(method) LIKE ?', ['%' . $searchLower . '%'])
-                    ->orWhereRaw("TO_CHAR(transaction_date, 'DD/MM/YYYY') LIKE ?", ['%' . $searchLower . '%'])
                     ->orWhereHas('savingAccount', function ($subQ) use ($searchLower) {
                         $subQ->whereRaw('LOWER(type) LIKE ?', ['%' . $searchLower . '%']);
                     });
@@ -64,33 +102,7 @@ class LedgerController extends Controller
         // Pagination
         $transactions = $query->paginate($perPage)->withQueryString();
 
-        $runningBalance = 0;
-        $data = $transactions->getCollection()->map(function ($transaction) use (&$runningBalance) {
-            $isDeposit = in_array(strtolower($transaction->type), ['penyetoran', 'deposit']);
-            $amount = (float) $transaction->amount;
-
-            if ($isDeposit) {
-                $runningBalance += $amount;
-            } else {
-                $runningBalance -= $amount;
-                if ($runningBalance < 0) {
-                    $runningBalance = 0;
-                }
-            }
-
-            return [
-                'id' => $transaction->id,
-                'tanggal' => optional($transaction->transaction_date)->format('d/m/Y'),
-                'produk' => $transaction->savingAccount->type ?? 'N/A',
-                'jenis' => $transaction->type,
-                'metode' => $transaction->method ?? 'N/A',
-                'petugas' => $transaction->updatedBy?->name ?? 'System',
-                'debit' => $isDeposit ? $amount : 0,
-                'kredit' => !$isDeposit ? $amount : 0,
-                'saldo' => $runningBalance,
-                'status' => $transaction->status,
-            ];
-        });
+        $data = $this->transformTransactions($transactions->getCollection(), true);
         $transactions->setCollection($data);
 
         // Get member info
@@ -152,7 +164,6 @@ class LedgerController extends Controller
             $query->where(function ($q) use ($searchLower) {
                 $q->whereRaw('LOWER(type) LIKE ?', ['%' . $searchLower . '%'])
                     ->orWhereRaw('LOWER(method) LIKE ?', ['%' . $searchLower . '%'])
-                    ->orWhereRaw("TO_CHAR(transaction_date, 'DD/MM/YYYY') LIKE ?", ['%' . $searchLower . '%'])
                     ->orWhereHas('savingAccount', function ($subQ) use ($searchLower) {
                         $subQ->whereRaw('LOWER(type) LIKE ?', ['%' . $searchLower . '%']);
                     });
@@ -162,31 +173,7 @@ class LedgerController extends Controller
 
         $transactions = $query->get();
 
-        $runningBalance = 0;
-        $data = $transactions->map(function ($transaction) use (&$runningBalance) {
-            $isDeposit = in_array(strtolower($transaction->type), ['penyetoran', 'deposit']);
-            $amount = (float) $transaction->amount;
-
-            if ($isDeposit) {
-                $runningBalance += $amount;
-            } else {
-                $runningBalance -= $amount;
-                if ($runningBalance < 0) {
-                    $runningBalance = 0;
-                }
-            }
-
-            return [
-                'tanggal' => optional($transaction->transaction_date)->format('d/m/Y'),
-                'produk' => $transaction->savingAccount->type ?? 'N/A',
-                'jenis' => $transaction->type,
-                'metode' => $transaction->method ?? 'N/A',
-                'petugas' => $transaction->updatedBy?->name ?? 'System',
-                'debit' => $isDeposit ? $amount : 0,
-                'kredit' => !$isDeposit ? $amount : 0,
-                'saldo' => $runningBalance,
-            ];
-        });
+        $data = $this->transformTransactions($transactions, false);
 
         // Get member info
         $member = auth()->user();
