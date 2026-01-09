@@ -118,5 +118,4 @@ const user = computed(() => page.props.auth?.user || {
     profile_picture: '/public/images/user/owner.jpg',
 })
 
-console.log(user);
 </script>
