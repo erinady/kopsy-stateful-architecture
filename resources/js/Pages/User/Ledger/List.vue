@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { router } from '@inertiajs/vue3'
 import BaseLayout from '@/Layouts/Base.vue'
 import FieldRow from '@/Components/Form/FieldRow.vue'
@@ -96,12 +96,17 @@ const applyFilters = () => {
     })
 }
 
-let timeout: ReturnType<typeof setTimeout>
+let timeout: ReturnType<typeof setTimeout> | null = null
+
 const handleSearch = (value: string) => {
     filters.value.search = value
-    clearTimeout(timeout)
+    if (timeout) clearTimeout(timeout)
     timeout = setTimeout(applyFilters, 500)
 }
+
+onBeforeUnmount(() => {
+    if (timeout) clearTimeout(timeout)
+})
 
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
