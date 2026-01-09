@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\User\LedgerController;
 
 Route::get('/', function () {
     return Inertia::render('LandingPage', [
@@ -38,7 +39,7 @@ Route::prefix('auth')
         })->name('register.success');
     });
 
-Route::redirect('/login', '/auth/login')->middleware('guest');
+Route::redirect('/login', '/auth/login')->middleware('guest')->name('login');
 
 Route::post('/auth/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
@@ -71,10 +72,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // User Routes
-Route::prefix('user')->name('user.')->group(function () {
+Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
     Route::get('/profile/{user:member_number}', [UserController::class, 'profile'])->name('profile.show');
     Route::get('/profile/{user:member_number}/edit', [UserController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile/{user:member_number}', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::post('/profile/{user:member_number}/picture', [UserController::class, 'updateProfilePicture'])->name('profile.picture.update');
     Route::delete('/profile/{user:member_number}/picture', [UserController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+    
+    // Ledger Routes
+    Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
+    Route::get('/ledger/export', [LedgerController::class, 'export'])->name('ledger.export');
 });
