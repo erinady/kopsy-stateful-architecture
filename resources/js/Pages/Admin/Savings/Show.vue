@@ -25,12 +25,12 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nominal Simpanan</span>
                                     <span class="font-medium text-dark-text dark:text-white">Rp {{ data.amount
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Kategori Simpanan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ data.saving_account.type
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Akad</span>
@@ -45,7 +45,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ data.transaction_date
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Metode Pembayaran</span>
@@ -54,7 +54,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Keterangan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ data.description ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -92,7 +92,7 @@
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
                                         data.saving_account.user.work_unit.name
-                                        }}</span>
+                                    }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -163,7 +163,7 @@ const acceptTransaction = () => {
                         icon: 'success',
                         confirmButtonColor: '#007943',
                     }).then(() => {
-                        window.location.href = route('admin.dashboard')
+                        router.visit(route('admin.dashboard'))
                     })
                 },
                 onError: () => {
@@ -175,7 +175,6 @@ const acceptTransaction = () => {
                     })
                 }
             })
-            hideModal()
         }
     })
 }
@@ -192,6 +191,7 @@ const rejectTransaction = () => {
         confirmButtonColor: '#007943',
     }).then((result) => {
         if (result.isConfirmed) {
+            hideModal()
             form.put('/admin/savings/validate/' + props.data.id, {
                 onSuccess: () => {
                     Swal.fire({
@@ -200,7 +200,7 @@ const rejectTransaction = () => {
                         icon: 'success',
                         confirmButtonColor: '#007943',
                     }).then(() => {
-                        window.location.href = route('admin.dashboard')
+                        router.visit(route('admin.dashboard'))
                     })
                 },
                 onError: () => {
@@ -212,7 +212,6 @@ const rejectTransaction = () => {
                     })
                 }
             })
-            hideModal()
         }
     })
 }
