@@ -1,8 +1,9 @@
 <script setup>
 import Base from '@/Layouts/Base.vue'
 import ReadonlyField from '@/Components/Form/ReadonlyField.vue'
-import { ref,watch } from 'vue';
+import { ref, watch } from 'vue';
 import { router, usePage, Link } from '@inertiajs/vue3';
+import { Icon } from '@iconify/vue';
 
 const uploadedFile = ref(null)
 const isAgreed = ref(false)
@@ -11,10 +12,12 @@ const fileInput = ref(null)
 const errorFile = ref(null)
 const showSuccessModal = ref(false)
 const showErrorModal = ref(false)
+const showAlreadySubmittedModal = ref(false)
 const errorMessage = ref('')
 
 const page = usePage()
 const memberData = page.props.member
+const hasExistingResign = page.props.has_existing_resign || false
 
 const formatRupiah = (value) => {
     return 'Rp ' + Number(value ?? 0).toLocaleString('id-ID')
@@ -76,6 +79,12 @@ const handleDragOver = (event) => {
 }
 
 const submitResignation = () => {
+    if (hasExistingResign) {
+        errorMessage.value = 'Permohonan pengunduran diri sudah pernah diajukan. Harap menunggu peninjauan dari petugas koperasi.'
+        showAlreadySubmittedModal.value = true
+        return
+    }
+    
     if (!uploadedFile.value || !isAgreed.value || !isConfirmed.value) {
         alert('Harap lengkapi semua persyaratan')
         return
@@ -99,9 +108,14 @@ const submitResignation = () => {
                 if (fileInput.value) fileInput.value.value = null
             },
             onError: (errors) => {
-                if (errors.document) {
+                if (errors.resign) {
+                    errorMessage.value = errors.resign
+                    showAlreadySubmittedModal.value = true
+                } 
+                else if (errors.document) {
                     errorFile.value = errors.document
-                } else {
+                } 
+                else {
                     const errorKeys = Object.keys(errors)
                     if (errorKeys.length > 0) {
                         errorMessage.value = errors[errorKeys[0]]
@@ -113,7 +127,7 @@ const submitResignation = () => {
             },
             onFinish: () => {
                 console.log('POST Finished')
-            }
+            },
         }
     )
 }
@@ -313,11 +327,15 @@ watch(
     <!-- Success Modal -->
     <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div class="bg-blue-900 rounded-2xl p-8 max-w-md w-full text-white shadow-xl">
+            <div class="flex justify-center">
+                <Icon icon="ix:success-filled" width="65" height="65" style="color: #36bffa" class="mb-5" />
+            </div>
+
             <h2 class="font-head text-3xl font-bold mb-10">
                 Berkas Pengunduran Diri<br />Telah Berhasil Terkirim!
             </h2>
 
-            <p class="text-sm opacity-90 mb-10">
+            <p class="text-md opacity-90 mb-10">
                 Berkas pengunduran diri yang telah terkirim akan dilakukan peninjauan oleh petugas kami!
             </p>
 
@@ -333,12 +351,16 @@ watch(
     </div>
 
     <!-- Error Modal -->
-     <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div class="bg-red-600 rounded-2xl p-8 max-w-md w-full text-white text-center shadow-xl">
-            <h2 class="font-head text-3xl font-bold mb-4">
+    <div v-if="showErrorModal && !showAlreadySubmittedModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-red-700 rounded-2xl p-8 max-w-md w-full text-white text-center shadow-xl">
+            <div class="flex justify-center">
+                <Icon icon="icon-park-twotone:error" width="65" height="65"  style="color: #ff929a" class="mb-5" />
+            </div>
+
+            <h2 class="font-head text-3xl font-bold mb-10">
                 Gagal Mengirim Permohonan
             </h2>
-            <p class="mb-6">
+            <p class="text-md opacity-90 mb-10">
                 {{ errorMessage }}
             </p>
             
@@ -351,5 +373,31 @@ watch(
                 </button>
             </div>
         </div>
-     </div>
+    </div>
+
+    <!-- Sudah Pernah Mengajukan Modal -->
+    <div v-if="showAlreadySubmittedModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-yellow-600 rounded-2xl p-8 max-w-md w-full text-white shadow-xl">
+            <div class="flex justify-center">
+                <Icon icon="ic:twotone-info" width="65" height="65"  style="color: #fff34f" class="mb-5"  />
+            </div>
+        
+            <h2 class="font-head text-3xl font-bold mb-10">
+                Permohonan Sudah Diajukan
+            </h2>
+
+            <p class="text-md opacity-90 mb-10">
+                {{ errorMessage || 'Anda sudah pernah mengajukan permohonan pengunduran diri. Tunggu proses peninjauan dari petugas kami.' }}
+            </p>
+
+            <div class="flex justify-end">
+                <Link
+                    :href="'/user/dashboard/'"
+                    class="font-head bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition no-underline text-lg"
+                >
+                    Kembali ke Dashboard
+                </Link>
+            </div>
+        </div>
+    </div>
 </template>
