@@ -66,6 +66,10 @@ class AnggotaController extends Controller
             abort(403);
         }
 
+        $hasExistingResign = UserDoc::where('user_id', $user->id)
+            ->where('name', 'Dokumen Pengunduran Diri')
+            ->exists();
+
         $totalSaving = $user->savingAccounts()->sum('balance');
 
         $totalObligation = $user->financings()
@@ -88,6 +92,7 @@ class AnggotaController extends Controller
                 'total_saving' => $totalSaving,
                 'total_obligation' => $totalObligation,
             ],
+            'has_existing_resign' => $hasExistingResign,
         ]);
     }
 
@@ -95,6 +100,16 @@ class AnggotaController extends Controller
     {
         if ($request->user()->id !== $user->id) {
             abort(403);
+        }
+
+        $hasExistingResign = UserDoc::where('user_id', $user->id)
+            ->where('name', 'Dokumen Pengunduran Diri')
+            ->exists();
+
+        if ($hasExistingResign) {
+            return back()->withErrors([
+                'resign' => 'Permohonan pengunduran diri sudah pernah diajukan. Anda tidak dapat mengajukan lagi.',
+            ]);
         }
 
         $request->validate([
