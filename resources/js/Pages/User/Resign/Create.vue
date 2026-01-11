@@ -124,10 +124,7 @@ const submitResignation = () => {
                     }
                     showErrorModal.value = true
                 }
-            },
-            onFinish: () => {
-                console.log('POST Finished')
-            },
+            }
         }
     )
 }
