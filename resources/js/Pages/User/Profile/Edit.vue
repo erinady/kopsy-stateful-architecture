@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
-import Navbar from '@/Layouts/Navbar.vue'
+import Base from '../../../Layouts/Base.vue'
 import BaseInput from '@/Components/Form/BaseInput.vue'
 import BaseSelect from '@/Components/Form/BaseSelect.vue'
 import ReadonlyField from '@/Components/Form/ReadonlyField.vue'
@@ -104,7 +104,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Navbar></Navbar>
+<Base>
     <div class="min-h-screen bg-gray-50 pt-20 pb-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="text-3xl font-bold text-blue-900 mb-8">Edit Profil Anggota</h1>
@@ -127,7 +127,7 @@ const submit = () => {
                         </div>
 
                         <div class="mt-6 pl-10 flex gap-4">
-                            <input 
+                            <input
                                 ref="fileInput"
                                 type="file"
                                 accept="image/jpeg,image/png,image/jpg,image/gif"
@@ -158,31 +158,31 @@ const submit = () => {
 
                     <div class="mt-12">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <BaseInput 
-                                label="Nama Anggota" 
-                                v-model="form.name" 
+                            <BaseInput
+                                label="Nama Anggota"
+                                v-model="form.name"
                                 :disabled="form.processing"
                                 :error="form.errors.name"
                                 required
                             />
-                            <BaseInput 
-                                label="NIK" 
-                                v-model="form.nik" 
+                            <BaseInput
+                                label="NIK"
+                                v-model="form.nik"
                                 :disabled="form.processing"
                                 :error="form.errors.nik"
                                 required
                             />
-                            <BaseInput 
-                                label="Tanggal Lahir" 
-                                v-model="form.birth_date" 
+                            <BaseInput
+                                label="Tanggal Lahir"
+                                v-model="form.birth_date"
                                 type="date"
                                 :disabled="form.processing"
                                 :error="form.errors.birth_date"
                                 required
                             />
-                            <BaseSelect 
-                                label="Jenis Kelamin" 
-                                v-model="form.gender" 
+                            <BaseSelect
+                                label="Jenis Kelamin"
+                                v-model="form.gender"
                                 :disabled="form.processing"
                                 :error="form.errors.gender"
                                 required
@@ -224,4 +224,5 @@ const submit = () => {
             </form>
         </div>
     </div>
+</Base>
 </template>
