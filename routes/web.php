@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\LedgerController;
 use App\Http\Controllers\User\AnggotaController;
 use App\Http\Controllers\User\SimpananController;
+use App\Models\User;
 
 Route::get('/', function () {
     return Inertia::render('LandingPage', [
@@ -79,13 +80,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 // User Routes
 Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
-    Route::get('dashboard', [AnggotaController::class, 'index'])->name('userDashboard');
+    Route::get('/dashboard', [AnggotaController::class, 'index'])->name('userDashboard');
 
     Route::get('/profile/{user:member_number}', [UserController::class, 'profile'])->name('profile.show');
     Route::get('/profile/{user:member_number}/edit', [UserController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile/{user:member_number}', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::post('/profile/{user:member_number}/picture', [UserController::class, 'updateProfilePicture'])->name('profile.picture.update');
     Route::delete('/profile/{user:member_number}/picture', [UserController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+
+    Route::get('/resign/{user:member_number}', [AnggotaController::class, 'createResign'])->name('resign.create');
+    Route::post('/resign/{user:member_number}', [AnggotaController::class, 'storeResign'])->name('resign.store');
     
     // Ledger Routes
     Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
