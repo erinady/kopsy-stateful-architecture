@@ -16,6 +16,7 @@ const props = defineProps({
     active_user_percentage: Number,
     total_saving_amount: Number,
     total_financing_amount: Number,
+    total_financing_percentage: Number,
     transaction_data: Object,
     registration_data: Object,
     financing_data: Object,
@@ -68,8 +69,7 @@ const applyFilter = () => {
                     <VueDatePicker v-model="dates" range></VueDatePicker>
                 </div>
                 <div class="relative z-20 bg-transparent">
-                    <select
-                        v-model="selectedFilter"
+                    <select v-model="selectedFilter"
                         class="h-11 w-full font-body appearance-none rounded-lg border px-4 bg-white pr-11 text-sm shadow-theme-xs focus:outline-hidden dark:bg-dark-900 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
                         <option value="day">Harian</option>
                         <option value="month">Bulanan</option>
@@ -83,10 +83,11 @@ const applyFilter = () => {
                 </div>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <CardInfo title="Total Kas" :content="parseCurrencyAmount(total_saving_amount)" :percentage="5" />
+                <CardInfo title="Total Kas" :content="parseCurrencyAmount(total_saving_amount)" />
                 <CardInfo title="Total Pembiayaan" :content="parseCurrencyAmount(total_financing_amount)"
-                    :percentage="-3" />
-                <CardInfo title="Jumlah Anggota Aktif" :content="active_user_count" :percentage="active_user_percentage" :filter="selectedFilter" />
+                    :percentage="total_financing_percentage" />
+                <CardInfo title="Jumlah Anggota Aktif" :content="active_user_count" :percentage="active_user_percentage"
+                    :filter="selectedFilter" />
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CardStatisticBar title="Statistik Permohonan Pembiayaan" :data="Object.values(financing_stats)" />
@@ -340,7 +341,7 @@ const applyFilter = () => {
                             <div class="flex flex-col">
                                 <p>Status</p>
                                 <h1 class="font-semibold font-body text-lg">{{ financing_data[activeIndex]?.status ?? ''
-                                    }}</h1>
+                                }}</h1>
                             </div>
                             <div class="flex flex-col">
                                 <p>Nama Anggota</p>

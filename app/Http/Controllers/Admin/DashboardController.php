@@ -14,86 +14,107 @@ use App\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $req)
     {
-        // Date Range
-        $startDate = $req->start_date ?? now()->startOfMonth();
-        $endDate = $req->end_date ?? now()->endOfMonth();
+        $startDate = Carbon::parse($req->start_date ?? now()->startOfMonth());
+        $endDate = Carbon::parse($req->end_date ?? now()->endOfMonth());
         $filterBy = $req->filter_by ?? 'month';
 
-        if ($filterBy == 'month') {
-            $prevDate = Carbon::parse($startDate)->subMonth()->endOfMonth()->toDateString();
-        } elseif ($filterBy == 'day') {
-            $prevDate = Carbon::parse($startDate)->subDay()->toDateString();
-        } elseif ($filterBy == 'year') {
-            $prevDate = Carbon::parse($startDate)->subYear()->endOfYear()->toDateString();
-        } else {
-            $prevDate = Carbon::parse($startDate)->subDay()->toDateString();
-        }
+        // Get previous period dates
+        [$prevStartDate, $prevEndDate] = $this->getPreviousPeriod($startDate, $endDate, $filterBy);
 
-        // Get Active User Count sampai end date yang dipilih (batas akhir)
-        $data['active_user_count'] = User::where('status', UserStatus::ACTIVE->value)
-            ->where('created_at', '<=', $endDate)
-            ->count();
-        $activeUserCountPrev = User::where('status', UserStatus::ACTIVE->value)
-            ->where('created_at', '<=', $prevDate)
-            ->count();
+        return inertia('Admin/Dashboard', [
+            'active_user_count' => User::where('status', UserStatus::ACTIVE->value)
+                ->where('created_at', '<=', $endDate)->count(),
+            'active_user_percentage' => $this->calculatePercentage(
+                User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $endDate)->count(),
+                User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $prevEndDate)->count()
+            ),
+            'total_saving_amount' => SavingAccount::sum('balance') ?? 0,
+            'total_financing_amount' => Loan::whereBetween('created_at', [$startDate, $endDate])
+                ->sum('total_price') ?? 0,
+            'total_financing_percentage' => $this->calculatePercentage(
+                Loan::whereBetween('created_at', [$startDate, $endDate])->sum('total_price') ?? 0,
+                Loan::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_price') ?? 0
+            ),
+            'transaction_data' => $this->getRecentTransactions(),
+            'registration_data' => $this->getPendingRegistrations(),
+            'financing_data' => $this->getRecentFinancings(),
+            'financing_stats' => $this->getFinancingStats(),
+        ]);
+    }
 
-        $data['active_user_percentage'] = $activeUserCountPrev == 0 ? 0 : round((($data['active_user_count'] - $activeUserCountPrev) / $activeUserCountPrev) * 100);
+    private function getPreviousPeriod(Carbon $start, Carbon $end, string $filterBy): array
+    {
+        return match($filterBy) {
+            'month' => [
+                $start->copy()->subMonth()->startOfMonth(),
+                $start->copy()->subMonth()->endOfMonth()
+            ],
+            'year' => [
+                $start->copy()->subYear()->startOfYear(),
+                $start->copy()->subYear()->endOfYear()
+            ],
+            default => [
+                $start->copy()->subDay(),
+                $start->copy()->subDay()
+            ],
+        };
+    }
 
-        $data['total_saving_amount'] = SavingAccount::sum('balance') ?? 0;
-        $data['total_financing_amount'] = Loan::whereBetween('created_at', [$req->start_date ?? now()->startOfYear(), $req->end_date ?? now()->endOfYear()])
-            ->sum('total_price') ?? 0;
+    private function calculatePercentage($current, $previous): int
+    {
+        return $previous == 0 ? 0 : round((($current - $previous) / $previous) * 100);
+    }
 
-            $data['transaction_data'] = SavingTransaction::with('savingAccount.user')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(function ($transaction) {
-                return [
-                    'id' => $transaction->id,
-                    'user_name' => $transaction->savingAccount->user->name,
-                    'amount' => $transaction->amount,
-                    'type' => $transaction->type,
-                    'created_at' => $transaction->created_at->toDateTimeString(),
-                ];
-            });
-        $data['registration_data'] = User::with('workUnit')->where('status', UserStatus::INREVIEW->value)
-            ->latest()
-            ->take(5)
-            ->get(['name', 'email', 'created_at'])
-            ->map(function ($user) {
-                return [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'created_at' => $user->created_at,
-                    'work_unit' => $user->workUnit?->name ?? '-',
-                ];
-            });
-        $data['financing_data'] = Financing::with('user')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(function ($financing) {
-                return [
-                    'id' => $financing->id,
-                    'product_type' => $financing->product_type,
-                    'status' => $financing->status,
-                    'member_number' => $financing->user->id,
-                    'user_name' => $financing->user->name,
-                    'created_at' => $financing->created_at,
-                ];
-            });
-        $data['financing_stats'] = Financing::selectRaw('EXTRACT(MONTH FROM created_at) AS month, COUNT(*) AS count')
+    private function getRecentTransactions()
+    {
+        return SavingTransaction::with('savingAccount.user')
+            ->latest()->take(5)->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'user_name' => $t->savingAccount->user->name,
+                'amount' => $t->amount,
+                'type' => $t->type,
+                'created_at' => $t->created_at->toDateTimeString(),
+            ]);
+    }
+
+    private function getPendingRegistrations()
+    {
+        return User::with('workUnit')
+            ->where('status', UserStatus::INREVIEW->value)
+            ->latest()->take(5)->get()
+            ->map(fn($u) => [
+                'name' => $u->name,
+                'email' => $u->email,
+                'created_at' => $u->created_at,
+                'work_unit' => $u->workUnit?->name ?? '-',
+            ]);
+    }
+
+    private function getRecentFinancings()
+    {
+        return Financing::with('user')
+            ->latest()->take(5)->get()
+            ->map(fn($f) => [
+                'id' => $f->id,
+                'product_type' => $f->product_type,
+                'status' => $f->status,
+                'member_number' => $f->user->id,
+                'user_name' => $f->user->name,
+                'created_at' => $f->created_at,
+            ]);
+    }
+
+    private function getFinancingStats()
+    {
+        return Financing::selectRaw('EXTRACT(MONTH FROM created_at) AS month, COUNT(*) AS count')
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')
             ->get()
             ->pluck('count', 'month')
             ->toArray();
-        return inertia('Admin/Dashboard', $data);
     }
 }
