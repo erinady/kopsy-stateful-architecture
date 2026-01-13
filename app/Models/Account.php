@@ -23,4 +23,9 @@ class Account extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function savingTransactions()
+    {
+        return $this->hasMany(SavingTransaction::class, 'account_number', 'account_number');
+    }
 }

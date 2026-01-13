@@ -40,8 +40,10 @@ class SavingController extends Controller
             });
         })
         ->when($tab === 'permohonan', function ($q) {
-            $q->whereIn('type', ['Penarikan', 'Penyetoran'])
-              ->where('status', TransactionStatus::PENDING);
+            $q->where('status', TransactionStatus::PENDING);
+        })
+        ->when($tab !== 'permohonan', function ($q) {
+            $q->where('status', TransactionStatus::COMPLETED);
         })
         ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab) {
             $map = [

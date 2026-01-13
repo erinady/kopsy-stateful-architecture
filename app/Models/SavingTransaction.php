@@ -22,6 +22,7 @@ class SavingTransaction extends Model
         'transaction_date',
         'updated_by',
         'saving_account_id',
+        'account_number',
     ];
 
     protected $casts = [
@@ -41,5 +42,10 @@ class SavingTransaction extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_number', 'account_number');
     }
 }
