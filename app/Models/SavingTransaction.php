@@ -22,6 +22,7 @@ class SavingTransaction extends Model
         'transaction_date',
         'updated_by',
         'saving_account_id',
+        'account_number',
     ];
 
     protected $casts = [
