@@ -114,7 +114,6 @@ const submit = () => {
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
                     <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-200">
                         <div class="relative flex-shrink-0">
-                            <img
                                 :src="user.photo_url || '/images/default-avatar.png'"
                                 :alt="'Profile picture of ' + (user.name || 'user')"
                                 class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"

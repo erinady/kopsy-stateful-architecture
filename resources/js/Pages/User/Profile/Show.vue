@@ -23,11 +23,16 @@ const props = defineProps({
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
                     <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-200">
                         <div class="relative flex-shrink-0">
-                            <img
-                                :src="user.photo_url || '/images/default-avatar.png'"
-                                :alt="user.name"
-                                class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                            />
+                            <div v-if="user.photo_url" class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                                <img
+                                    :src="user.photo_url"
+                                    :alt="user.name"
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div v-else class="w-32 h-32 rounded-full bg-gray-200 border-4 border-gray-200 flex items-center justify-center">
+                                <UserIcon class="w-16 h-16 text-gray-400" style="width: 64px; height: 64px;" />
+                            </div>
                         </div>
                         <div class="w-full sm:w-auto ml-auto text-center sm:text-right self-end">
                             <button
