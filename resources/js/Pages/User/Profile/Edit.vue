@@ -31,6 +31,8 @@ const form = useForm({
 const fileInput = ref(null)
 const uploading = ref(false)
 const deleting = ref(false)
+const selectedFile = ref(null)
+const previewUrl = ref(props.user.photo_url || null)
 
 const initialData = {
     name: props.user.name || '',
@@ -44,7 +46,8 @@ const hasDataChanged = computed(() => {
         form.name !== initialData.name ||
         form.nik !== initialData.nik ||
         form.birth_date !== initialData.birth_date ||
-        form.gender !== initialData.gender
+        form.gender !== initialData.gender ||
+        selectedFile.value !== null
     )
 })
 
@@ -59,37 +62,33 @@ const onFileChange = (event) => {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
     if (!validTypes.includes(file.type)) {
-        alert('Hanya file gambar (JPEG, PNG, JPG, GIF) yang diperbolehkan')
+        toast.error('Hanya file gambar (JPEG, PNG, JPG, GIF) yang diperbolehkan', {
+            autoClose: 2000,
+            position: 'bottom-right'
+        })
         return
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2048 * 1024) {
-        alert('Ukuran file maksimal 2MB')
+        toast.error('Ukuran file maksimal 2MB', {
+            autoClose: 2000,
+            position: 'bottom-right'
+        })
         return
     }
 
-    uploading.value = true
-
-    const formData = new FormData()
-    formData.append('profile_picture', file)
-    formData.append('_method', 'POST')
-
-    router.post('/user/profile/picture', formData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            uploading.value = false
-            fileInput.value.value = null
-        },
-        onError: (errors) => {
-            uploading.value = false
-            alert('Gagal mengupload foto: ' + (errors.profile_picture || 'Terjadi kesalahan'))
-        }
-    })
+    // Store file and create preview
+    selectedFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+        previewUrl.value = e.target.result
+    }
+    reader.readAsDataURL(file)
 }
 
 const handleDeletePicture = () => {
-    if (!props.user.profile_picture) {
+    if (!selectedFile.value && !props.user.profile_picture) {
         toast.error('Tidak ada foto profil untuk dihapus', {
             autoClose: 2000,
             position: 'bottom-right'
@@ -108,25 +107,8 @@ const handleDeletePicture = () => {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            deleting.value = true
-
-            router.delete('/user/profile/picture', {
-                preserveScroll: true,
-                onSuccess: () => {
-                    deleting.value = false
-                    toast.success('Foto profil berhasil dihapus', {
-                        autoClose: 2000,
-                        position: 'bottom-right'
-                    })
-                },
-                onError: () => {
-                    deleting.value = false
-                    toast.error('Gagal menghapus foto profil', {
-                        autoClose: 2000,
-                        position: 'bottom-right'
-                    })
-                }
-            })
+            selectedFile.value = null
+            previewUrl.value = null
         }
     })
 }
@@ -144,6 +126,8 @@ const handleCancel = () => {
             cancelButtonText: 'Tetap di Halaman Ini'
         }).then((result) => {
             if (result.isConfirmed) {
+                selectedFile.value = null
+                previewUrl.value = props.user.photo_url || null
                 router.visit('/user/profile')
             }
         })
@@ -167,13 +151,72 @@ const submit = () => {
             form.put('/user/profile', {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Profil berhasil disimpan', {
-                        autoClose: 2000,
-                        position: 'bottom-right'
-                    })
-                    setTimeout(() => {
-                        router.visit('/user/profile')
-                    }, 500)
+                    // Upload photo after profile update
+                    if (selectedFile.value) {
+                        const formData = new FormData()
+                        formData.append('profile_picture', selectedFile.value)
+                        formData.append('_method', 'POST')
+
+                        uploading.value = true
+                        router.post('/user/profile/picture', formData, {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                uploading.value = false
+                                selectedFile.value = null
+                                toast.success('Profil dan foto berhasil disimpan', {
+                                    autoClose: 2000,
+                                    position: 'bottom-right'
+                                })
+                                setTimeout(() => {
+                                    router.visit('/user/profile')
+                                }, 500)
+                            },
+                            onError: () => {
+                                uploading.value = false
+                                toast.error('Profil disimpan tapi gagal mengupload foto', {
+                                    autoClose: 2000,
+                                    position: 'bottom-right'
+                                })
+                                setTimeout(() => {
+                                    router.visit('/user/profile')
+                                }, 1500)
+                            }
+                        })
+                    } else if (previewUrl.value === null && props.user.profile_picture) {
+                        // Delete photo if user cleared preview
+                        deleting.value = true
+                        router.delete('/user/profile/picture', {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                deleting.value = false
+                                toast.success('Profil dan foto berhasil disimpan', {
+                                    autoClose: 2000,
+                                    position: 'bottom-right'
+                                })
+                                setTimeout(() => {
+                                    router.visit('/user/profile')
+                                }, 500)
+                            },
+                            onError: () => {
+                                deleting.value = false
+                                toast.error('Profil disimpan tapi gagal menghapus foto', {
+                                    autoClose: 2000,
+                                    position: 'bottom-right'
+                                })
+                                setTimeout(() => {
+                                    router.visit('/user/profile')
+                                }, 1500)
+                            }
+                        })
+                    } else {
+                        toast.success('Profil berhasil disimpan', {
+                            autoClose: 2000,
+                            position: 'bottom-right'
+                        })
+                        setTimeout(() => {
+                            router.visit('/user/profile')
+                        }, 500)
+                    }
                 },
                 onError: () => {
                     toast.error('Gagal menyimpan profil', {
@@ -188,129 +231,128 @@ const submit = () => {
 </script>
 
 <template>
-<Base title="Edit Profil Anggota">
-    <div class="min-h-screen bg-white dark:bg-gray-900 pt-20 pb-12">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold font-head text-blue-900 dark:text-blue-600 mt-24 mb-8">Edit Profil Anggota</h1>
+    <Base title="Edit Profil Anggota">
+        <div class="min-h-screen bg-white dark:bg-gray-900 pt-20 pb-12">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold font-head text-blue-900 dark:text-blue-600 mt-24 mb-8">Edit Profil Anggota</h1>
 
-            <form @submit.prevent="submit">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-                    <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-200">
-                        <div class="relative flex-shrink-0">
-                            <div v-if="user.photo_url" class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
-                                <img
-                                    :src="user.photo_url"
-                                    :alt="'Profile picture of ' + (user.name || 'user')"
-                                    class="w-full h-full object-cover"
+                <form @submit.prevent="submit">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+                        <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-200">
+                            <div class="relative flex-shrink-0">
+                                <div v-if="previewUrl" class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                                    <img
+                                        :src="previewUrl"
+                                        :alt="'Profile picture of ' + (user.name || 'user')"
+                                        class="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div v-else class="w-32 h-32 rounded-full bg-gray-200 border-4 border-gray-200 flex items-center justify-center">
+                                    <UserIcon class="w-16 h-16 text-gray-400" style="width: 64px; height: 64px;" />
+                                </div>
+                                <div v-if="uploading || deleting" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                                    <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 pl-10 flex gap-4">
+                                <input
+                                    ref="fileInput"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif"
+                                    @change="onFileChange"
+                                    class="hidden"
+                                >
+
+                                <button
+                                    type="button"
+                                    @click="handleChangePicture"
+                                    :disabled="uploading || deleting"
+                                    class="px-6 py-2.5 bg-blue-900 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                >
+                                    {{ uploading ? 'Uploading...' : 'Ubah foto' }}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="handleDeletePicture"
+                                    :disabled="uploading || deleting || (!selectedFile && !user.profile_picture)"
+                                    class="px-6 py-2.5 bg-red-100 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                >
+                                    {{ deleting ? 'Deleting...' : 'Hapus foto' }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-12">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <BaseInput
+                                    label="Nama Anggota"
+                                    v-model="form.name"
+                                    :disabled="form.processing"
+                                    :error="form.errors.name"
+                                    required
                                 />
-                            </div>
-                            <div v-else class="w-32 h-32 rounded-full bg-gray-200 border-4 border-gray-200 flex items-center justify-center">
-                                <UserIcon class="w-16 h-16 text-gray-400" style="width: 64px; height: 64px;" />
-                            </div>
-                            <div v-if="uploading || deleting" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                                <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <BaseInput
+                                    label="NIK"
+                                    v-model="form.nik"
+                                    :disabled="form.processing"
+                                    :error="form.errors.nik"
+                                    required
+                                />
+                                <BaseInput
+                                    label="Tanggal Lahir"
+                                    v-model="form.birth_date"
+                                    type="date"
+                                    :disabled="form.processing"
+                                    :error="form.errors.birth_date"
+                                    required
+                                />
+                                <BaseSelect
+                                    label="Jenis Kelamin"
+                                    v-model="form.gender"
+                                    :disabled="form.processing"
+                                    :error="form.errors.gender"
+                                    required
+                                >
+                                    <option v-for="option in genderOptions" :key="option.value" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
+                                </BaseSelect>
+                                <ReadonlyField label="Unit Kerja" :model-value="user.work_unit || '-'" />
+                                <ReadonlyField label="Nama Lembaga" :model-value="user.institution || '-'" />
                             </div>
                         </div>
 
-                        <div class="mt-6 pl-10 flex gap-4">
-                            <input
-                                ref="fileInput"
-                                type="file"
-                                accept="image/jpeg,image/png,image/jpg,image/gif"
-                                @change="onFileChange"
-                                class="hidden"
-                            >
-
+                        <div class="mt-8 flex justify-end gap-4">
                             <button
                                 type="button"
-                                @click="handleChangePicture"
-                                :disabled="uploading || deleting"
-                                class="px-6 py-2.5 bg-blue-900 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                @click="handleCancel"
+                                :disabled="form.processing"
+                                class="px-6 py-2.5 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
                             >
-                                {{ uploading ? 'Uploading...' : 'Ubah foto' }}
+                                Batal
                             </button>
-
                             <button
-                                type="button"
-                                @click="handleDeletePicture"
-                                :disabled="uploading || deleting || !user.profile_picture"
-                                class="px-6 py-2.5 bg-red-100 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                type="submit"
+                                :disabled="form.processing"
+                                class="px-6 py-2.5 bg-blue-900 text-white text-base font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
                             >
-                                {{ deleting ? 'Deleting...' : 'Hapus foto' }}
+                                <span v-if="form.processing">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                                {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                             </button>
                         </div>
-
                     </div>
-
-                    <div class="mt-12">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <BaseInput
-                                label="Nama Anggota"
-                                v-model="form.name"
-                                :disabled="form.processing"
-                                :error="form.errors.name"
-                                required
-                            />
-                            <BaseInput
-                                label="NIK"
-                                v-model="form.nik"
-                                :disabled="form.processing"
-                                :error="form.errors.nik"
-                                required
-                            />
-                            <BaseInput
-                                label="Tanggal Lahir"
-                                v-model="form.birth_date"
-                                type="date"
-                                :disabled="form.processing"
-                                :error="form.errors.birth_date"
-                                required
-                            />
-                            <BaseSelect
-                                label="Jenis Kelamin"
-                                v-model="form.gender"
-                                :disabled="form.processing"
-                                :error="form.errors.gender"
-                                required
-                            >
-                                <option v-for="option in genderOptions" :key="option.value" :value="option.value">
-                                    {{ option.label }}
-                                </option>
-                            </BaseSelect>
-                            <ReadonlyField label="Unit Kerja" :model-value="user.work_unit || '-'" />
-                            <ReadonlyField label="Nama Lembaga" :model-value="user.institution || '-'" />
-                        </div>
-                    </div>
-
-                    <div class="mt-8 flex justify-end gap-4">
-                        <button
-                            type="button"
-                            @click="handleCancel"
-                            :disabled="form.processing"
-                            class="px-6 py-2.5 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="submit"
-                            :disabled="form.processing"
-                            class="px-6 py-2.5 bg-blue-900 text-white text-base font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-                        >
-                            <span v-if="form.processing">
-                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </span>
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
-                        </button>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-</Base>
+    </Base>
 </template>
