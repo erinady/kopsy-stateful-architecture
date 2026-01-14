@@ -56,19 +56,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/savings/show/{id}', [SavingController::class, 'show'])->name('savings.show');
     Route::put('/savings/validate/{id}', [SavingController::class, 'validateRequest'])->name('savings.validate');
-    Route::get('/savings', [SavingController::class, 'index'])->name('savings.index');
+    Route::get('/savings/list', [SavingController::class, 'index'])->name('savings.index');
 
     Route::get('/users/show/{id}', [UserController::class, 'show'])->name('users.show');
-    Route::get('/anggota', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/list', [UserController::class, 'index'])->name('users.index');
 
-    Route::get('/admins', [AdminController::class, 'index'])->name('admin.admins.index');
+    Route::get('/list', [AdminController::class, 'index'])->name('admin.admins.index');
     Route::get('/create', [AdminController::class, 'create']);
     Route::post('/store', [AdminController::class, 'store']);
     Route::get('/edit/{id}', [AdminController::class, 'edit']);
     Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
     Route::get('/show/{id}', [AdminController::class, 'show']);
 
-    Route::get('/verifikasi', [UserController::class, 'prospectiveMembers'])
+    Route::get('/users/verification', [UserController::class, 'prospectiveMembers'])
         ->name('users.prospective');
 
     Route::get('/verifikasi/{user:member_number}', [UserController::class, 'verificationDetail'])
@@ -90,6 +90,9 @@ Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
 
     Route::get('/resign/{user:member_number}', [AnggotaController::class, 'createResign'])->name('resign.create');
     Route::post('/resign/{user:member_number}', [AnggotaController::class, 'storeResign'])->name('resign.store');
+
+    Route::get('/simpanan/penyetoran', [SimpananController::class, 'createDeposit'])->name('deposit.create');
+    Route::post('/simpanan/penyetoran', [SimpananController::class, 'storeDeposit'])->name('deposit.store');
     
     // Ledger Routes
     Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
