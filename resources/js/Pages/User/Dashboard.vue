@@ -118,7 +118,7 @@ const rupiah = (value) =>
                             </div>
                         </Link>
 
-                        <Link href="/simpanan/tarik" class="group">
+                        <Link href="/user/simpanan/penarikan" class="group">
                             <div class="flex flex-col items-center gap-2">
                                 <div class="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center text-white group-hover:bg-orange-600 transition-colors">
                                     <Icon icon="uil:money-withdraw" class="w-9 h-9" />
