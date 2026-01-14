@@ -114,10 +114,16 @@ const submit = () => {
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
                     <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-200">
                         <div class="relative flex-shrink-0">
-                                :src="user.photo_url || '/images/default-avatar.png'"
-                                :alt="'Profile picture of ' + (user.name || 'user')"
-                                class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                            />
+                            <div v-if="user.photo_url" class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                                <img
+                                    :src="user.photo_url"
+                                    :alt="'Profile picture of ' + (user.name || 'user')"
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div v-else class="w-32 h-32 rounded-full bg-gray-200 border-4 border-gray-200 flex items-center justify-center">
+                                <UserIcon class="w-16 h-16 text-gray-400" style="width: 64px; height: 64px;" />
+                            </div>
                             <div v-if="uploading || deleting" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
                                 <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -207,8 +213,8 @@ const submit = () => {
                         </div>
                         <button
                             type="button"
-                            @click="router.visit(`/user/profile/${user.member_number}`)"
-                            class="px-8 py-3 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                            @click="router.visit('/user/profile')"
+                            class="px-6 py-2.5 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors"
                         >
                             Batal
                         </button>
