@@ -85,14 +85,18 @@ class SimpananController extends Controller
      */
     public function showWithdrawalStatement(Request $request)
     {
-        $withdrawalData = [
-            'amount' => $request->input('amount'),
-            'description' => $request->input('description'),
-            'method' => $request->input('method'),
-            'bank_name' => $request->input('bank_name'),
-            'account_number' => $request->input('account_number'),
-            'account_name' => $request->input('account_name'),
-        ];
+        // Validate the input
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'description' => 'required|string|max:1000',
+            'method' => 'required|in:Tunai,Non-Tunai',
+            'bank_name' => 'required_if:method,Non-Tunai|string|nullable',
+            'account_number' => 'required_if:method,Non-Tunai|string|nullable',
+            'account_name' => 'required_if:method,Non-Tunai|string|nullable',
+        ]);
+
+        // Store in session instead of query parameters
+        session(['withdrawal_form_data' => $validated]);
 
         return inertia('User/Simpanan/Penarikan/Pernyataan', [
             'withdrawalData' => $withdrawalData,
