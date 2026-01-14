@@ -75,10 +75,10 @@ const handleContinue = () => {
 			</div>
 
 			<div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-				<section class="rounded-xl bg-white shadow-sm ring-1 ring-gray-100 xl:col-span-2">
+				<section class="rounded-xl bg-white dark:bg-gray-800 xl:col-span-2">
 					<div
 						class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-						<h2 class="font-heading text-xl font-semibold text-gray-900 dark:text-white">
+						<h2 class="font-head text-xl font-semibold text-gray-900 dark:text-white">
 							Detail Data Calon Anggota
 						</h2>
 					</div>
@@ -115,18 +115,21 @@ const handleContinue = () => {
 								</button>
 							</div>
 							<div v-if="decision === 'rejected'" class="flex flex-col gap-2 md:col-span-2">
-								<label class="text-sm font-medium text-gray-600 mt-4">Catatan</label>
+								<label class="text-sm font-medium text-gray-600 dark:text-white mt-4">
+									Catatan 
+									<span class="text-error-500">*</span>
+								</label>
 								<textarea
 									v-model="note"
 									rows="3"
 									placeholder="Catatan jika ditolak"
-									class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+									class="w-full rounded-lg border border-gray-200 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
 								></textarea>
 							</div>
 						</div>
 					</div>
 
-					<div v-if="decision === 'rejected'" class="mt-6 flex justify-end">
+					<div v-if="decision === 'rejected'" class="p-8 mt-6 flex justify-end">
 						<button
 							type="button"
 							@click="handleContinue"
@@ -138,16 +141,16 @@ const handleContinue = () => {
 				</section>
 
 				<div class="flex flex-col gap-4">
-					<section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-						<h3 class="mb-4 text-base font-semibold text-gray-900">Foto Calon Anggota</h3>
-						<div class="mx-auto flex w-60 aspect-square items-center justify-center rounded-lg border-2 bg-gray-50">
+					<section class="rounded-xl bg-white dark:bg-gray-800 p-6">
+						<h3 class="mb-4 text-base font-semibold font-head text-gray-900 dark:text-white">Foto Calon Anggota</h3>
+						<div class="mx-auto flex w-60 aspect-square items-center justify-center rounded-lg border-2 bg-gray-50 dark:border-gray-700">
 							<img v-if="member.photo_url" :src="member.photo_url" alt="Foto calon anggota" class="h-full w-full rounded-lg object-cover" />
 						</div>
 					</section>
 
-					<section class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-						<h3 class="mb-4 text-base font-semibold text-gray-900">Foto KTP</h3>
-						<div class="flex w-full aspect-[16/10] items-center justify-center rounded-lg border-2 bg-gray-50">
+					<section class="rounded-xl bg-white dark:bg-gray-800 p-6">
+						<h3 class="mb-4 text-base font-semibold font-head text-gray-900 dark:text-white">Foto KTP</h3>
+						<div class="flex w-full aspect-[16/10] items-center justify-center rounded-lg border-2 bg-gray-50 dark:border-gray-700">
 							<img v-if="member.id_card_url" :src="member.id_card_url" alt="Foto KTP" class="h-full w-full rounded-lg object-cover" />
 						</div>
 					</section>
