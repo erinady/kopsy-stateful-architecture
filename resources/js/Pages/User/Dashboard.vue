@@ -157,7 +157,7 @@ const rupiah = (value) =>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-semibold text-lg">Your Ledger</h3>
                         <Link
-                            href="/ledger"
+                            href="/user/ledger"
                             class="text-sm text-orange-500 font-medium border border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 px-3 py-1.5 rounded-lg transition-colors">
                             See All
                         </Link>
