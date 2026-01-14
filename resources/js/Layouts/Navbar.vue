@@ -41,7 +41,7 @@ console.log(isMenuOpen.value);
                 <ThemeToggler />
                 <!-- Guest Auth Section -->
                 <template v-if="!user">
-                    <div class="flex items-center gap-4 opacity-0 md:opacity-100">
+                    <div class="flex items-center gap-4 opacity-0 lg:opacity-100">
                         <Link href="/auth/login"
                             class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-2 font-body font-semibold text-orange-500 shadow-lg transition-colors hover:text-orange-600 hover:bg-gray-100">
                             Masuk
