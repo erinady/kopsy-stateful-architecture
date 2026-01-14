@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\UserStatus;
 use Inertia\Inertia;
+use App\Enums\TransactionStatus;
 
 class UserController extends Controller
 {
@@ -31,7 +32,7 @@ class UserController extends Controller
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $query = User::with(['savingAccounts.transactions' => fn ($q) =>
-            $q->where('status', 'Selesai')
+            $q->where('status', TransactionStatus::COMPLETED)
         ])
         ->whereHas('role', fn ($q) =>
             $q->where('name', 'User')
@@ -49,7 +50,7 @@ class UserController extends Controller
         $totalVerifiedMembers = $verifiedMembersQuery->count();
 
         $activeMembers = (clone $verifiedMembersQuery)
-            ->where('status', 'Aktif')
+            ->where('status', UserStatus::ACTIVE)
             ->count();
 
         $newThisMonth = (clone $verifiedMembersQuery)
@@ -58,7 +59,7 @@ class UserController extends Controller
             ->count();
 
         $inReview = (clone $memberBaseQuery)
-            ->where('status', 'Dalam Peninjauan')
+            ->where('status', UserStatus::INREVIEW)
             ->whereNull('joined_date')
             ->count();
 
@@ -88,7 +89,13 @@ class UserController extends Controller
                 'phone' => $user->phone_number,
                 'status' => $user->status,
                 'total_simpanan' => 'Rp ' . number_format(
-                    $user->savingAccounts->flatMap(fn ($account) => $account->transactions)->sum('amount'),
+                    $user->savingAccounts
+                        ->flatMap(fn ($account) => $account->transactions)
+                        ->sum(fn ($trx) =>
+                            $trx->type === 'Penarikan'
+                                ? -$trx->amount
+                                : $trx->amount
+                        ),
                     0,
                     ',',
                     '.'
@@ -217,7 +224,7 @@ class UserController extends Controller
         }
 
         $members = User::query()
-            ->where('status', 'Dalam Peninjauan')
+            ->where('status', UserStatus::INREVIEW)
             ->with('workUnit:id,name')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
