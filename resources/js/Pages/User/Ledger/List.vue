@@ -6,6 +6,7 @@ import FieldRow from '../../../Components/Form/FieldRow.vue'
 import BaseTable from '../../../Components/Table/BaseTable.vue'
 import BaseFunctionality from '../../../Components/Table/BaseFunctionality.vue'
 import Pagination from '../../../Components/Table/Pagination.vue'
+import Ringkasan from './Ringkasan.vue'
 
 defineOptions({
     layout: BaseLayout,
@@ -26,6 +27,11 @@ const props = withDefaults(defineProps<{
         status: string
         tanggal_bergabung: string
     }
+    savings?: {
+        simpanan_pokok: number
+        simpanan_wajib: number
+        simpanan_sukarela: number
+    }
     filters?: {
         search: string
         month: string
@@ -45,6 +51,11 @@ const props = withDefaults(defineProps<{
         no_anggota: '',
         status: '',
         tanggal_bergabung: '',
+    }),
+    savings: () => ({
+        simpanan_pokok: 0,
+        simpanan_wajib: 0,
+        simpanan_sukarela: 0,
     }),
     filters: () => ({
         search: '',
@@ -145,7 +156,7 @@ const handleExport = () => {
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 pt-24 pb-12 max-w-8xl px-4 sm:px-6 lg:px-8">
         <div class="space-y-6 p-6">
             <!-- Anggota Info -->
-            <div v-if="memberInfo" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 w-full md:w-1/2">
+            <div v-if="memberInfo" class="mb-8 w-full">
                 <h1 class="text-3xl font-bold font-head text-blue-900 dark:text-blue-600 mb-8">
                     Personal Ledger
                 </h1>
@@ -156,6 +167,14 @@ const handleExport = () => {
                     <FieldRow label="Status" :value="memberInfo.status" />
                     <FieldRow label="Tanggal Bergabung" :value="memberInfo.tanggal_bergabung" />
                 </div>
+            </div>
+
+            <!-- Ringkasan Simpanan -->
+            <div class="w-full mb-8">
+                <h2 class="text-xl font-bold font-head text-gray-800 dark:text-white mb-4">
+                    Ringkasan
+                </h2>
+                <Ringkasan :savings="savings" />
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full">
