@@ -1,29 +1,29 @@
 <script setup>
     import { computed } from 'vue'
-const props = defineProps({
-    title: {
-        type: String,
-    },
-    content: {
-        type: String,
-        default: '0',
-    },
-    percentage: {
-        type: Number,
-        default: 0,
-    },
-    filter: {
-        type: String,
-        default: 'month',
-    },
-})
+    const props = defineProps({
+        title: {
+            type: String,
+        },
+        content: {
+            type: [String, Number],
+            default: '0',
+        },
+        percentage: {
+            type: Number,
+            default: 0,
+        },
+        filter: {
+            type: String,
+            default: 'month',
+        },
+    })
 
-const filterText = computed(() => {
-    if (props.filter === 'month') return 'dari bulan lalu'
-    if (props.filter === 'day') return 'dari kemarin'
-    if (props.filter === 'year') return 'dari tahun lalu'
-    return 'dari periode lalu'
-})
+    const filterText = computed(() => {
+        if (props.filter === 'month') return 'dari bulan lalu'
+        if (props.filter === 'day') return 'dari kemarin'
+        if (props.filter === 'year') return 'dari tahun lalu'
+        return 'dari periode lalu'
+    })
 </script>
 
 <template>

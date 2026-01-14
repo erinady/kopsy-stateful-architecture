@@ -30,9 +30,9 @@ class DashboardController extends Controller
                 User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $endDate)->count(),
                 User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $prevEndDate)->count()
             ),
-            'total_saving_amount' => SavingAccount::sum('balance') ?? 0,
+            'total_saving_amount' => SavingAccount::sum('balance') ?? '0',
             'total_financing_amount' => Loan::whereBetween('created_at', [$startDate, $endDate])
-                ->sum('total_price') ?? 0,
+                ->sum('total_price') ?? '0',
             'total_financing_percentage' => $this->calculatePercentage(
                 Loan::whereBetween('created_at', [$startDate, $endDate])->sum('total_price') ?? 0,
                 Loan::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_price') ?? 0
@@ -40,13 +40,13 @@ class DashboardController extends Controller
             'transaction_data' => $this->getRecentTransactions(),
             'registration_data' => $this->getPendingRegistrations(),
             'financing_data' => $this->getRecentFinancings(),
-            'financing_stats' => $this->getFinancingStats(),
+            'financing_stats' => $this->getFinancingStats($filterBy)
         ]);
     }
 
     private function getPreviousPeriod(Carbon $start, Carbon $end, string $filterBy): array
     {
-        return match($filterBy) {
+        return match ($filterBy) {
             'month' => [
                 $start->copy()->subMonth()->startOfMonth(),
                 $start->copy()->subMonth()->endOfMonth()
@@ -107,14 +107,84 @@ class DashboardController extends Controller
             ]);
     }
 
-    private function getFinancingStats()
+    private function getFinancingStats($filterBy = 'month')
     {
-        return Financing::selectRaw('EXTRACT(MONTH FROM created_at) AS month, COUNT(*) AS count')
+        return match ($filterBy) {
+            'month' => $this->getMonthlyStats(),
+            'day' => $this->getDailyStats(),
+            'year' => $this->getYearlyStats(),
+            default => $this->getMonthlyStats(),
+        };
+    }
+
+    private function getMonthlyStats()
+    {
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        $stats = Financing::selectRaw('EXTRACT(MONTH FROM created_at) AS month, COUNT(*) AS count')
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')
             ->get()
-            ->pluck('count', 'month')
+            ->mapWithKeys(function ($item) use ($months) {
+                return [$months[$item->month - 1] => $item->count];
+            })
             ->toArray();
+
+        // Fill semua bulan, jika tidak ada data = 0
+        $result = [];
+        foreach ($months as $month) {
+            $result[$month] = $stats[$month] ?? 0;
+        }
+
+        return $result;
+    }
+
+    private function getDailyStats()
+    {
+        $startDate = now()->startOfMonth();
+        $endDate = now()->endOfMonth();
+        $daysInMonth = $endDate->day;
+
+        $stats = Financing::selectRaw("EXTRACT(DAY FROM created_at)::INTEGER AS day, COUNT(*) AS count")
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->day => $item->count];
+            })
+            ->toArray();
+
+        // Fill semua hari bulan ini, jika tidak ada data = 0
+        $result = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $result[$day] = $stats[$day] ?? 0;
+        }
+
+        return $result;
+    }
+
+    private function getYearlyStats()
+    {
+        $currentYear = now()->year;
+        $startYear = Financing::min('created_at') ? Carbon::parse(Financing::min('created_at'))->year : $currentYear;
+
+        $stats = Financing::selectRaw("EXTRACT(YEAR FROM created_at)::INTEGER AS year, COUNT(*) AS count")
+            ->groupBy('year')
+            ->orderBy('year')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->year => $item->count];
+            })
+            ->toArray();
+
+        // Fill semua tahun dari tahun pertama data sampai sekarang
+        $result = [];
+        for ($year = $startYear; $year <= $currentYear; $year++) {
+            $result[$year] = $stats[$year] ?? 0;
+        }
+
+        return $result;
     }
 }
