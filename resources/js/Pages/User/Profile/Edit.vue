@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
+import Swal from 'sweetalert2'
+import { toast } from 'vue3-toastify'
 import Base from '../../../Layouts/Base.vue'
 import BaseInput from '@/Components/Form/BaseInput.vue'
 import BaseSelect from '@/Components/Form/BaseSelect.vue'
@@ -29,6 +31,22 @@ const form = useForm({
 const fileInput = ref(null)
 const uploading = ref(false)
 const deleting = ref(false)
+
+const initialData = {
+    name: props.user.name || '',
+    nik: props.user.nik || '',
+    birth_date: props.user.birth_date || '',
+    gender: props.user.gender || '',
+}
+
+const hasDataChanged = computed(() => {
+    return (
+        form.name !== initialData.name ||
+        form.nik !== initialData.nik ||
+        form.birth_date !== initialData.birth_date ||
+        form.gender !== initialData.gender
+    )
+})
 
 const handleChangePicture = () => {
     fileInput.value.click()
@@ -72,33 +90,98 @@ const onFileChange = (event) => {
 
 const handleDeletePicture = () => {
     if (!props.user.profile_picture) {
-        alert('Tidak ada foto profil untuk dihapus')
+        toast.error('Tidak ada foto profil untuk dihapus', {
+            autoClose: 2000,
+            position: 'bottom-right'
+        })
         return
     }
 
-    if (!confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
-        return
-    }
+    Swal.fire({
+        title: 'Hapus Foto Profil?',
+        text: 'Apakah Anda yakin ingin menghapus foto profil?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleting.value = true
 
-    deleting.value = true
-
-    router.delete('/user/profile/picture', {
-        preserveScroll: true,
-        onSuccess: () => {
-            deleting.value = false
-        },
-        onError: () => {
-            deleting.value = false
-            alert('Gagal menghapus foto profil')
+            router.delete('/user/profile/picture', {
+                preserveScroll: true,
+                onSuccess: () => {
+                    deleting.value = false
+                    toast.success('Foto profil berhasil dihapus', {
+                        autoClose: 2000,
+                        position: 'bottom-right'
+                    })
+                },
+                onError: () => {
+                    deleting.value = false
+                    toast.error('Gagal menghapus foto profil', {
+                        autoClose: 2000,
+                        position: 'bottom-right'
+                    })
+                }
+            })
         }
     })
 }
 
+const handleCancel = () => {
+    if (hasDataChanged.value) {
+        Swal.fire({
+            title: 'Batalkan Perubahan?',
+            text: 'Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin membatalkan?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Batalkan',
+            cancelButtonText: 'Tetap di Halaman Ini'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.visit('/user/profile')
+            }
+        })
+    } else {
+        router.visit('/user/profile')
+    }
+}
+
 const submit = () => {
-    form.put('/user/profile', {
-        preserveScroll: true,
-        onSuccess: () => {
-            router.visit('/user/profile')
+    Swal.fire({
+        title: 'Simpan Perubahan?',
+        text: 'Apakah Anda yakin ingin menyimpan perubahan profil?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Simpan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.put('/user/profile', {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Profil berhasil disimpan', {
+                        autoClose: 2000,
+                        position: 'bottom-right'
+                    })
+                    setTimeout(() => {
+                        router.visit('/user/profile')
+                    }, 500)
+                },
+                onError: () => {
+                    toast.error('Gagal menyimpan profil', {
+                        autoClose: 2000,
+                        position: 'bottom-right'
+                    })
+                }
+            })
         }
     })
 }
@@ -202,27 +285,26 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-end gap-4 relative">
-                        <!-- Loading overlay during submit -->
-                        <div v-if="form.processing" class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
-                            <svg class="animate-spin h-6 w-6 text-blue-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span class="ml-2 text-blue-900 font-semibold">Menyimpan...</span>
-                        </div>
+                    <div class="mt-8 flex justify-end gap-4">
                         <button
                             type="button"
-                            @click="router.visit('/user/profile')"
-                            class="px-6 py-2.5 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                            @click="handleCancel"
+                            :disabled="form.processing"
+                            class="px-6 py-2.5 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="px-6 py-2.5 bg-blue-900 text-white text-base font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            class="px-6 py-2.5 bg-blue-900 text-white text-base font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
                         >
+                            <span v-if="form.processing">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </span>
                             {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                         </button>
                     </div>
