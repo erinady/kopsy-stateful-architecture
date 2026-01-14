@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import Swal from 'sweetalert2'
+import { toast } from 'vue3-toastify'
 import AdminLayout from '@/Layouts/Admin/Layout.vue'
 import ReadonlyField from '@/Components/Form/ReadonlyField.vue'
 
@@ -9,6 +11,7 @@ const props = defineProps({
 		type: Object,
 		default: () => ({
 			id: '',
+			member_number: '',
 			name: '',
 			nik: '',
 			work_unit: '',
@@ -35,8 +38,58 @@ const member = computed(() => ({
 	id_card_url: props.member?.id_card_url ?? null,
 }))
 
+const isNoteValid = computed(() => {
+	if (decision.value === 'rejected') {
+		return note.value.trim() !== ''
+	}
+	return true
+})
+
 const setDecision = (value) => {
 	decision.value = value
+}
+
+const handleApproved = () => {
+	Swal.fire({
+		title: 'Terima Calon Anggota?',
+		text: 'Apakah Anda yakin ingin menerima calon anggota ini?',
+		icon: 'question',
+		showCancelButton: true,
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+		confirmButtonText: 'Ya, Terima!',
+		cancelButtonText: 'Batal'
+	}).then((result) => {
+		if (result.isConfirmed) {
+			console.log('Sending approval request for member:', props.member.member_number)
+			router.post(
+				`/admin/verifikasi/${props.member.member_number}/approval`,
+				{
+					decision: 'approved',
+					note: '',
+				},
+				{
+					onSuccess: (response) => {
+						console.log('Success response:', response)
+						toast.success('Pemberitahuan terkirim ke email anggota', {
+							autoClose: 2000,
+							position: 'bottom-right'
+						})
+						setTimeout(() => {
+							router.visit('/admin/verifikasi')
+						}, 1000)
+					},
+					onError: (error) => {
+						console.error('Error response:', error)
+						toast.error('Gagal mengirim pemberitahuan', {
+							autoClose: 2000,
+							position: 'bottom-right'
+						})
+					}
+				}
+			)
+		}
+	})
 }
 
 const handleContinue = () => {
@@ -45,18 +98,46 @@ const handleContinue = () => {
         return
     }
 
-    router.post(
-        `/admin/verifikasi/${props.member.id}/approval`,
-        {
-            decision: decision.value,
-            note: decision.value === 'rejected' ? note.value : '',
-        },
-        {
-            onSuccess: () => {
-                window.location.href = '/admin/verifikasi'
-            },
+    Swal.fire({
+        title: 'Tolak Calon Anggota?',
+        text: 'Apakah Anda yakin ingin menolak calon anggota ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Tolak!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            console.log('Sending rejection request for member:', props.member.member_number)
+            router.post(
+                `/admin/verifikasi/${props.member.member_number}/approval`,
+                {
+                    decision: decision.value,
+                    note: decision.value === 'rejected' ? note.value : '',
+                },
+                {
+                    onSuccess: (response) => {
+                        console.log('Success response:', response)
+                        toast.success('Pemberitahuan terkirim ke email calon anggota', {
+                            autoClose: 2000,
+                            position: 'bottom-right'
+                        })
+                        setTimeout(() => {
+                            router.visit('/admin/verifikasi')
+                        }, 1000)
+                    },
+                    onError: (error) => {
+                        console.error('Error response:', error)
+                        toast.error('Gagal mengirim pemberitahuan', {
+                            autoClose: 2000,
+                            position: 'bottom-right'
+                        })
+                    }
+                }
+            )
         }
-    )
+    })
 }
 </script>
 
@@ -93,7 +174,7 @@ const handleContinue = () => {
 							<div class="flex items-end justify-start gap-3 md:justify-end">
 								<button
 									type="button"
-									@click="() => { decision = 'approved'; handleContinue(); }"
+								@click="handleApproved"
 									:class="[
 										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
 										'bg-blue-800 text-white hover:bg-blue-900'
@@ -123,7 +204,7 @@ const handleContinue = () => {
 									v-model="note"
 									rows="3"
 									placeholder="Catatan jika ditolak"
-									class="w-full rounded-lg border border-gray-200 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+									class="w-full rounded-lg border border-gray-200 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
 								></textarea>
 							</div>
 						</div>
@@ -133,7 +214,8 @@ const handleContinue = () => {
 						<button
 							type="button"
 							@click="handleContinue"
-							class="inline-flex items-center justify-center rounded-lg bg-blue-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900"
+							:disabled="!isNoteValid"
+							class="inline-flex items-center justify-center rounded-lg bg-blue-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							Lanjutkan
 						</button>
