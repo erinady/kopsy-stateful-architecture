@@ -602,7 +602,7 @@ const submitDeposit = () => {
             <BaseContainer
                 v-show="currentStep === 2"
                 title="PERYATAAN DAN KONFIRMASI"
-                subtitle="Periksa kembali detail informasi untuk penyetoran dan isi peryataan"
+                subtitle="Periksa kembali detail informasi untuk penyetoran dan isi pernyataan"
                 :showDivider="true"
                 contentClass="mt-6"
             >
