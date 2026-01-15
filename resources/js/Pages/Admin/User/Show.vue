@@ -21,7 +21,7 @@
                         </div>
                     </div>
                     <button
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current fill-white dark:fill-gray-800"
                             width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path
@@ -92,7 +92,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Foto KTP</span>
                                     <button
-                                        class="items-center flex justify-center gap-2 rounded-xl border border-gray-300 bg-muted mr-auto px-12 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                        class="items-center flex justify-center gap-2 rounded-xl border border-gray-300 bg-muted mr-auto px-12 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-gray-200">
                                         <span class="icon-[tabler--eye]" style="width: 24px; height: 24px;"></span>
                                         Lihat
                                     </button>
@@ -100,7 +100,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Foto KK</span>
                                     <button
-                                        class="items-center flex justify-center gap-2 rounded-xl border border-gray-300 bg-muted mr-auto px-12 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                        class="items-center flex justify-center gap-2 rounded-xl border border-gray-300 bg-muted mr-auto px-12 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-gray-200">
                                         <span class="icon-[tabler--eye]" style="width: 24px; height: 24px;"></span>
                                         Lihat
                                     </button>
@@ -193,7 +193,7 @@
                                     </li>
                                 </ul>
                                 <button
-                                    class="flex justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                    class="flex justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
                                     <span class="icon-[material-symbols--info-outline-rounded]"
                                         style="width: 24px; height: 24px;"></span>
                                     Mutasi
@@ -260,13 +260,13 @@
                                 </ul>
                                 <div class="flex flex-col sm:flex-row gap-4 w-full px-8">
                                     <button
-                                        class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                        class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
                                         <span class="icon-[material-symbols--info-outline-rounded]"
                                             style="width: 24px; height: 24px;"></span>
                                         Detail
                                     </button>
                                     <button
-                                        class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                                        class="flex w-full justify-center items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
                                         <span class="icon-[material-symbols--info-outline-rounded]"
                                             style="width: 24px; height: 24px;"></span>
                                         Riwayat

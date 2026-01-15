@@ -44,7 +44,7 @@ onUnmounted(() => {
                             alt="Hero Background">
                         <div class="absolute inset-0 bg-white dark:bg-dark-text opacity-85"></div>
                     </div>
-                    <img src="/public/images/home/ornament_blue.svg" class="w-72 h-auto absolute -z-10 dark:opacity-10 -left-0 top-24"
+                    <img src="/public/images/home/ornament_blue.svg" class="w-72 h-auto absolute -z-10 dark:opacity-10 left-0 top-24"
                         alt="">
 
                     <h1 class="font-semibold text-5xl w-lg leading-20 tracking-wide dark:text-gray-100">Sejahtera <span
