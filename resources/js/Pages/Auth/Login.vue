@@ -1,8 +1,9 @@
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3'
+import { Link, useForm, router } from '@inertiajs/vue3'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
 import BaseInput from '@/Components/Form/BaseInput.vue'
 import Logo from '@/Components/Logo.vue'
+import { toast } from 'vue3-toastify'
 
 const form = useForm({
   member_number: '',
@@ -11,7 +12,30 @@ const form = useForm({
 
 const submit = () => {
   form.post('/auth/login', {
-    onError: () => form.reset('password'),
+    onSuccess: (page) => {
+      const user = page.props.auth?.user
+      const role = user?.role?.name
+      
+      toast.success('Login berhasil, Selamat Datang!', {
+        autoClose: 2000,
+        position: 'bottom-right',
+      })
+
+      setTimeout(() => {
+        if (role === 'Super Admin') {
+          router.visit('/admin/dashboard')
+        } else {
+          router.visit('/user/dashboard')
+        }
+      }, 2000)
+    },
+    onError: () => {
+      form.reset('password')
+      toast.error('Login gagal. Periksa kembali nomor anggota dan password Anda.', {
+        autoClose: 3000,
+        position: 'bottom-right',
+      })
+    },
     onFinish: () => form.reset('password'),
   })
 }
