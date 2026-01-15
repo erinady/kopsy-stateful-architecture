@@ -157,7 +157,7 @@ import ProductIcon from "../../Icons/ProductIcon.vue";
 import LogoutIcon from "../../Icons/LogoutIcon.vue";
 import ChevronDownIcon from "../../Icons/ChevronDownIcon.vue";
 import { useSidebar } from "@/Composables/useSidebar";
-import Logo from "../../Components/Logo.vue";
+import HorizontalDots from "@/Icons/HorizontalDots.vue";
 
 const page = usePage()
 

@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\SavingAccount;
 use App\Models\SavingTransaction;
 use App\Models\SavingTransactionDoc;
+use App\Models\Account;
 use App\Enums\SavingType;
 use App\Enums\TransactionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class SimpananController extends Controller
@@ -62,24 +63,18 @@ class SimpananController extends Controller
                 ->with('error', 'Akun simpanan sukarela tidak ditemukan');
         }
 
-        // Get previous form data if coming from pernyataan page
-        $amount = $request->input('amount', '');
-        $description = $request->input('description', '');
-        $method = $request->input('method', 'Tunai');
-        $bankName = $request->input('bank_name', '');
-        $accountNumber = $request->input('account_number', '');
-        $accountName = $request->input('account_name', '');
+        // Get user's saved accounts
+        $savedAccounts = Account::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get(['account_number', 'bank_name', 'account_name']);
+
+        // Get previous form data from session
+        $previousData = session('withdrawal_form_data', []);
 
         return inertia('User/Simpanan/Penarikan/Detail', [
             'maxBalance' => $savingAccount->balance,
-            'previousData' => [
-                'amount' => $amount,
-                'description' => $description,
-                'method' => $method,
-                'bank_name' => $bankName,
-                'account_number' => $accountNumber,
-                'account_name' => $accountName,
-            ]
+            'savedAccounts' => $savedAccounts,
+            'previousData' => $previousData
         ]);
     }
 
@@ -88,17 +83,21 @@ class SimpananController extends Controller
      */
     public function showWithdrawalStatement(Request $request)
     {
-        $withdrawalData = [
-            'amount' => $request->input('amount'),
-            'description' => $request->input('description'),
-            'method' => $request->input('method'),
-            'bank_name' => $request->input('bank_name'),
-            'account_number' => $request->input('account_number'),
-            'account_name' => $request->input('account_name'),
-        ];
+        // Validate the input
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'description' => 'required|string|max:1000',
+            'method' => 'required|in:Tunai,Non-Tunai',
+            'bank_name' => 'required_if:method,Non-Tunai|string|nullable',
+            'account_number' => 'required_if:method,Non-Tunai|string|nullable',
+            'account_name' => 'required_if:method,Non-Tunai|string|nullable',
+        ]);
+
+        // Store in session instead of query parameters
+        session(['withdrawal_form_data' => $validated]);
 
         return inertia('User/Simpanan/Penarikan/Pernyataan', [
-            'withdrawalData' => $withdrawalData,
+            'withdrawalData' => $validated,
         ]);
     }
 
@@ -118,49 +117,69 @@ class SimpananController extends Controller
         ]);
 
         $user = $request->user();
-        
-        // Get Simpanan Sukarela account
-        $savingAccount = SavingAccount::where('user_id', $user->id)
-            ->where('type', SavingType::SIMPANAN_SUKARELA->value)
-            ->first();
 
-        if (!$savingAccount) {
+        try {
+            DB::beginTransaction();
+
+            // Get Simpanan Sukarela account with lock to prevent race condition
+            $savingAccount = SavingAccount::where('user_id', $user->id)
+                ->where('type', SavingType::SIMPANAN_SUKARELA->value)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$savingAccount) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->withErrors(['error' => 'Akun simpanan sukarela tidak ditemukan']);
+            }
+
+            // Check if balance is sufficient
+            if ($validated['amount'] > $savingAccount->balance) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->withErrors(['amount' => 'Saldo tidak mencukupi untuk penarikan ini']);
+            }
+
+            // Save or update account information if Non-Tunai
+            if ($validated['method'] === 'Non-Tunai') {
+                Account::updateOrCreate(
+                    [
+                        'account_number' => $validated['account_number'],
+                        'user_id' => $user->id,
+                    ],
+                    [
+                        'bank_name' => $validated['bank_name'],
+                        'account_name' => $validated['account_name'],
+                    ]
+                );
+            }
+
+            // Create transaction
+            $transaction = SavingTransaction::create([
+                'id' => Str::uuid()->toString(),
+                'amount' => $validated['amount'],
+                'type' => 'Penarikan',
+                'status' => TransactionStatus::PENDING->value,
+                'method' => $validated['method'],
+                'description' => $validated['description'],
+                'transaction_date' => Carbon::now(),
+                'updated_by' => $user->id,
+                'saving_account_id' => $savingAccount->id,
+            ]);
+
+            DB::commit();
+
+            // Clear session data
+            session()->forget('withdrawal_form_data');
+
+            return redirect()->route('user.userDashboard')
+                ->with('success', 'Permohonan penarikan simpanan berhasil diajukan dan sedang dalam peninjauan');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()
-                ->withErrors(['error' => 'Akun simpanan sukarela tidak ditemukan']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat memproses penarikan. Silakan coba lagi.']);
         }
-
-        // Check if balance is sufficient
-        if ($validated['amount'] > $savingAccount->balance) {
-            return redirect()->back()
-                ->withErrors(['amount' => 'Saldo tidak mencukupi untuk penarikan ini']);
-        }
-
-        // Build description with bank details if Non-Tunai
-        $fullDescription = $validated['description'];
-        if ($validated['method'] === 'Non-Tunai') {
-            $fullDescription .= sprintf(
-                "\nBank: %s\nNo. Rekening: %s\nAtas Nama: %s",
-                $validated['bank_name'],
-                $validated['account_number'],
-                $validated['account_name']
-            );
-        }
-
-        // Create transaction
-        $transaction = SavingTransaction::create([
-            'id' => Str::uuid()->toString(),
-            'amount' => $validated['amount'],
-            'type' => 'Penarikan',
-            'status' => TransactionStatus::PENDING->value,
-            'method' => $validated['method'],
-            'description' => $fullDescription,
-            'transaction_date' => Carbon::now(),
-            'updated_by' => $user->id,
-            'saving_account_id' => $savingAccount->id,
-        ]);
-
-        return redirect()->route('user.userDashboard')
-            ->with('success', 'Permohonan penarikan simpanan berhasil diajukan dan sedang dalam peninjauan');
     }
 
     public function createDeposit(Request $request) 
