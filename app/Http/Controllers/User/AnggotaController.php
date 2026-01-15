@@ -91,11 +91,9 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function createResign(Request $request, User $user)
+    public function createResign(Request $request)
     {
-        if ($request->user()->id !== $user->id) {
-            abort(403);
-        }
+        $user = $request->user();
 
         $hasExistingResign = UserDoc::where('user_id', $user->id)
             ->where('name', 'Dokumen Pengunduran Diri')
@@ -142,11 +140,9 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function storeResign(Request $request, User $user)
+    public function storeResign(Request $request)
     {
-        if ($request->user()->id !== $user->id) {
-            abort(403);
-        }
+        $user = $request->user();
 
         $hasExistingResign = UserDoc::where('user_id', $user->id)
             ->where('name', 'Dokumen Pengunduran Diri')
@@ -178,6 +174,8 @@ class AnggotaController extends Controller
             'user_id' => $user->id,
         ]);
 
-        return back()->with('success', 'Permohonan pengunduran diri berhasil dikirim');
+        return redirect()
+        ->route('user.userDashboard')
+        ->with('success', 'Permohonan pengunduran diri berhasil dikirim.');
     }
 }
