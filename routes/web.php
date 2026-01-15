@@ -98,6 +98,6 @@ Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
     // Simpanan Routes - Penarikan
     Route::get('/simpanan/penarikan', [SimpananController::class, 'showWithdrawalInfo'])->name('simpanan.withdraw.info');
     Route::get('/simpanan/penarikan/detail', [SimpananController::class, 'showWithdrawalDetail'])->name('simpanan.withdraw.detail');
-    Route::get('/simpanan/penarikan/pernyataan', [SimpananController::class, 'showWithdrawalStatement'])->name('simpanan.withdraw.statement');
+    Route::post('/simpanan/penarikan/pernyataan', [SimpananController::class, 'showWithdrawalStatement'])->name('simpanan.withdraw.statement');
     Route::post('/simpanan/penarikan/submit', [SimpananController::class, 'submitWithdrawal'])->name('simpanan.withdraw.submit');
 });
