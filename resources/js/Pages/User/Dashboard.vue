@@ -102,7 +102,7 @@ const rupiah = (value) =>
                     <h3 class="font-semibold text-lg mb-6">Quick Access</h3>
 
                     <div class="flex justify-around text-center">
-                        <Link href="/simpanan/setor" class="group">
+                        <Link href="/user/simpanan/penyetoran" class="group">
                             <div class="flex flex-col items-center gap-3">
                                 <div class="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white group-hover:bg-green-600 transition-colors">
                                     <Icon icon="uil:money-insert" class="w-9 h-9" />

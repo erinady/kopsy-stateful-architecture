@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\FinancingReqStatus;
+use App\Enums\LoanStatus;
+use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SavingTransaction;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use App\Models\UserDoc;
+use Illuminate\Support\Facades\DB;
 
 class AnggotaController extends Controller
 {
@@ -17,38 +20,66 @@ class AnggotaController extends Controller
     {
         $user = $request->user();
 
-        $totalSaving = $user->savingAccounts()->sum('balance');
+        $totalSaving = SavingTransaction::where('status', TransactionStatus::COMPLETED)
+            ->whereHas('savingAccount', fn ($q) =>
+                $q->where('user_id', $user->id)
+            )
+            ->sum(DB::raw("
+                CASE
+                    WHEN type = 'Penyetoran' THEN amount
+                    WHEN type = 'Penarikan' THEN -amount
+                END
+            "));
 
         $totalInstallment = $user->financings()
-            ->whereHas('loan')
-            ->with('loan')
-            ->get()
-            ->sum(fn ($f) => $f->loan->amount_ins ?? 0);
-
-        $ledger = SavingTransaction::whereHas(
-            'savingAccount',
-            fn ($q) => $q->where('user_id', $user->id)
-        )
-        ->with('savingAccount')
-        ->latest('transaction_date')
-        ->limit(5)
+        ->whereIn('status', [
+            FinancingReqStatus::APPROVED,
+            FinancingReqStatus::APPROVED_WITH_NOTES,
+        ])
+        ->whereHas('loan')
+        ->with(['loan.payments' => fn ($q) =>
+            $q->where('status', LoanStatus::PAID)
+        ])
         ->get()
-        ->map(function ($trx) {
-            return [
-                'date'    => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
-                'product' => $trx->savingAccount->type,
-                'type'    => $trx->type,
-                'amount'  => 'Rp ' . number_format($trx->amount, 0, ',', '.'),
-            ];
+        ->sum(function ($financing) {
+            $loan = $financing->loan;
+            if (!$loan) return 0;
+
+            $totalPaid = $loan->payments->sum('amount');
+
+            if ($totalPaid >= $loan->total_price) {
+                return 0;
+            }
+
+            return $loan->amount_ins ?? 0;
         });
 
-        $ledgerCount = SavingTransaction::whereHas(
-            'savingAccount',
-            fn ($q) => $q->where('user_id', $user->id)
-        )
-        ->whereMonth('transaction_date', now()->month)
-        ->whereYear('transaction_date', now()->year)
-        ->count();
+        $ledger = SavingTransaction::where('status', TransactionStatus::COMPLETED)
+            ->whereHas(
+                'savingAccount',
+                fn ($q) => $q->where('user_id', $user->id)
+            )
+            ->with('savingAccount')
+            ->latest('transaction_date')
+            ->limit(5)
+            ->get()
+            ->map(function ($trx) {
+                return [
+                    'date'    => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
+                    'product' => $trx->savingAccount->type,
+                    'type'    => $trx->type,
+                    'amount'  => 'Rp ' . number_format($trx->amount, 0, ',', '.'),
+                ];
+            });
+
+        $ledgerCount = SavingTransaction::where('status', TransactionStatus::COMPLETED)
+            ->whereHas(
+                'savingAccount',
+                fn ($q) => $q->where('user_id', $user->id)
+            )
+            ->whereMonth('transaction_date', now()->month)
+            ->whereYear('transaction_date', now()->year)
+            ->count();
 
         return inertia('User/Dashboard', [
             'summary' => [
@@ -60,21 +91,34 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function createResign(Request $request, User $user)
+    public function createResign(Request $request)
     {
-        if ($request->user()->id !== $user->id) {
-            abort(403);
-        }
+        $user = $request->user();
 
         $hasExistingResign = UserDoc::where('user_id', $user->id)
             ->where('name', 'Dokumen Pengunduran Diri')
             ->exists();
 
-        $totalSaving = $user->savingAccounts()->sum('balance');
+        $totalSaving = SavingTransaction::where('status', TransactionStatus::COMPLETED)
+            ->whereHas('savingAccount', fn ($q) =>
+                $q->where('user_id', $user->id)
+            )
+            ->sum(DB::raw("
+                CASE
+                    WHEN type = 'Penyetoran' THEN amount
+                    WHEN type = 'Penarikan' THEN -amount
+                END
+            "));
 
         $totalObligation = $user->financings()
+            ->whereIn('status', [
+                FinancingReqStatus::APPROVED, 
+                FinancingReqStatus::APPROVED_WITH_NOTES,
+            ])
             ->whereHas('loan')
-            ->with(['loan.payments'])
+            ->with(['loan.payments' => fn ($q) =>
+                $q->where('status', LoanStatus::PAID)
+            ])
             ->get()
             ->sum(function ($financing) {
                 $loan = $financing->loan;
@@ -96,11 +140,9 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function storeResign(Request $request, User $user)
+    public function storeResign(Request $request)
     {
-        if ($request->user()->id !== $user->id) {
-            abort(403);
-        }
+        $user = $request->user();
 
         $hasExistingResign = UserDoc::where('user_id', $user->id)
             ->where('name', 'Dokumen Pengunduran Diri')
@@ -132,6 +174,8 @@ class AnggotaController extends Controller
             'user_id' => $user->id,
         ]);
 
-        return back()->with('success', 'Permohonan pengunduran diri berhasil dikirim');
+        return redirect()
+        ->route('user.userDashboard')
+        ->with('success', 'Permohonan pengunduran diri berhasil dikirim.');
     }
 }

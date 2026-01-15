@@ -176,16 +176,16 @@ const menuGroups = [
                 name: "Keanggotaan",
                 icon: UserIcon,
                 subItems: [
-                    { name: "Anggota", path: "/admin/anggota", pro: false },
-                    { name: "Verifikasi", path: "/admin/verifikasi", pro: false },
-                    { name: "Admin", path: "/admin/admins", pro: false },
+                    { name: "Anggota", path: "/admin/users/list", pro: false },
+                    { name: "Verifikasi", path: "/admin/users/verification", pro: false },
+                    { name: "Admin", path: "/admin/list", pro: false },
                 ],
             },
             {
                 name: "Produk",
                 icon: ProductIcon,
                 subItems: [
-                    { name: "Simpanan", path: "/admin/savings", pro: false },
+                    { name: "Simpanan", path: "/admin/savings/list", pro: false },
                     { name: "Pembiayaan Murabahah", path: "/admin/financing", pro: false },
                 ],
             },

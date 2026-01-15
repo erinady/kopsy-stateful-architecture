@@ -46,6 +46,17 @@ const filters = reactive({
     sort_dir: page.props.filters?.sort_dir ?? 'desc'
 })
 
+const exportQuery = computed(() => {
+    const params = {}
+
+    if (filters.search) params.search = filters.search
+    if (filters.tab) params.tab = filters.tab
+    params.sort_by = filters.sort_by
+    params.sort_dir = filters.sort_dir
+
+    return new URLSearchParams(params).toString()
+})
+
 const toggleSort = (column) => {
     if(filters.sort_by === column) {
         filters.sort_dir = filters.sort_dir === 'asc' ? 'desc' : 'asc'
@@ -121,7 +132,7 @@ const getProductColor = (produk) => {
 const applyFilters = () => {
     isLoading.value = true
     router.get(
-        '/admin/savings',
+        '/admin/savings/list',
         {
             search: filters.search || undefined,
             per_page: filters.per_page,
@@ -206,7 +217,30 @@ watch(() => filters.tab, applyFilters)
                     :search="filters.search"
                     @update:per-page="val => filters.per_page = val"
                     @update:search="val => filters.search = val"
-                />
+                >
+                    <template #actions>
+                        <a
+                            :href="`/admin/savings/export/csv?${exportQuery}`"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm
+                                border rounded-lg
+                                bg-green-600 text-white hover:bg-green-700"
+                                
+                        >
+                            <Icon icon="mdi:file-delimited-outline" class="w-4 h-4" />
+                            Export CSV
+                        </a>
+
+                        <a
+                            :href="`/admin/savings/export/pdf?${exportQuery}`"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm
+                                rounded-lg
+                                bg-red-600 text-white hover:bg-red-700"
+                        >
+                            <Icon icon="mdi:file-pdf-box" class="w-4 h-4" />
+                            Export PDF
+                        </a>
+                    </template>
+                </BaseFunctionality>
 
                 <!-- Table -->
                 <BaseTable
@@ -243,12 +277,11 @@ watch(() => filters.tab, applyFilters)
                         </span>
                     </template>
 
-
                     <template #cell-aksi="{ row }">
                         <div class="flex justify-center gap-3">
                             <Link
                                 v-if="filters.tab === 'permohonan'"
-                                :href="`/admin/savings/${row.id}`"
+                                :href="`/admin/savings/validate/${row.id}`"
                                 class="inline-flex items-center gap-2
                                     bg-blue-light-600 hover:bg-blue-light-900 text-white px-4 py-2 rounded-lg"
                             >
@@ -258,7 +291,7 @@ watch(() => filters.tab, applyFilters)
 
                             <Link
                                 v-else
-                                :href="`/admin/savings/${row.id}`"
+                                :href="`/admin/savings/show/${row.id}`"
                                 class="text-gray-500 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400"
                             >
                                 <Icon icon="mdi:eye-outline" class="w-5 h-5"/>
