@@ -38,11 +38,6 @@ const onUploadKtp = (e) => {
   previewKtp.value = URL.createObjectURL(file)
 }
 
-const placeholderImage = new URL(
-  '/public/images/auth/picture_filled.png',
-  import.meta.url
-).href
-
 </script>
 
 <template>
@@ -92,12 +87,7 @@ const placeholderImage = new URL(
                 class="object-cover w-full h-full"
                 />
 
-                <img
-                v-else
-                :src="placeholderImage"
-                alt="Upload Foto Pribadi"
-                class="w-8 h-8 opacity-50"
-                />
+                <span class="icon-[mdi--image-plus-outline]" style="width: 32px; height: 32px; color: gray;"></span>
             </label>
 
             <p class="mt-2 text-sm text-blue-900 font-medium font-body">
@@ -126,12 +116,7 @@ const placeholderImage = new URL(
                 class="object-cover w-full h-full"
                 />
 
-                <img
-                v-else
-                :src="placeholderImage"
-                alt="Upload Foto KTP"
-                class="w-8 h-8 opacity-50"
-                />
+                <span class="icon-[mdi--image-plus-outline]" style="width: 32px; height: 32px; color: gray;"></span>
             </label>
 
             <p class="mt-2 text-sm text-blue-900 font-medium font-body">
