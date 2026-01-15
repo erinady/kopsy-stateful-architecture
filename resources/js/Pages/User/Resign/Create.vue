@@ -117,7 +117,7 @@ const submitResignation = () => {
             formData.append('document', uploadedFile.value)
 
             router.post(
-                `/user/resign/${memberData.member_number}`,
+                '/user/resign',
                 formData,
                 {
                     forceFormData: true,
