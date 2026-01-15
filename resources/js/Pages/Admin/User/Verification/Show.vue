@@ -26,6 +26,7 @@ const props = defineProps({
 
 const note = ref(props.member.note ?? '')
 const decision = ref(null)
+const processing = ref(false)
 
 const member = computed(() => ({
 	id: props.member?.id ?? '',
@@ -61,7 +62,7 @@ const handleApproved = () => {
 		cancelButtonText: 'Batal'
 	}).then((result) => {
 		if (result.isConfirmed) {
-			console.log('Sending approval request for member:', props.member.member_number)
+			processing.value = true
 			router.post(
 				`/admin/verifikasi/${props.member.member_number}/approval`,
 				{
@@ -70,19 +71,18 @@ const handleApproved = () => {
 				},
 				{
 					onSuccess: (response) => {
-						console.log('Success response:', response)
+						processing.value = false
 						toast.success('Pemberitahuan terkirim ke email anggota', {
 							autoClose: 2000,
 							position: 'bottom-right'
 						})
-						setTimeout(() => {
-							router.visit('/admin/verifikasi')
-						}, 1000)
+						router.visit('/admin/verifikasi')
 					},
 					onError: (error) => {
-						console.error('Error response:', error)
-						toast.error('Gagal mengirim pemberitahuan', {
-							autoClose: 2000,
+						processing.value = false
+						const errorMessage = error?.message || 'Gagal mengirim pemberitahuan'
+						toast.error(`${errorMessage}`, {
+							autoClose: 3000,
 							position: 'bottom-right'
 						})
 					}
@@ -109,7 +109,7 @@ const handleContinue = () => {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            console.log('Sending rejection request for member:', props.member.member_number)
+            processing.value = true
             router.post(
                 `/admin/verifikasi/${props.member.member_number}/approval`,
                 {
@@ -118,19 +118,18 @@ const handleContinue = () => {
                 },
                 {
                     onSuccess: (response) => {
-                        console.log('Success response:', response)
+                        processing.value = false
                         toast.success('Pemberitahuan terkirim ke email calon anggota', {
                             autoClose: 2000,
                             position: 'bottom-right'
                         })
-                        setTimeout(() => {
-                            router.visit('/admin/verifikasi')
-                        }, 1000)
+                        router.visit('/admin/verifikasi')
                     },
                     onError: (error) => {
-                        console.error('Error response:', error)
-                        toast.error('Gagal mengirim pemberitahuan', {
-                            autoClose: 2000,
+                        processing.value = false
+                        const errorMessage = error?.message || 'Gagal mengirim pemberitahuan'
+                        toast.error(`${errorMessage}`, {
+                            autoClose: 3000,
                             position: 'bottom-right'
                         })
                     }
@@ -175,21 +174,30 @@ const handleContinue = () => {
 								<button
 									type="button"
 								@click="handleApproved"
+									:disabled="processing"
 									:class="[
-										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
-										'bg-blue-800 text-white hover:bg-blue-900'
+										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition flex items-center justify-center gap-2',
+										'bg-blue-800 text-white hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed'
 									]"
 								>
-									Diterima
+									<span v-if="processing">
+										<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+										</svg>
+									</span>
+									{{ processing ? 'Memproses...' : 'Diterima' }}
 								</button>
 								<button
 									type="button"
 									@click="setDecision('rejected')"
+									:disabled="processing"
 									:class="[
 										'h-11 min-w-[120px] rounded-lg px-5 text-sm font-semibold transition',
 										decision === 'rejected'
 											? 'bg-red-700 text-white shadow'
-											: 'bg-red-700 text-white hover:bg-red-900'
+											: 'bg-red-700 text-white hover:bg-red-900',
+										'disabled:opacity-50 disabled:cursor-not-allowed'
 									]"
 								>
 									Ditolak
@@ -214,10 +222,16 @@ const handleContinue = () => {
 						<button
 							type="button"
 							@click="handleContinue"
-							:disabled="!isNoteValid"
-							class="inline-flex items-center justify-center rounded-lg bg-blue-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+							:disabled="!isNoteValid || processing"
+							class="inline-flex items-center justify-center rounded-lg bg-blue-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed gap-2"
 						>
-							Lanjutkan
+							<span v-if="processing">
+								<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+							</span>
+							{{ processing ? 'Memproses...' : 'Lanjutkan' }}
 						</button>
 					</div>
 				</section>
