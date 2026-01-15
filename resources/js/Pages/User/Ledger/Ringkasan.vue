@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { Icon } from '@iconify/vue'
+import { formatCurrency } from '../../../utils/currency'
 
 interface SavingData {
     simpanan_pokok: number
@@ -15,18 +16,6 @@ const props = withDefaults(defineProps<{
         simpanan_wajib: 0,
         simpanan_sukarela: 0,
     }),
-})
-
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value)
-}
-
-const totalSimpanan = computed(() => {
-    return (props.savings?.simpanan_pokok ?? 0) + (props.savings?.simpanan_wajib ?? 0) + (props.savings?.simpanan_sukarela ?? 0)
 })
 
 const savingItems = [
@@ -75,13 +64,15 @@ const savingItems = [
                         'bg-purple-100 dark:bg-purple-900': item.color === 'purple',
                     }"
                 >
-                    <span
-                        :class="[`icon-[${item.icon}]`, {
+                    <Icon
+                        :icon="item.icon"
+                        width="1.5rem"
+                        height="1.5rem"
+                        :class="{
                             'text-blue-600 dark:text-blue-300': item.color === 'blue',
                             'text-green-600 dark:text-green-300': item.color === 'green',
                             'text-purple-600 dark:text-purple-300': item.color === 'purple',
-                        }]"
-                        style="font-size: 1.5rem"
+                        }"
                     />
                 </div>
             </div>
