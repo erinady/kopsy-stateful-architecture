@@ -9,12 +9,46 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class SavingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
+    private function baseQuery(Request $request)
+    {
+        $search = $request->input('search');
+        $tab = $request->input('tab', 'semua');
+
+        return SavingTransaction::with(['savingAccount.user.workUnit'])
+            ->when($search, function ($q) use ($search) {
+                $q->whereHas('savingAccount.user', function ($u) use ($search) {
+                    $u->where('name', 'like', "%{$search}%")
+                    ->orWhere('nik', 'like', "%{$search}%");
+                });
+            })
+            ->when($tab === 'permohonan', function ($q) {
+                $q->where('status', TransactionStatus::PENDING);
+            })
+            ->when($tab !== 'permohonan', function ($q) {
+                $q->where('status', TransactionStatus::COMPLETED);
+            })
+            ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab) {
+                $map = [
+                    'pokok' => 'Simpanan Pokok',
+                    'wajib' => 'Simpanan Wajib',
+                    'sukarela' => 'Simpanan Sukarela',
+                ];
+
+                $q->whereHas('savingAccount', function ($sa) use ($map, $tab) {
+                    $sa->where('type', $map[$tab]);
+                });
+            });
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
@@ -30,32 +64,7 @@ class SavingController extends Controller
             $sortBy = 'transaction_date';
         }
 
-        $query = SavingTransaction::with([
-            'savingAccount.user.workUnit'
-        ])
-        ->when($search, function ($q) use ($search) {
-            $q->whereHas('savingAccount.user', function ($u) use ($search) {
-                $u->where('name', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
-            });
-        })
-        ->when($tab === 'permohonan', function ($q) {
-            $q->where('status', TransactionStatus::PENDING);
-        })
-        ->when($tab !== 'permohonan', function ($q) {
-            $q->where('status', TransactionStatus::COMPLETED);
-        })
-        ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab) {
-            $map = [
-                'pokok' => 'Simpanan Pokok',
-                'wajib' => 'Simpanan Wajib',
-                'sukarela' => 'Simpanan Sukarela',
-            ];
-
-            $q->whereHas('savingAccount', function ($sa) use ($map, $tab) {
-                $sa->where('type', $map[$tab]);
-            });
-        })
+        $query = $this->baseQuery($request)
         ->orderBy($sortBy, $sortDir);
 
         $transactions = $query
@@ -136,6 +145,84 @@ class SavingController extends Controller
                 'sort_dir' => $sortDir,
             ],
         ]);
+    }
+
+    private function exportTitle(string $tab): string
+    {
+        return match ($tab) {
+            'pokok' => 'Data Simpanan Pokok',
+            'wajib' => 'Data Simpanan Wajib',
+            'sukarela' => 'Data Simpanan Sukarela',
+            'permohonan' => 'Data Permohonan Penarikan / Penyetoran',
+            default => 'Data Simpanan',
+        };
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $tab = $request->input('tab', 'semua');
+        $title = $this->exportTitle($tab);
+
+        $transactions = $this->baseQuery($request)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+
+        $filename = Str::slug($title) . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ];
+
+        $callback = function () use ($transactions, $title) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [$title]);
+            fputcsv($handle, []);
+
+            fputcsv($handle, [
+                'No Transaksi',
+                'Tanggal',
+                'Anggota',
+                'Produk',
+                'Jenis',
+                'Nominal',
+            ]);
+
+            foreach ($transactions as $trx) {
+                fputcsv($handle, [
+                    'TRX-' . str_pad($trx->id, 6, '0', STR_PAD_LEFT),
+                    $trx->transaction_date->format('d/m/Y'),
+                    $trx->savingAccount->user->member_number . ' - ' . $trx->savingAccount->user->name,
+                    $trx->savingAccount->type,
+                    $trx->type,
+                    $trx->type === 'Penarikan'
+                        ? -$trx->amount
+                        : $trx->amount,
+                ]);
+            }
+            fclose($handle);
+        };
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $tab = $request->input('tab', 'semua');
+        $title = $this->exportTitle($tab);
+
+        $transactions = $this->baseQuery($request)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+
+        $pdf = Pdf::loadView('exports.saving', [
+            'transactions' => $transactions,
+            'title' => $title,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download(
+            Str::slug($title) . '_' . now()->format('Ymd_His') . '.pdf'
+        );
     }
 
     /**
