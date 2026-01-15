@@ -46,6 +46,17 @@ const filters = reactive({
     sort_dir: page.props.filters?.sort_dir ?? 'desc'
 })
 
+const exportQuery = computed(() => {
+    const params = {}
+
+    if (filters.search) params.search = filters.search
+    if (filters.tab) params.tab = filters.tab
+    params.sort_by = filters.sort_by
+    params.sort_dir = filters.sort_dir
+
+    return new URLSearchParams(params).toString()
+})
+
 const toggleSort = (column) => {
     if(filters.sort_by === column) {
         filters.sort_dir = filters.sort_dir === 'asc' ? 'desc' : 'asc'
@@ -206,7 +217,30 @@ watch(() => filters.tab, applyFilters)
                     :search="filters.search"
                     @update:per-page="val => filters.per_page = val"
                     @update:search="val => filters.search = val"
-                />
+                >
+                    <template #actions>
+                        <a
+                            :href="`/admin/savings/export/csv?${exportQuery}`"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm
+                                border rounded-lg
+                                bg-green-600 text-white hover:bg-green-700"
+                                
+                        >
+                            <Icon icon="mdi:file-delimited-outline" class="w-4 h-4" />
+                            Export CSV
+                        </a>
+
+                        <a
+                            :href="`/admin/savings/export/pdf?${exportQuery}`"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm
+                                rounded-lg
+                                bg-red-600 text-white hover:bg-red-700"
+                        >
+                            <Icon icon="mdi:file-pdf-box" class="w-4 h-4" />
+                            Export PDF
+                        </a>
+                    </template>
+                </BaseFunctionality>
 
                 <!-- Table -->
                 <BaseTable
