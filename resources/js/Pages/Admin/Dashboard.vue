@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import AdminLayout from '@/Layouts/Admin/Layout.vue'
 import CardInfo from '@/Components/CardInfo.vue'
 import CardStatisticBar from '@/Components/CardStatisticBar.vue'
@@ -26,6 +26,16 @@ const props = defineProps({
 const dates = ref([new Date(), new Date()]);
 const selectedFilter = ref('month');
 const activeIndex = ref(0);
+const isDarkMode = ref(false);
+
+onMounted(() => {
+    isDarkMode.value = document.documentElement.classList.contains('dark')
+
+    const observer = new MutationObserver(() => {
+        isDarkMode.value = document.documentElement.classList.contains('dark')
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
 
 const nextFinancingData = () => {
     if (activeIndex.value < props.financing_data.length - 1) {
@@ -57,7 +67,6 @@ const applyFilter = () => {
         replace: true,
     });
 };
-
 </script>
 
 <template>
@@ -65,7 +74,7 @@ const applyFilter = () => {
         <div class="flex flex-col gap-4">
             <div class="flex justify-between items-center">
                 <div class="mr-auto min-w-75">
-                    <VueDatePicker v-model="dates" range></VueDatePicker>
+                    <VueDatePicker v-model="dates" :dark="isDarkMode" range></VueDatePicker>
                 </div>
                 <div class="relative z-20 bg-transparent">
                     <select v-model="selectedFilter"
@@ -337,3 +346,13 @@ const applyFilter = () => {
         </div>
     </AdminLayout>
 </template>
+
+<style>
+    .dp__theme_dark {
+        --dp-background-color: #1f2937!important;
+        --dp-text-color: #d1d5db!important;
+        --dp-primary-text-color: #fff!important;
+        --dp-accent-color: #3b82f6!important;
+        --dp-border-color: #374151!important;
+    }
+</style>

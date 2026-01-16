@@ -813,11 +813,6 @@ span.flatpickr-weekday,
     width: 100%;
 }
 
-.why-section {
-    background: linear-gradient(94deg, #ECF3FF 45.3%, #173F84 231.12%);
-    @apply dark:bg-gray-800;
-}
-
 .drop-accent {
     box-shadow: var(--sds-size-depth-0) var(--sds-size-depth-400) var(--sds-size-depth-800) var(--sds-size-depth-negative-100) var(--sds-color-black-200), var(--sds-size-depth-0) var(--sds-size-depth-100) var(--sds-size-depth-100) var(--sds-size-depth-negative-100) var(--sds-color-black-100);
 }
