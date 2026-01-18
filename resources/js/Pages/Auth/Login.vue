@@ -12,22 +12,11 @@ const form = useForm({
 
 const submit = () => {
   form.post('/auth/login', {
-    onSuccess: (page) => {
-      const user = page.props.auth?.user
-      const role = user?.role?.name
-      
+    onSuccess: () => {
       toast.success('Login berhasil, Selamat Datang!', {
         autoClose: 2000,
         position: 'bottom-right',
       })
-
-      setTimeout(() => {
-        if (role === 'Super Admin') {
-          router.visit('/admin/dashboard')
-        } else {
-          router.visit('/user/dashboard')
-        }
-      }, 2000)
     },
     onError: () => {
       form.reset('password')

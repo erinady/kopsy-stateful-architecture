@@ -72,13 +72,6 @@ const submit = () => {
           })
         })
       }
-      
-      if (Object.keys(errors).length === 0) {
-        toast.error('Terjadi kesalahan saat mendaftar. Silakan cek kembali data Anda.', {
-          autoClose: 5000,
-          position: toast.POSITION.BOTTOM_RIGHT
-        })
-      }
     }
   })
 }
