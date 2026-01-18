@@ -38,20 +38,15 @@ const onUploadKtp = (e) => {
   previewKtp.value = URL.createObjectURL(file)
 }
 
-const placeholderImage = new URL(
-  '/public/images/auth/picture_filled.png',
-  import.meta.url
-).href
-
 </script>
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
     
-    <div class="bg-gray-100 rounded-lg p-4">
-      <p class="text-sm text-gray-600 mb-2">Contoh :</p>
+    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+      <p class="text-sm text-gray-600 dark:text-white mb-2">Contoh :</p>
 
-        <div class="w-full h-64 bg-white rounded-md overflow-hidden">
+        <div class="w-full h-64 bg-transparent rounded-md overflow-hidden">
             <img
                 :src="contohImage"
                 alt="Contoh Upload"
@@ -60,7 +55,7 @@ const placeholderImage = new URL(
         </div>
 
 
-      <p class="mt-3 text-xs text-gray-500 font-body">
+      <p class="mt-3 text-xs text-gray-500 dark:text-white font-body">
         * Foto pribadi & KTP harus terlihat jelas
       </p>
     </div>
@@ -84,7 +79,7 @@ const placeholderImage = new URL(
                 for="foto_pribadi"
                 class="mx-auto flex items-center justify-center
                     aspect-square w-40
-                    rounded-lg bg-gray-200 cursor-pointer overflow-hidden"
+                    rounded-lg bg-gray-200 dark:bg-gray-700 cursor-pointer overflow-hidden"
             >
                 <img
                 v-if="previewPribadi"
@@ -92,15 +87,10 @@ const placeholderImage = new URL(
                 class="object-cover w-full h-full"
                 />
 
-                <img
-                v-else
-                :src="placeholderImage"
-                alt="Upload Foto Pribadi"
-                class="w-8 h-8 opacity-50"
-                />
+                <span v-else class="icon-[mdi--image-plus-outline]" style="width: 32px; height: 32px; color: gray;"></span>
             </label>
 
-            <p class="mt-2 text-sm text-blue-900 font-medium font-body">
+            <p class="mt-2 text-sm text-blue-900 dark:text-white font-medium font-body">
                 Foto Pribadi
             </p>
             </div>
@@ -118,7 +108,7 @@ const placeholderImage = new URL(
                 for="foto_ktp"
                 class="mx-auto flex items-center justify-center
                     aspect-[16/10] w-full max-w-md
-                    rounded-lg bg-gray-200 cursor-pointer overflow-hidden"
+                    rounded-lg bg-gray-200 dark:bg-gray-700 cursor-pointer overflow-hidden"
             >
                 <img
                 v-if="previewKtp"
@@ -126,15 +116,10 @@ const placeholderImage = new URL(
                 class="object-cover w-full h-full"
                 />
 
-                <img
-                v-else
-                :src="placeholderImage"
-                alt="Upload Foto KTP"
-                class="w-8 h-8 opacity-50"
-                />
+                <span v-else class="icon-[mdi--image-plus-outline]" style="width: 32px; height: 32px; color: gray;"></span>
             </label>
 
-            <p class="mt-2 text-sm text-blue-900 font-medium font-body">
+            <p class="mt-2 text-sm text-blue-900 dark:text-white font-medium font-body">
                 Foto KTP
             </p>
             </div>

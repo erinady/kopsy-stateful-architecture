@@ -31,7 +31,7 @@
 
                         <p>
                             <strong>Detail Akun Anda:</strong><br>
-                            Email: {{ $user->email }}
+                            Nomor Anggota: {{ $user->member_number }}
                         </p>
 
                         <p>
