@@ -67,14 +67,14 @@ const bankOptions = [
 
 const isStep2Valid = computed(() => {
   if (!savingAmount.value || !savingCategory.value) return false
-  
+
   const numericAmount = parseInt(savingAmount.value.replace(/\D/g, ''))
   if (numericAmount <= 0) return false
-  
+
   if (depositMethod.value === 'Non-Tunai') {
     return !!(accountName.value && accountNumber.value && bankName.value && paymentFile.value)
   }
-  
+
   return true
 })
 
@@ -252,7 +252,6 @@ const submitDeposit = () => {
         if (!result.isConfirmed) return
 
         const formData = new FormData()
-        formData.append('saving_account_id', savingAccountId.value)
         formData.append('amount', numericAmount)
         formData.append('method', depositMethod.value)
         formData.append('saving_category', savingCategory.value)
@@ -307,7 +306,7 @@ const submitDeposit = () => {
         <div class="font-body min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 dark:bg-gray-900 transition-colors">
             <!-- Step Indicator -->
             <div class="max-w-5xl mx-auto">
-                <StepIndicator 
+                <StepIndicator
                     :steps="steps"
                     :current-step="currentStep"
                 />
@@ -389,7 +388,7 @@ const submitDeposit = () => {
                     </div>
                 </div>
             </BaseContainer>
-            
+
             <!-- Step 2: Detail Penyetoran -->
             <BaseContainer
                 v-show="currentStep === 1"
@@ -438,7 +437,7 @@ const submitDeposit = () => {
 
                         <div class="flex gap-6">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input 
+                                <input
                                     type="radio"
                                     name="depositMethod"
                                     value="Tunai"
@@ -449,7 +448,7 @@ const submitDeposit = () => {
                             </label>
 
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input 
+                                <input
                                     type="radio"
                                     name="depositMethod"
                                     value="Non-Tunai"
@@ -467,7 +466,7 @@ const submitDeposit = () => {
                             <!-- Atas Nama Rekening -->
                             <div>
                                 <label class="font-head block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Atas Nama Rekening <span class="text-red-500">*</span></label>
-                                <input 
+                                <input
                                     list="accountNames"
                                     v-model="accountName"
                                     placeholder="Nama pemilik rekening"
@@ -481,7 +480,7 @@ const submitDeposit = () => {
                             <!-- Nomor Rekening -->
                             <div>
                                 <label class="font-head block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nomor Rekening <span class="text-red-500">*</span></label>
-                                <input 
+                                <input
                                     list="accountNumbers"
                                     v-model="accountNumber"
                                     placeholder="Nomor rekening"
@@ -518,8 +517,8 @@ const submitDeposit = () => {
                             <label class="font-head block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Bukti Transaksi <span class="text-red-500">*</span>
                             </label>
-                        
-                            <div 
+
+                            <div
                                 @click="() => fileInput?.click()"
                                 class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
                             >
@@ -530,7 +529,7 @@ const submitDeposit = () => {
                                     accept="image/*,.pdf"
                                     class="hidden"
                                 />
-                            
+
                                 <div v-if="!paymentProof" class="space-y-3">
                                     <div class="flex justify-center text-gray-500 dark:text-gray-200">
                                         <Icon icon="lets-icons:upload" width="50" height="50" />
@@ -561,7 +560,7 @@ const submitDeposit = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             @click.stop="removeFile"
                                             class="text-red-500 hover:text-red-700"
                                         >

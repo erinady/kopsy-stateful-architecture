@@ -49,32 +49,28 @@ Route::post('/auth/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('auth.logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/users/verification', [UserController::class, 'prospectiveMembers'])
-            ->name('users.prospective');
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/users/verification', [UserController::class, 'prospectiveMembers'])
+        ->name('users.prospective');
 
-        Route::get('/verifikasi/{user:member_number}', [UserController::class, 'verificationDetail'])
-            ->name('users.verification.show');
+    Route::get('/verifikasi/{user:member_number}', [UserController::class, 'verificationDetail'])
+        ->name('users.verification.show');
 
-        Route::post('/verifikasi/{user:member_number}/approval', [UserController::class, 'submitApproval'])
-            ->name('users.verification.submit');
+    Route::post('/verifikasi/{user:member_number}/approval', [UserController::class, 'submitApproval'])
+        ->name('users.verification.submit');
 
-        Route::get('/list', [AdminController::class, 'index'])->name('index');
-        Route::get('/create', [AdminController::class, 'create']);
-        Route::post('/store', [AdminController::class, 'store']);
-        Route::get('/edit/{id}', [AdminController::class, 'edit']);
-        Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
-        Route::get('/show/{id}', [AdminController::class, 'show']);
-    });
+    Route::get('/list', [AdminController::class, 'index'])->name('index');
+    Route::get('/create', [AdminController::class, 'create']);
+    Route::post('/store', [AdminController::class, 'store']);
+    Route::get('/edit/{id}', [AdminController::class, 'edit']);
+    Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
+    Route::get('/show/{id}', [AdminController::class, 'show']);
 
-    Route::middleware('role:manajer')->group(function () {
-        Route::get('/savings/show/{id}', [SavingController::class, 'show'])->name('savings.show');
-        Route::put('/savings/validate/{id}', [SavingController::class, 'validateRequest'])->name('savings.validate');
-        Route::get('/savings/list', [SavingController::class, 'index'])->name('savings.index');
-        Route::get('/savings/export/csv', [SavingController::class, 'exportCsv'])->name('savings.export.csv');
-        Route::get('/savings/export/pdf', [SavingController::class, 'exportPdf'])->name('savings.export.pdf');
-    });
+    Route::get('/savings/show/{id}', [SavingController::class, 'show'])->name('savings.show');
+    Route::put('/savings/validate/{id}', [SavingController::class, 'validateRequest'])->name('savings.validate');
+    Route::get('/savings/list', [SavingController::class, 'index'])->name('savings.index');
+    Route::get('/savings/export/csv', [SavingController::class, 'exportCsv'])->name('savings.export.csv');
+    Route::get('/savings/export/pdf', [SavingController::class, 'exportPdf'])->name('savings.export.pdf');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('role:manajer,admin');
 

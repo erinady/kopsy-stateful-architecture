@@ -23,7 +23,7 @@ class SimpananController extends Controller
     public function showWithdrawalInfo(Request $request)
     {
         $user = $request->user();
-        
+
         // Get Simpanan Sukarela account
         $savingAccount = SavingAccount::where('user_id', $user->id)
             ->where('type', SavingType::SIMPANAN_SUKARELA->value)
@@ -52,7 +52,7 @@ class SimpananController extends Controller
     public function showWithdrawalDetail(Request $request)
     {
         $user = $request->user();
-        
+
         // Get Simpanan Sukarela account
         $savingAccount = SavingAccount::where('user_id', $user->id)
             ->where('type', SavingType::SIMPANAN_SUKARELA->value)
@@ -182,7 +182,7 @@ class SimpananController extends Controller
         }
     }
 
-    public function createDeposit(Request $request) 
+    public function createDeposit(Request $request)
     {
         $user = $request->user();
 
@@ -240,10 +240,20 @@ class SimpananController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'saving_account_id' => 'required|exists:saving_accounts,id',
             'method' => 'required|in:Tunai,Non-Tunai',
             'saving_category' => 'required|in:Simpanan Pokok,Simpanan Wajib,Simpanan Sukarela',
         ]);
+
+        $savingAccount = SavingAccount::firstOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'type' => $request->saving_category,
+            ],
+            [
+                'balance' => 0,
+                'id' => 'SP' . Str::upper(Str::random(10)),
+            ]
+        );
 
         if ($request->method === 'Non-Tunai') {
             $request->validate([
@@ -254,9 +264,7 @@ class SimpananController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($request) {
-
-            $savingAccount = SavingAccount::find($request->saving_account_id);
+        DB::transaction(function () use ($request, $savingAccount) {
 
             if (!$savingAccount || $savingAccount->user_id !== $request->user()->id) {
                 abort(403, 'Tidak diizinkan mengakses akun simpanan ini');
@@ -266,13 +274,26 @@ class SimpananController extends Controller
                 throw new \Exception('Kategori simpanan tidak sesuai dengan akun simpanan');
             }
 
+            if ($request->method === 'Non-Tunai') {
+                Account::updateOrCreate(
+                    [
+                        'account_number' => $request->account_number,
+                        'user_id' => $request->user()->id,
+                    ],
+                    [
+                        'bank_name' => $request->bank_name,
+                        'account_name' => $request->account_name,
+                    ]
+                );
+            }
+
             $transaction = SavingTransaction::create([
                 'amount' => $request->amount,
                 'type' => 'Penyetoran',
                 'status' => 'Belum Ditinjau',
                 'method' => $request->method,
                 'transaction_date' => now(),
-                'saving_account_id' => $request->saving_account_id,
+                'saving_account_id' => $savingAccount->id,
                 'account_number' => $request->method === 'Non-Tunai' ? $request->account_number : null,
                 'updated_by' => $request->user()->id,
             ]);

@@ -35,35 +35,23 @@ const menuGroups = [
                 icon: GridIcon,
                 name: "Dashboard",
                 path: "/admin/dashboard",
-                exclude: ["Anggota"],
             },
             {
                 name: "Keanggotaan",
                 icon: UserIcon,
                 subItems: [
-                    { name: "Anggota", path: "/admin/users/list", pro: false, exclude: "Admin", },
-                    { name: "Verifikasi", path: "/admin/users/verification", pro: false, exclude: "Manajer", },
-                    { name: "Admin", path: "/admin/list", pro: false, exclude: "Manajer", },
+                    { name: "Anggota", path: "/admin/users/list", pro: false, },
+                    { name: "Verifikasi", path: "/admin/users/verification", pro: false, },
+                    { name: "Admin", path: "/admin/list", pro: false },
                 ],
             },
             {
                 name: "Produk",
                 icon: ProductIcon,
                 subItems: [
-                    { name: "Simpanan", path: "/admin/savings/list", pro: false, exclude: "Admin", },
-                    { name: "Pembiayaan Murabahah", path: "/admin/financing", pro: false, exclude: "Admin", },
+                    { name: "Simpanan", path: "/admin/savings/list", pro: false, },
+                    { name: "Pembiayaan Murabahah", path: "/admin/financing", pro: false, },
                 ],
-                exclude: "Admin",
-            },
-        ],
-    },
-    {
-        title: "Lainnya",
-        items: [
-            {
-                icon: LogoutIcon,
-                name: "Keluar",
-                path: "/keluar",
             },
         ],
     },

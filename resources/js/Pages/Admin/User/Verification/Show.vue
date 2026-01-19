@@ -76,7 +76,7 @@ const handleApproved = () => {
 							autoClose: 2000,
 							position: 'bottom-right'
 						})
-						router.visit('/admin/verifikasi')
+						router.visit('/admin/users/verification')
 					},
 					onError: (error) => {
 						processing.value = false
@@ -205,7 +205,7 @@ const handleContinue = () => {
 							</div>
 							<div v-if="decision === 'rejected'" class="flex flex-col gap-2 md:col-span-2">
 								<label class="text-sm font-medium text-gray-600 dark:text-white mt-4">
-									Catatan 
+									Catatan
 									<span class="text-error-500">*</span>
 								</label>
 								<textarea

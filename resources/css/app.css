@@ -267,7 +267,7 @@
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-900 dark:bg-brand-500/12;
+  @apply bg-brand-50 text-brand-900 dark:bg-brand-500/12 dark:text-brand-400;
 }
 
 @utility menu-dropdown-item-inactive {

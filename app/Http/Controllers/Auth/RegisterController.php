@@ -18,7 +18,7 @@ class RegisterController extends Controller
     public function create()
     {
         $workUnits = WorkUnit::all(['id', 'name'])->toArray();
-        
+
         return Inertia::render('Auth/Register', [
             'workUnits' => $workUnits
         ]);
@@ -44,10 +44,11 @@ class RegisterController extends Controller
             $nextNumber = $latestMemberNumber
                 ? ((int) preg_replace('/\D/', '', $latestMemberNumber)) + 1
                 : 1;
-            $memberNumber = 'KS' . str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
 
             // Get or create User role
-            $userRole = Role::firstOrCreate(['name' => 'User']);
+            $userRole = Role::firstOrCreate(['name' => 'Anggota']);
+
+            $memberNumber = 'KSP' . $userRole->id . $data['work_unit_id'] . (User::count() + 1);
 
             $user = User::create([
                 'id' => Str::uuid(),

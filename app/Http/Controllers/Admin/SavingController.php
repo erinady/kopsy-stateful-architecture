@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\TransactionStatus;
-use App\Http\Requests\StoreSavingTransactionValidationRequest;
-use App\Models\SavingTransaction;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Inertia\Inertia;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\SavingAccount;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Enums\TransactionStatus;
+use App\Models\SavingTransaction;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSavingTransactionValidationRequest;
 
 class SavingController extends Controller
 {
@@ -283,13 +284,21 @@ class SavingController extends Controller
             $data = $request->validated();
 
             $transaction = SavingTransaction::findOrFail($id);
+
             if ($data['status'] === 'accepted') {
                 $transaction->status = TransactionStatus::COMPLETED;
             } elseif ($data['status'] === 'rejected') {
                 $transaction->status = TransactionStatus::REJECTED;
                 $transaction->description = $data['description'] ?? null;
             }
+
             $transaction->save();
+            $account = SavingAccount::find($transaction->saving_account_id);
+            if ($account) {
+                $account->update(
+                    ['balance' => $account->balance + ($transaction->type === 'Penarikan' ? -$transaction->amount : $transaction->amount)]
+                );
+            }
 
             return redirect()->back();
         } catch (\Exception $e) {
