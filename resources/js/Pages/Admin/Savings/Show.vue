@@ -24,13 +24,13 @@
                             <ul class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nominal Simpanan</span>
-                                    <span class="font-medium text-dark-text dark:text-white">Rp {{ data.amount
-                                    }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ moneyParser(data.amount)
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Kategori Simpanan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ data.saving_account.type
-                                    }}</span>
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Akad</span>
@@ -44,8 +44,9 @@
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Transaksi</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ data.transaction_date
-                                    }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{
+                                        dateParser(data.transaction_date)
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Metode Pembayaran</span>
@@ -54,7 +55,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Keterangan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ data.description ?? '-'
-                                    }}</span>
+                                        }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -76,7 +77,7 @@
                                 <li class="flex lg:flex-row flex-col gap-2 justify-between">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Anggota</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
-                                        data.saving_account.user.id }}</span>
+                                        data.saving_account.user.member_number }}</span>
                                 </li>
                                 <li class="flex lg:flex-row flex-col gap-2 justify-between">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Anggota</span>
@@ -92,7 +93,7 @@
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{
                                         data.saving_account.user.work_unit.name
-                                    }}</span>
+                                        }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -127,6 +128,8 @@ import PageBreadcrumb from '../../../Components/PageBreadcrumb.vue'
 import { useForm } from '@inertiajs/vue3'
 import Swal from 'sweetalert2'
 import { toast } from "vue3-toastify";
+import dateParser from '@/Composables/dateParser'
+import moneyParser from '@/Composables/moneyParser'
 
 const props = defineProps({
     data: { type: Object, required: true },
