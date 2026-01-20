@@ -26,7 +26,7 @@ class EnsureUserRole
             return redirect('/user/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman admin.');
         }
 
-        if ($role === 'user' && $user->role->name === 'Admin') {
+        if ($role === 'user' && ($user->role->name === 'Admin' || $user->role->name === 'Manajer')) {
             return redirect('/admin/dashboard')->with('error', 'Admin harus menggunakan dashboard admin.');
         }
 

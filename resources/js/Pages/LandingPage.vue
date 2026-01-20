@@ -70,7 +70,7 @@ onUnmounted(() => {
                     <p class="text-xl w-md tracking-wide leading-8 dark:text-gray-300">Rasakan aman, nyaman, dan berkahnya bertransaksi
                         sesuai Al-Qur'an dan Sunnah</p>
                     <div class="flex gap-4">
-                        <Link href="/register" class="bg-secondary text-white px-6 py-3 rounded-xl hover:bg-brand-900">
+                        <Link href="/auth/register" class="bg-secondary text-white px-6 py-3 rounded-xl hover:bg-brand-900">
                             Daftar Menjadi Anggota
                         </Link>
                         <Link href="#"

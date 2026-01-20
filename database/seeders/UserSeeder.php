@@ -17,5 +17,15 @@ class UserSeeder extends Seeder
     {
         // 20 data users
         User::factory()->count(20)->create();
+        User::create([
+            'member_number' => 'KSP001',
+            'nik' => '1234567890123456',
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'institution' => 'KopSy Campus',
+            'password' => bcrypt('password'),
+            'role_id' => Role::where('name', 'Admin')->first()->id,
+            'work_unit_id' => WorkUnit::inRandomOrder()->first()->id,
+        ]);
     }
 }
