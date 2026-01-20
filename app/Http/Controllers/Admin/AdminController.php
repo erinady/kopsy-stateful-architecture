@@ -33,30 +33,36 @@ class AdminController extends Controller
         ];
 
         $admins = User::with('role')
-            ->whereHas('role', fn ($q) =>
+            ->whereHas(
+                'role',
+                fn($q) =>
                 $q->where('name', '!=', 'User')
             )
             ->whereIn('status', $allowedAdminStatuses)
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($qq) use ($request) {
                     $qq->where('name', 'like', "%{$request->search}%")
-                       ->orWhere('nik', 'like', "%{$request->search}%")
-                       ->orWhere('email', 'like', "%{$request->search}%");
+                        ->orWhere('nik', 'like', "%{$request->search}%")
+                        ->orWhere('email', 'like', "%{$request->search}%");
                 });
             })
             ->when(
                 $request->status && in_array($request->status, $allowedAdminStatuses),
-                fn ($q) => $q->where('status', $request->status)
+                fn($q) => $q->where('status', $request->status)
             )
-            ->when($request->role, fn ($q) =>
-                $q->whereHas('role', fn ($r) =>
+            ->when(
+                $request->role,
+                fn($q) =>
+                $q->whereHas(
+                    'role',
+                    fn($r) =>
                     $r->where('name', $request->role)
                 )
             )
             ->orderBy($sortBy, $sortDir)
             ->paginate($request->per_page ?? 10)
             ->withQueryString()
-            ->through(fn ($user) => [
+            ->through(fn($user) => [
                 'id' => $user->id,
                 'nik' => $user->nik,
                 'name' => $user->name,
@@ -123,6 +129,11 @@ class AdminController extends Controller
     public function show(string $id)
     {
         $admin = User::with('role', 'workUnit')->findOrFail($id);
+
+        $admin->profile_picture = $admin->profile_picture
+            ? asset('storage/' . $admin->profile_picture)
+            : null;
+
         return inertia('Admin/Admins/Show', [
             'user' => $admin,
             'id' => $id,
