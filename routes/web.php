@@ -72,12 +72,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/savings/export/csv', [SavingController::class, 'exportCsv'])->name('savings.export.csv');
     Route::get('/savings/export/pdf', [SavingController::class, 'exportPdf'])->name('savings.export.pdf');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('role:manajer,admin');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show')->middleware('role:manajer,admin');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 
-    Route::get('/users/show/{id}', [UserController::class, 'show'])->name('users.show')->middleware('role:manajer,admin');
-    Route::get('/users/list', [UserController::class, 'index'])->name('users.index')->middleware('role:manajer,admin');
+    Route::get('/users/show/{id}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/list', [UserController::class, 'index'])->name('users.index');
+    Route::put('/users/{id}/nonactive', [UserController::class, 'updateStatusToInactive'])->name('users.nonactive');
 });
 
 // User Routes

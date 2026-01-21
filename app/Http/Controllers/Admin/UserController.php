@@ -138,27 +138,12 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
+        $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->where('status', TransactionStatus::COMPLETED)->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
+        $user->profile_picture = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         return inertia('Admin/User/Show', ['user' => $user]);
     }
 
@@ -208,6 +193,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function updateStatusToInactive(String $id)
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => UserStatus::INACTIVE,
+        ]);
+
+        return redirect()->back();
     }
 
     public function prospectiveMembers(Request $request)

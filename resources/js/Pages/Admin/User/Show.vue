@@ -1,3 +1,68 @@
+<script setup>
+import AdminLayout from '@/Layouts/Admin/Layout.vue';
+import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
+import dateParser from '@/Composables/dateParser.js';
+import parseCurrencyAmount from '@/Composables/moneyParser.js';
+import NoArchiveIcon from '@/Icons/NoArchiveIcon.vue';
+import UserIcon from '@/Icons/UserIcon.vue';
+import Swal from 'sweetalert2';
+import { useForm } from '@inertiajs/vue3'
+
+const props = defineProps({
+    user: { type: Object, required: true },
+});
+
+const form = useForm({
+    status: '',
+});
+
+const nonactiveUser = () => {
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Apakah Anda yakin ingin menonaktifkan pengguna ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, nonaktifkan',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#007943',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.put((`/admin/users/${props.user.id}/nonactive`), {
+                onSuccess: () => {
+                    Swal.fire('Berhasil', 'Pengguna berhasil dinonaktifkan!', 'success').then(() => {
+                        router.push(route('admin.users.index'))
+                    })
+                },
+                onError: () => {
+                    Swal.fire('Gagal', 'Gagal menonaktifkan pengguna.', 'error')
+                }
+            })
+        }
+    })
+}
+
+const getStatusClass = () => {
+    const baseClass = 'font-semibold rounded-2xl px-4 text-theme-sm py-1 border border-stroke'
+
+    switch (props.user.status) {
+        case 'Aktif':
+            return `${baseClass} text-green-600 bg-green-50`
+        case 'Tidak Aktif':
+            return `${baseClass} text-red-600 bg-red-100`
+        case 'Mengundurkan Diri':
+            return `${baseClass} text-yellow-600 bg-yellow-100`
+        case 'Dalam Peninjauan':
+            return `${baseClass} text-blue-600 bg-blue-100`
+        case 'Menunggu Pembayaran':
+            return `${baseClass} text-purple-600 bg-purple-100`
+        case 'Ditolak dengan alasan':
+            return `${baseClass} text-orange-600 bg-orange-100`
+        default:
+            return `${baseClass} text-gray-600 bg-gray-100`
+    }
+}
+</script>
+
 <template>
     <AdminLayout title="Detail Anggota">
         <div class="flex flex-col px-20">
@@ -14,22 +79,23 @@
                             <UserIcon />
                         </div>
                         <div class="flex flex-col justify-center gap-1">
-                            <h1 class="card-title">{{ user.name }}</h1>
+                            <div class="flex gap-2">
+                                <h1 class="card-title">{{ user.name }}</h1>
+                                <span :class="getStatusClass()">{{ user.status }}</span>
+                            </div>
                             <p class="text-gray-500">
                                 {{ user.role.name }} - {{ user.member_number }}
                             </p>
                         </div>
                     </div>
-                    <button
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current fill-white dark:fill-gray-800"
-                            width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path
-                                d="M4.16667 15.8333H5.35417L13.5 7.6875L12.3125 6.5L4.16667 14.6458V15.8333ZM2.5 17.5V13.9583L13.5 2.97917C13.6667 2.82639 13.8508 2.70833 14.0525 2.625C14.2542 2.54167 14.4658 2.5 14.6875 2.5C14.9092 2.5 15.1244 2.54167 15.3333 2.625C15.5422 2.70833 15.7228 2.83333 15.875 3L17.0208 4.16667C17.1875 4.31944 17.3092 4.5 17.3858 4.70833C17.4625 4.91667 17.5006 5.125 17.5 5.33333C17.5 5.55556 17.4619 5.7675 17.3858 5.96917C17.3097 6.17083 17.1881 6.35472 17.0208 6.52083L6.04167 17.5H2.5ZM12.8958 7.10417L12.3125 6.5L13.5 7.6875L12.8958 7.10417Z"
-                                fill="#1D2939" />
-                        </svg>
-                        Edit
-                    </button>
+                    <div class="flex gap-4">
+                        <button @click="nonactiveUser()"
+                            v-if="user.status === 'Aktif'"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-error-500 px-5 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-error-400 dark:border-gray-700 dark:hover:bg-error-500/70 dark:hover:text-gray-200">
+                            <span class="icon-[tabler--ban]" style="width: 24px; height: 24px;"></span>
+                            Nonaktifkan
+                        </button>
+                    </div>
                 </div>
                 <div class="card-layout grid gap-5">
                     <div class="card-layout py-0! grid xl:grid-cols-2 grid-cols-1">
@@ -43,45 +109,45 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jenis Kelamin</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.gender ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tanggal Lahir</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.birth_date ?? '-'
-                                    }}</span>
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Pendidikan Terakhir</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.last_education ??
                                         '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit.name
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Lembaga</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.institution
-                                    }}</span>
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Status Pernikahan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.marital_status ??
                                         '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Pasangan</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.spouse_name ?? '-'
-                                    }}</span>
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Jumlah Tanggungan
                                         Keluarga</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.dependents ?? '-'
-                                    }}</span>
+                                        }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -115,7 +181,7 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nomor Telepon</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.phone_number ?? '-'
-                                    }}</span>
+                                        }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Email</span>
@@ -124,13 +190,13 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Sesuai KTP</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.address ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Alamat Domisili</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.residential_address
                                         ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -141,19 +207,19 @@
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Nama Ahli Waris</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.name ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Hubungan Keluarga</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.relationship
                                         ?? '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Kontak Ahli Waris</span>
                                     <span class="font-medium text-dark-text dark:text-white">{{ user.heirs.contact ??
                                         '-'
-                                        }}</span>
+                                    }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -165,12 +231,12 @@
                         class="flex flex-col gap-4">
                         <div class="grid xl:grid-cols-3 grid-cols-1 gap-4">
                             <div v-for="account in user.saving_accounts" class="card-layout flex flex-col gap-12">
-                                <h1>{{ account.type }}</h1>
+                                <h1 class="card-title">{{ account.type }}</h1>
                                 <ul class="grid sm:grid-cols-2 grid-cols-1 gap-6">
                                     <li class="flex flex-col gap-2">
                                         <span class="text-sm text-gray-500 dark:text-gray-300">Saldo</span>
                                         <span class="font-medium text-dark-text dark:text-white">{{
-                                            parseCurrencyAmount(account.balance) ?? '0' }}</span>
+                                            parseCurrencyAmount(account.balance) }}</span>
                                     </li>
                                     <li class="flex flex-col gap-2">
                                         <span class="text-sm text-gray-500 dark:text-gray-300">Terakhir
@@ -286,17 +352,3 @@
         </div>
     </AdminLayout>
 </template>
-
-<script setup>
-import AdminLayout from '@/Layouts/Admin/Layout.vue';
-import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
-import dateParser from '@/Composables/dateParser.js';
-import parseCurrencyAmount from '@/Composables/moneyParser.js';
-import NoArchiveIcon from '@/Icons/NoArchiveIcon.vue';
-import UserIcon from '@/Icons/UserIcon.vue';
-
-const props = defineProps({
-    user: { type: Object, required: true },
-});
-
-</script>
