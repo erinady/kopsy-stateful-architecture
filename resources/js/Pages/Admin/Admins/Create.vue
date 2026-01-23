@@ -24,6 +24,12 @@ const props = defineProps({
     work_units: { type: Array, required: true },
 })
 
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Admin', link: '/admin/list'},
+    {name: 'Tambah Admin'},
+];
+
 const { errors } = useCreateAdminValidation(form)
 
 const submitForm = () => {
@@ -67,7 +73,7 @@ const submitForm = () => {
 <template>
     <Layout title="Tambah Admin">
         <div class="flex flex-col px-20">
-            <PageBreadcrumb page-title="Tambah Admin" />
+            <PageBreadcrumb page-title="Tambah Admin" :items="breadcrumbItems" />
             <div class="card-layout px-0!">
                 <div class="flex flex-col px-8 border-b-2 border-gray-200 dark:border-gray-700 pb-4 mb-4">
                     <h1 class="card-title">Tambah Admin</h1>

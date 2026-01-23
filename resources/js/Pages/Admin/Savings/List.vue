@@ -159,12 +159,17 @@ watch(() => filters.search, () => {
 
 watch(() => filters.per_page, applyFilters)
 watch(() => filters.tab, applyFilters)
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Daftar Simpanan'},
+];
 </script>
 
 <template>
     <AdminLayout title="Daftar Simpanan">
         <!-- Title + Breadcrumb -->
-        <PageBreadcrumb page-title="Pengelolaan Simpanan" />
+        <PageBreadcrumb page-title="Pengelolaan Simpanan" :items="breadcrumbItems" />
 
         <!-- Ringkasan -->
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 mb-10 relative">

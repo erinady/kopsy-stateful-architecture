@@ -1,7 +1,30 @@
+<script setup>
+import AdminLayout from '@/Layouts/Admin/Layout.vue';
+import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
+import { Link } from '@inertiajs/vue3';
+import UserIcon from '@/Icons/UserIcon.vue';
+import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+
+const user = computed(() => page.props.auth?.user || {
+    name: 'User',
+    email: 'user@example.com',
+    profile_picture: '/public/images/user/owner.jpg',
+})
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Profil'},
+];
+
+</script>
+
 <template>
     <AdminLayout title="Detail Profil Admin">
         <div class="flex flex-col px-20">
-            <PageBreadcrumb :page-title="'Profile'" />
+            <PageBreadcrumb :page-title="'Profile'" :items="breadcrumbItems" />
             <div class="flex flex-col gap-6">
                 <div class="card-layout flex justify-between items-center">
                     <div class="flex gap-6">
@@ -102,20 +125,3 @@
     </AdminLayout>
 </template>
 
-<script setup>
-import AdminLayout from '@/Layouts/Admin/Layout.vue';
-import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
-import { Link } from '@inertiajs/vue3';
-import UserIcon from '@/Icons/UserIcon.vue';
-import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-
-const page = usePage();
-
-const user = computed(() => page.props.auth?.user || {
-    name: 'User',
-    email: 'user@example.com',
-    profile_picture: '/public/images/user/owner.jpg',
-})
-
-</script>

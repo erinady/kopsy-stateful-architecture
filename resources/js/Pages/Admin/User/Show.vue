@@ -61,12 +61,18 @@ const getStatusClass = () => {
             return `${baseClass} text-gray-600 bg-gray-100`
     }
 }
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Pengelolaan Data Anggota', link: '/admin/users/list'},
+    {name: 'Detail Anggota'},
+];
 </script>
 
 <template>
     <AdminLayout title="Detail Anggota">
         <div class="flex flex-col px-20">
-            <PageBreadcrumb :page-title="'Detail Anggota'" />
+            <PageBreadcrumb :page-title="'Detail Anggota'" :items="breadcrumbItems" />
             <div class="flex flex-col gap-6">
                 <div class="card-layout flex flex-col xl:flex-row justify-between gap-4 items-center">
                     <div class="flex flex-col xl:flex-row justify-center items-center text-center xl:text-left gap-6">

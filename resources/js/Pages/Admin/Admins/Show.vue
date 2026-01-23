@@ -1,7 +1,25 @@
+<script setup>
+import AdminLayout from '@/Layouts/Admin/Layout.vue';
+import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
+import { Link } from '@inertiajs/vue3';
+import UserIcon from '@/Icons/UserIcon.vue';
+
+const props = defineProps({
+    user: { type: Object, required: true },
+});
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Admin', link: '/admin/list'},
+    {name: 'Detail Admin'},
+];
+
+</script>
+
 <template>
     <AdminLayout title="Detail Admin">
         <div class="flex flex-col px-20">
-            <PageBreadcrumb :page-title="'Detail Admin'" />
+            <PageBreadcrumb :page-title="'Detail Admin'" :items="breadcrumbItems" />
             <div class="flex flex-col gap-6">
                 <div class="card-layout flex justify-between items-center">
                     <div class="flex gap-6">
@@ -101,15 +119,3 @@
         </div>
     </AdminLayout>
 </template>
-
-<script setup>
-import AdminLayout from '@/Layouts/Admin/Layout.vue';
-import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
-import { Link } from '@inertiajs/vue3';
-import UserIcon from '@/Icons/UserIcon.vue';
-
-const props = defineProps({
-    user: { type: Object, required: true },
-});
-
-</script>
