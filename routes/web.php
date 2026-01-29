@@ -1,18 +1,19 @@
 <?php
 
-use App\Http\Controllers\Admin\ProfileController;
+use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\SavingController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\User\LedgerController;
+use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\User\AnggotaController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\User\SimpananController;
-use App\Models\User;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\User\UserProfileController;
 
 Route::get('/', function () {
     return Inertia::render('LandingPage', [
@@ -89,11 +90,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', [AnggotaController::class, 'index'])->name('userDashboard');
 
-    Route::get('/profile', [UserController::class, 'profile'])->name('profile.show');
-    Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
-    Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/picture', [UserController::class, 'updateProfilePicture'])->name('profile.picture.update');
-    Route::delete('/profile/picture', [UserController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+    Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/picture', [UserProfileController::class, 'updateProfilePicture'])->name('profile.picture.update');
+    Route::delete('/profile/picture', [UserProfileController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
 
     Route::get('/resign', [AnggotaController::class, 'createResign'])->name('resign.create');
     Route::post('/resign', [AnggotaController::class, 'storeResign'])->name('resign.store');
