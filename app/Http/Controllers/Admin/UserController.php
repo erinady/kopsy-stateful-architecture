@@ -35,13 +35,13 @@ class UserController extends Controller
             $q->where('status', TransactionStatus::COMPLETED)
         ])
         ->whereHas('role', fn ($q) =>
-            $q->where('name', 'User')
+            $q->where('name', 'Anggota')
         )
         ->whereNotNull('joined_date')
         ->whereNotNull('member_number');
 
         $memberBaseQuery = User::whereHas('role', fn ($q) =>
-            $q->where('name', 'User')
+            $q->where('name', 'Anggota')
         );
 
         $verifiedMembersQuery = (clone $memberBaseQuery)
@@ -153,7 +153,7 @@ class UserController extends Controller
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         $idCard = $user->userDocs
-            ->first(fn ($doc) => strtolower($doc->name) === 'ktp');
+            ->firstWhere('name', 'ktp');
         $idCardUrl = $idCard?->attachment ? asset('storage/' . $idCard->attachment) : null;
 
         return Inertia::render('Admin/User/Verification/Show', [
@@ -169,30 +169,6 @@ class UserController extends Controller
                 'id_card_url' => $idCardUrl,
             ],
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $user)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, User $user)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        //
     }
 
     public function updateStatusToInactive(String $id)

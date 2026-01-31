@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Enums\LoanStatus;
 use App\Enums\UserStatus;
 use Illuminate\Http\Request;
+use App\Enums\FinancingReqStatus;
 use App\Http\Controllers\Controller;
 
 class ResignationController extends Controller
@@ -27,11 +29,29 @@ class ResignationController extends Controller
         $user->userDocs->first()->attachment = $user->userDocs->first()->attachment ? asset('storage/' . $user->userDocs->first()->attachment) : null;
 
         $totalSavings = $user->savingAccounts()->sum('balance');
-        // $totalLiabilities = $user->financings()->whereHas('loan')->sum('total_price');
+        $totalObligation = $user->financings()
+            ->whereIn('status', [
+                FinancingReqStatus::APPROVED,
+                FinancingReqStatus::APPROVED_WITH_NOTES,
+            ])
+            ->whereHas('loan')
+            ->with([
+                'loan.payments' => fn($q) =>
+                    $q->where('status', LoanStatus::PAID)
+            ])
+            ->get()
+            ->sum(function ($financing) {
+                $loan = $financing->loan;
+                if (!$loan)
+                    return 0;
+
+                $totalPaid = $loan->payments->sum('amount');
+                return max($loan->total_price - $totalPaid, 0);
+            });
         return inertia('Admin/User/Resignation/Validation', [
             'data' => $user,
             'total_savings' => $totalSavings,
-            // 'total_liabilities' => $totalLiabilities,
+            'total_obligation' => $totalObligation,
         ]);
     }
 
@@ -53,14 +73,6 @@ class ResignationController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
     {
         //
     }
