@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\User\LedgerController;
 use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\User\AnggotaController;
-use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\User\SimpananController;
 use App\Http\Controllers\Admin\DashboardController;
