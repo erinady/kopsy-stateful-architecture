@@ -35,13 +35,13 @@ class UserController extends Controller
             $q->where('status', TransactionStatus::COMPLETED)
         ])
         ->whereHas('role', fn ($q) =>
-            $q->where('name', 'User')
+            $q->whereIn('name', ['User', 'Anggota'])
         )
         ->whereNotNull('joined_date')
         ->whereNotNull('member_number');
 
         $memberBaseQuery = User::whereHas('role', fn ($q) =>
-            $q->where('name', 'User')
+            $q->whereIn('name', ['User', 'Anggota'])
         );
 
         $verifiedMembersQuery = (clone $memberBaseQuery)
