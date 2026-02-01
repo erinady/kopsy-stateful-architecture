@@ -96,12 +96,17 @@ const toggleSort = (column) => {
     }
     applyFilters()
 }
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Pengelolaan Admin'},
+];
 </script>
 
 <template>
-    <AdminLayout title="Daftar Admin">
+    <AdminLayout title="Pengelolaan Admin">
         <!-- Breadcrumb + Title -->
-        <PageBreadcrumb page-title="Pengelolaan Admin" />
+        <PageBreadcrumb page-title="Pengelolaan Admin" :items="breadcrumbItems" />
 
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
             <!-- Card Header -->
@@ -114,7 +119,8 @@ const toggleSort = (column) => {
                     href="/admin/create"
                     class="font-heading bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm"
                 >
-                    + Tambah Admin
+                    <Icon icon="mdi:plus" class="w-5 h-5"/>
+                    Tambah Admin
                 </Link>
             </div>
 

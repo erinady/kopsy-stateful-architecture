@@ -3,9 +3,10 @@ import { ref, computed, onBeforeUnmount } from 'vue'
 import { router } from '@inertiajs/vue3'
 import BaseLayout from '../../../Layouts/Base.vue'
 import FieldRow from '../../../Components/Form/FieldRow.vue'
-import BaseTable from '../../../Components/Table/BaseTable.vue'
 import BaseFunctionality from '../../../Components/Table/BaseFunctionality.vue'
 import Pagination from '../../../Components/Table/Pagination.vue'
+import Ringkasan from './Ringkasan.vue'
+import Table from './Table.vue'
 
 defineOptions({
     layout: BaseLayout,
@@ -26,6 +27,11 @@ const props = withDefaults(defineProps<{
         status: string
         tanggal_bergabung: string
     }
+    savings?: {
+        simpanan_pokok: number
+        simpanan_wajib: number
+        simpanan_sukarela: number
+    }
     filters?: {
         search: string
         month: string
@@ -45,6 +51,11 @@ const props = withDefaults(defineProps<{
         no_anggota: '',
         status: '',
         tanggal_bergabung: '',
+    }),
+    savings: () => ({
+        simpanan_pokok: 0,
+        simpanan_wajib: 0,
+        simpanan_sukarela: 0,
     }),
     filters: () => ({
         search: '',
@@ -119,14 +130,6 @@ onBeforeUnmount(() => {
     if (timeout) clearTimeout(timeout)
 })
 
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value)
-}
-
 const handleExport = () => {
     const params = new URLSearchParams()
     
@@ -145,7 +148,7 @@ const handleExport = () => {
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 pt-24 pb-12 max-w-8xl px-4 sm:px-6 lg:px-8">
         <div class="space-y-6 p-6">
             <!-- Anggota Info -->
-            <div v-if="memberInfo" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 w-full md:w-1/2">
+            <div v-if="memberInfo" class="mb-8 w-full">
                 <h1 class="text-3xl font-bold font-head text-blue-900 dark:text-blue-600 mb-8">
                     Personal Ledger
                 </h1>
@@ -156,6 +159,14 @@ const handleExport = () => {
                     <FieldRow label="Status" :value="memberInfo.status" />
                     <FieldRow label="Tanggal Bergabung" :value="memberInfo.tanggal_bergabung" />
                 </div>
+            </div>
+
+            <!-- Ringkasan Simpanan -->
+            <div class="w-full mb-8">
+                <h2 class="text-xl font-bold font-head text-gray-800 dark:text-white mb-4">
+                    Ringkasan
+                </h2>
+                <Ringkasan :savings="savings" />
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full">
@@ -193,37 +204,10 @@ const handleExport = () => {
 
                 <!-- Table -->
                 <div class="px-8 py-6">
-                    <BaseTable
+                    <Table
+                        :transactions="transactions.data"
                         :columns="columns"
-                        :data="transactions.data"
-                        :pagination="transactions"
-                    >
-                        <template #cell-debit="{ row }">
-                            <span
-                                v-if="row.debit > 0"
-                                class="text-green-600 dark:text-green-400 font-semibold"
-                            >
-                                {{ formatCurrency(row.debit) }}
-                            </span>
-                            <span v-else class="text-gray-400">-</span>
-                        </template>
-
-                        <template #cell-kredit="{ row }">
-                            <span
-                                v-if="row.kredit > 0"
-                                class="text-red-600 dark:text-red-400 font-semibold"
-                            >
-                                {{ formatCurrency(row.kredit) }}
-                            </span>
-                            <span v-else class="text-gray-400">-</span>
-                        </template>
-
-                        <template #cell-saldo="{ row }">
-                            <span class="font-semibold text-blue-600 dark:text-blue-400">
-                                {{ formatCurrency(row.saldo) }}
-                            </span>
-                        </template>
-                    </BaseTable>
+                    />
 
                     <!-- Pagination -->
                     <Pagination

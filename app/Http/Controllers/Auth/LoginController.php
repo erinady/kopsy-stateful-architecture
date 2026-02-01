@@ -41,7 +41,7 @@ class LoginController extends Controller
             ];
 
             throw ValidationException::withMessages([
-                'member_number' => $messages[$user->status] ?? 'Akun Anda belum aktif.',
+                'member_number' => $messages[$user->status->value] ?? 'Akun Anda belum aktif.',
             ]);
         }
 
@@ -53,7 +53,12 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/admin/dashboard');
+        // Redirect based on user role
+        if ($user->role->name === 'Admin' || $user->role->name === 'Manajer') {
+            return redirect()->intended('/admin/dashboard');
+        }
+
+        return redirect()->intended('/user/dashboard');
     }
 
     public function destroy(Request $request)

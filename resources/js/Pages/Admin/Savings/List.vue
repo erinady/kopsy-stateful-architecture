@@ -159,12 +159,17 @@ watch(() => filters.search, () => {
 
 watch(() => filters.per_page, applyFilters)
 watch(() => filters.tab, applyFilters)
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Daftar Simpanan'},
+];
 </script>
 
 <template>
     <AdminLayout title="Daftar Simpanan">
         <!-- Title + Breadcrumb -->
-        <PageBreadcrumb page-title="Pengelolaan Simpanan" />
+        <PageBreadcrumb page-title="Pengelolaan Simpanan" :items="breadcrumbItems" />
 
         <!-- Ringkasan -->
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 mb-10 relative">
@@ -224,7 +229,7 @@ watch(() => filters.tab, applyFilters)
                             class="inline-flex items-center gap-2 px-4 py-2 text-sm
                                 border rounded-lg
                                 bg-green-600 text-white hover:bg-green-700"
-                                
+
                         >
                             <Icon icon="mdi:file-delimited-outline" class="w-4 h-4" />
                             Export CSV
@@ -281,7 +286,7 @@ watch(() => filters.tab, applyFilters)
                         <div class="flex justify-center gap-3">
                             <Link
                                 v-if="filters.tab === 'permohonan'"
-                                :href="`/admin/savings/validate/${row.id}`"
+                                :href="`/admin/savings/show/${row.id}`"
                                 class="inline-flex items-center gap-2
                                     bg-blue-light-600 hover:bg-blue-light-900 text-white px-4 py-2 rounded-lg"
                             >

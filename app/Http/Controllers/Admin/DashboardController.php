@@ -16,25 +16,31 @@ class DashboardController extends Controller
 {
     public function index(Request $req)
     {
-        $startDate = Carbon::parse($req->start_date ?? now()->startOfMonth());
-        $endDate = Carbon::parse($req->end_date ?? now()->endOfMonth());
+        $startDate = $req->start_date
+            ? Carbon::parse($req->start_date)->startOfDay()
+            : now()->startOfMonth()->startOfDay();
+
+        $endDate = $req->end_date
+            ? Carbon::parse($req->end_date)->endOfDay()
+            : now()->endOfMonth()->endOfDay();
         $filterBy = $req->filter_by ?? 'month';
 
         // Get previous period dates
-        [$prevStartDate, $prevEndDate] = $this->getPreviousPeriod($startDate, $endDate, $filterBy);
+        [$prevStartDate, $prevEndDate] = $this->getPreviousPeriod($startDate, $filterBy);
+
+        $totalFinancingAmount = Loan::whereBetween('created_at', [$startDate, $endDate])->sum('total_price') ?? '0';
+        $activeUserCount = User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $endDate)->count();
 
         return inertia('Admin/Dashboard', [
-            'active_user_count' => User::where('status', UserStatus::ACTIVE->value)
-                ->where('created_at', '<=', $endDate)->count(),
+            'active_user_count' => $activeUserCount,
             'active_user_percentage' => $this->calculatePercentage(
-                User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $endDate)->count(),
+                $activeUserCount,
                 User::where('status', UserStatus::ACTIVE->value)->where('created_at', '<=', $prevEndDate)->count()
             ),
             'total_saving_amount' => SavingAccount::sum('balance') ?? '0',
-            'total_financing_amount' => Loan::whereBetween('created_at', [$startDate, $endDate])
-                ->sum('total_price') ?? '0',
+            'total_financing_amount' => $totalFinancingAmount,
             'total_financing_percentage' => $this->calculatePercentage(
-                Loan::whereBetween('created_at', [$startDate, $endDate])->sum('total_price') ?? 0,
+                $totalFinancingAmount,
                 Loan::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_price') ?? 0
             ),
             'transaction_data' => $this->getRecentTransactions(),
@@ -44,7 +50,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function getPreviousPeriod(Carbon $start, Carbon $end, string $filterBy): array
+    private function getPreviousPeriod(Carbon $start, string $filterBy): array
     {
         return match ($filterBy) {
             'month' => [
@@ -73,6 +79,7 @@ class DashboardController extends Controller
             ->latest()->take(5)->get()
             ->map(fn($t) => [
                 'id' => $t->id,
+                'transaction_code' => $t->transaction_code,
                 'user_name' => $t->savingAccount->user->name,
                 'amount' => $t->amount,
                 'type' => $t->type,
@@ -86,6 +93,7 @@ class DashboardController extends Controller
             ->where('status', UserStatus::INREVIEW->value)
             ->latest()->take(5)->get()
             ->map(fn($u) => [
+                'member_number' => $u->member_number,
                 'name' => $u->name,
                 'email' => $u->email,
                 'created_at' => $u->created_at,
@@ -99,9 +107,10 @@ class DashboardController extends Controller
             ->latest()->take(5)->get()
             ->map(fn($f) => [
                 'id' => $f->id,
+                'transaction_code' => $f->transaction_code,
                 'product_type' => $f->product_type,
                 'status' => $f->status,
-                'member_number' => $f->user->id,
+                'member_number' => $f->user->member_number,
                 'user_name' => $f->user->name,
                 'created_at' => $f->created_at,
             ]);
@@ -119,7 +128,7 @@ class DashboardController extends Controller
 
     private function getMonthlyStats()
     {
-        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         $stats = Financing::selectRaw('EXTRACT(MONTH FROM created_at) AS month, COUNT(*) AS count')
             ->whereYear('created_at', now()->year)

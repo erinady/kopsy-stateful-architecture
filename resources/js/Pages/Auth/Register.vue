@@ -1,9 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
 import RegisterStepOne from '@/Components/Auth/RegisterStepOne.vue'
 import RegisterStepTwo from '@/Components/Auth/RegisterStepTwo.vue'
+import Logo from '@/Components/Logo.vue'
 
 const step = ref(1)
 
@@ -23,12 +26,52 @@ const next = () => (step.value = 2)
 const submit = () => {
   form.post('/auth/register', {
     forceFormData: true,
-    onSuccess: () => {
-      console.log('Registration successful')
-    },
     onError: (errors) => {
       console.error('Registration failed:', errors)
-      alert('Terjadi kesalahan saat mendaftar. Silakan cek kembali data Anda.')
+      
+      // error spesifik untuk setiap field
+      if (errors.email) {
+        toast.error(`Email: ${errors.email}`, {
+          autoClose: 5000,
+          position: toast.POSITION.BOTTOM_RIGHT
+        })
+      }
+      if (errors.nik) {
+        toast.error(`NIK: ${errors.nik}`, {
+          autoClose: 5000,
+          position: toast.POSITION.BOTTOM_RIGHT
+        })
+      }
+      if (errors.password) {
+        toast.error(`Password: ${errors.password}`, {
+          autoClose: 5000,
+          position: toast.POSITION.BOTTOM_RIGHT
+        })
+      }
+      if (errors.foto_pribadi) {
+        toast.error(`Foto Pribadi: ${errors.foto_pribadi}`, {
+          autoClose: 5000,
+          position: toast.POSITION.BOTTOM_RIGHT
+        })
+      }
+      if (errors.foto_ktp) {
+        toast.error(`Foto KTP: ${errors.foto_ktp}`, {
+          autoClose: 5000,
+          position: toast.POSITION.BOTTOM_RIGHT
+        })
+      }
+      
+      const handledFields = ['email', 'nik', 'password', 'foto_pribadi', 'foto_ktp']
+      const otherErrors = Object.keys(errors).filter(key => !handledFields.includes(key))
+      
+      if (otherErrors.length > 0) {
+        otherErrors.forEach(key => {
+          toast.error(`${key}: ${errors[key]}`, {
+            autoClose: 5000,
+            position: toast.POSITION.BOTTOM_RIGHT
+          })
+        })
+      }
     }
   })
 }
@@ -60,16 +103,14 @@ const props = defineProps({
 <template>
   <AuthLayout title="Daftar">
     <div class="w-full px-4">
-      <div class="text-center mb-24">
-        <h1 class="text-xl font-semibold text-white font-body">
-          Logo KopSy-Kampus
-        </h1>
+      <div class="flex justify-center mb-12">
+        <Logo class="h-16 mx-auto"/>
       </div>
 
-      <div class="mb-12 mx-auto max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden font-body">
+      <div class="mb-12 mx-auto max-w-3xl bg-white/95 dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden font-body">
         <div class="flex h-2">
-          <div class="flex-1" :class="step >= 1 ? 'bg-blue-900' : 'bg-gray-300'"></div>
-          <div class="flex-1" :class="step >= 2 ? 'bg-blue-900' : 'bg-gray-300'"></div>
+          <div class="flex-1" :class="step >= 1 ? 'bg-blue-900 dark:bg-blue-800' : 'bg-gray-300'"></div>
+          <div class="flex-1" :class="step >= 2 ? 'bg-blue-900 dark:bg-blue-800' : 'bg-gray-300'"></div>
         </div>
 
         <div class="p-8">
@@ -77,11 +118,11 @@ const props = defineProps({
             <div class="flex items-center gap-3 mr-24">
               <div
                 class="w-8 h-8 rounded-md flex items-center justify-center text-sm font-semibold"
-                :class="step >= 1 ? 'bg-blue-900 text-white' : 'bg-gray-300 text-gray-500'"
+                :class="step >= 1 ? 'bg-blue-900 dark:bg-blue-800 text-white' : 'bg-gray-300 text-gray-500'"
               >
                 1
               </div>
-              <span :class="step >= 1 ? 'text-blue-900 font-semibold' : 'text-gray-400'">
+              <span :class="step >= 1 ? 'text-blue-900 dark:text-blue-800 font-semibold' : 'text-gray-400'">
                 Data Anggota
               </span>
             </div>
@@ -89,11 +130,11 @@ const props = defineProps({
             <div class="flex items-center gap-3 ml-24">
               <div
                 class="w-8 h-8 rounded-md flex items-center justify-center text-sm font-semibold"
-                :class="step >= 2 ? 'bg-blue-900 text-white' : 'bg-gray-300 text-gray-500'"
+                :class="step >= 2 ? 'bg-blue-900 dark:bg-blue-800 text-white' : 'bg-gray-300 text-gray-500'"
               >
                 2
               </div>
-              <span :class="step >= 2 ? 'text-blue-900 font-semibold' : 'text-gray-400'">
+              <span :class="step >= 2 ? 'text-blue-900 dark:text-blue-800 font-semibold' : 'text-gray-400'">
                 Upload Foto & KTP
               </span>
             </div>
@@ -109,7 +150,7 @@ const props = defineProps({
               @click="next"
               :disabled="!stepOneValid"
               class="w-full max-w-md py-2 rounded-lg
-                     bg-blue-900 text-white font-medium font-body
+                     bg-blue-900 dark:bg-blue-800 text-white font-medium font-body
                      disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Selanjutnya
@@ -121,16 +162,16 @@ const props = defineProps({
               @click="submit"
               :disabled="!stepTwoValid || form.processing"
               class="w-full max-w-md py-2 rounded-lg
-                     bg-blue-900 text-white font-medium font-body
+                     bg-blue-900 dark:bg-blue-800 text-white font-medium font-body
                      disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="form.processing">Mendaftar...</span>
               <span v-else>Daftar</span>
             </button>
 
-            <p class="text-center text-md text-gray-500 font-body">
+            <p class="text-center text-md text-gray-500 dark:text-white font-body">
               Sudah punya akun?
-              <a href="/auth/login" class="text-orange-500 font-medium font-body">
+              <a href="/auth/login" class="text-accent dark:text-accent font-bold font-body">
                 Masuk sekarang
               </a>
             </p>

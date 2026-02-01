@@ -1,7 +1,30 @@
+<script setup>
+import AdminLayout from '@/Layouts/Admin/Layout.vue';
+import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
+import { Link } from '@inertiajs/vue3';
+import UserIcon from '@/Icons/UserIcon.vue';
+import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+
+const user = computed(() => page.props.auth?.user || {
+    name: 'User',
+    email: 'user@example.com',
+    profile_picture: '/public/images/user/owner.jpg',
+})
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Profil'},
+];
+
+</script>
+
 <template>
     <AdminLayout title="Detail Profil Admin">
         <div class="flex flex-col px-20">
-            <PageBreadcrumb :page-title="'Profile'" />
+            <PageBreadcrumb :page-title="'Profile'" :items="breadcrumbItems" />
             <div class="flex flex-col gap-6">
                 <div class="card-layout flex justify-between items-center">
                     <div class="flex gap-6">
@@ -21,7 +44,7 @@
                         </div>
                     </div>
                     <Link :href="`/admin/edit/${user.id}`"
-                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-theme-sm font-medium text-dark-text shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current fill-white dark:fill-gray-800"
                             width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path
@@ -102,20 +125,3 @@
     </AdminLayout>
 </template>
 
-<script setup>
-import AdminLayout from '@/Layouts/Admin/Layout.vue';
-import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
-import { Link } from '@inertiajs/vue3';
-import UserIcon from '@/Icons/UserIcon.vue';
-import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-
-const page = usePage();
-
-const user = computed(() => page.props.auth?.user || {
-    name: 'User',
-    email: 'user@example.com',
-    profile_picture: '/public/images/user/owner.jpg',
-})
-
-</script>

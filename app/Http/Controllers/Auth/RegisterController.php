@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\WorkUnit;
-use App\Models\UserDoc;
 use App\Models\Role;
+use App\Models\User;
+use Inertia\Inertia;
+use App\Models\UserDoc;
+use App\Models\WorkUnit;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
 
 class RegisterController extends Controller
 {
     public function create()
     {
-        $workUnits = WorkUnit::all(['id', 'name'])->toArray();
-        
+        $workUnits = Cache::remember(
+            'work_units_all',
+            now()->addHours(6),
+            fn () => WorkUnit::all(['id', 'name'])
+        );
+
         return Inertia::render('Auth/Register', [
             'workUnits' => $workUnits
         ]);
@@ -44,10 +49,11 @@ class RegisterController extends Controller
             $nextNumber = $latestMemberNumber
                 ? ((int) preg_replace('/\D/', '', $latestMemberNumber)) + 1
                 : 1;
-            $memberNumber = 'KS' . str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
 
             // Get or create User role
-            $userRole = Role::firstOrCreate(['name' => 'User']);
+            $userRole = Role::firstOrCreate(['name' => 'Anggota']);
+
+            $memberNumber = 'KSP' . $userRole->id . $data['work_unit_id'] . (User::count() + 1);
 
             $user = User::create([
                 'id' => Str::uuid(),

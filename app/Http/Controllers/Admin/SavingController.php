@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\TransactionStatus;
-use App\Http\Requests\StoreSavingTransactionValidationRequest;
-use App\Models\SavingTransaction;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Inertia\Inertia;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\SavingAccount;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Enums\TransactionStatus;
+use App\Models\SavingTransaction;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSavingTransactionValidationRequest;
 
 class SavingController extends Controller
 {
@@ -27,7 +28,7 @@ class SavingController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('savingAccount.user', function ($u) use ($search) {
                     $u->where('name', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%");
+                        ->orWhere('nik', 'like', "%{$search}%");
                 });
             })
             ->when($tab === 'permohonan', function ($q) {
@@ -65,7 +66,7 @@ class SavingController extends Controller
         }
 
         $query = $this->baseQuery($request)
-        ->orderBy($sortBy, $sortDir);
+            ->orderBy($sortBy, $sortDir);
 
         $transactions = $query
             ->paginate($perPage)
@@ -88,7 +89,7 @@ class SavingController extends Controller
 
         $summaryQuery = SavingTransaction::query()
             ->where('status', TransactionStatus::COMPLETED)
-            ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab){
+            ->when(in_array($tab, ['pokok', 'wajib', 'sukarela']), function ($q) use ($tab) {
                 $map = [
                     'pokok' => 'Simpanan Pokok',
                     'wajib' => 'Simpanan Wajib',
@@ -100,17 +101,17 @@ class SavingController extends Controller
                 });
             });
 
-            $totalMasuk = (clone $summaryQuery)
-                ->where('type', 'Penyetoran')
-                ->sum('amount');
+        $totalMasuk = (clone $summaryQuery)
+            ->where('type', 'Penyetoran')
+            ->sum('amount');
 
-            $totalKeluar = (clone $summaryQuery)
-                ->where('type', 'Penarikan')
-                ->sum('amount');
+        $totalKeluar = (clone $summaryQuery)
+            ->where('type', 'Penarikan')
+            ->sum('amount');
 
-            $totalPerputaran = $totalMasuk + $totalKeluar;
+        $totalPerputaran = $totalMasuk + $totalKeluar;
 
-            $summary = [
+        $summary = [
             [
                 'title' => 'Total Kas',
                 'value' => 'Rp ' . number_format($totalMasuk - $totalKeluar, 0, ',', '.'),
@@ -197,8 +198,8 @@ class SavingController extends Controller
                     $trx->savingAccount->type,
                     $trx->type,
                     $trx->type === 'Penarikan'
-                        ? -$trx->amount
-                        : $trx->amount,
+                    ? -$trx->amount
+                    : $trx->amount,
                 ]);
             }
             fclose($handle);
@@ -226,55 +227,22 @@ class SavingController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        $data = SavingTransaction::with( 'savingAccount.user.workUnit')->find($id);
+        $data = SavingTransaction::with('savingAccount.user.workUnit', 'account', 'savingTransactionDoc')->find($id);
+
+        if ($data->savingTransactionDoc && $data->savingTransactionDoc->isNotEmpty()) {
+            $firstDoc = $data->savingTransactionDoc->first();
+            if ($firstDoc && $firstDoc->attachment) {
+                $firstDoc->attachment = asset('storage/' . $firstDoc->attachment);
+            }
+        }
 
         return inertia('Admin/Savings/Show', [
             'data' => $data,
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 
     public function validateRequest(StoreSavingTransactionValidationRequest $request, string $id)
@@ -283,13 +251,21 @@ class SavingController extends Controller
             $data = $request->validated();
 
             $transaction = SavingTransaction::findOrFail($id);
+
             if ($data['status'] === 'accepted') {
                 $transaction->status = TransactionStatus::COMPLETED;
             } elseif ($data['status'] === 'rejected') {
                 $transaction->status = TransactionStatus::REJECTED;
                 $transaction->description = $data['description'] ?? null;
             }
+
             $transaction->save();
+            $account = SavingAccount::find($transaction->saving_account_id);
+            if ($account) {
+                $account->update(
+                    ['balance' => $account->balance + ($transaction->type === 'Penarikan' ? -$transaction->amount : $transaction->amount)]
+                );
+            }
 
             return redirect()->back();
         } catch (\Exception $e) {

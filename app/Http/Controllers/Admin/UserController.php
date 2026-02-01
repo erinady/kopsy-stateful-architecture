@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use App\Models\WorkUnit;
+use App\Enums\UserStatus;
+use Illuminate\Http\Request;
+use App\Enums\TransactionStatus;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
 use App\Mail\ApprovalNotificationMail;
 use App\Mail\RejectionNotificationMail;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use App\Enums\UserStatus;
-use Inertia\Inertia;
-use App\Enums\TransactionStatus;
 
 class UserController extends Controller
 {
@@ -138,27 +139,12 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
+        $user = User::with(['role', 'workUnit', 'savingAccounts.transactions' => function($query) {$query->latest('created_at')->where('status', TransactionStatus::COMPLETED)->take(1);}, 'heirs', 'userDocs', 'financings.loan.payments'])->findOrFail($id);
+        $user->profile_picture = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         return inertia('Admin/User/Show', ['user' => $user]);
     }
 
@@ -168,7 +154,7 @@ class UserController extends Controller
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         $idCard = $user->userDocs
-            ->first(fn ($doc) => strtolower($doc->name) === 'ktp');
+            ->firstWhere('name', 'ktp');
         $idCardUrl = $idCard?->attachment ? asset('storage/' . $idCard->attachment) : null;
 
         return Inertia::render('Admin/User/Verification/Show', [
@@ -186,28 +172,14 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $user)
+    public function updateStatusToInactive(String $id)
     {
-        //
-    }
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => UserStatus::INACTIVE,
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, User $user)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        //
+        return redirect()->back();
     }
 
     public function prospectiveMembers(Request $request)
@@ -257,7 +229,11 @@ class UserController extends Controller
                 'sort_by' => $sortBy,
                 'sort_dir' => $sortDir,
             ],
-            'workUnits' => WorkUnit::select('id', 'name')->get(),
+            'workUnits' => Cache::remember(
+                'work_units_all',
+                now()->addHours(6),
+                fn () => WorkUnit::all(['id', 'name'])
+            ),
             'title' => 'Verifikasi Calon Anggota',
         ]);
     }
@@ -295,8 +271,7 @@ class UserController extends Controller
 
             return $redirect;
         } else {
-            // Update status user menjadi Ditolak
-            $user->update(['status' => 'Ditolak']);
+            $user->update(['status' => 'Ditolak dengan alasan']);
 
             try {
                 Mail::to($user->email)->send(new RejectionNotificationMail($user, $validated['note'] ?? ''));
@@ -319,140 +294,4 @@ class UserController extends Controller
             return $redirect;
         }
     }
-
-    /**
-     * Display the user's public profile
-     */
-    public function profile(User $user)
-    {
-        $user->load(['role', 'workUnit']);
-
-        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
-
-        return Inertia::render('User/Profile/Show', [
-            'user' => [
-                'id' => $user->id,
-                'member_number' => $user->member_number,
-                'name' => $user->name,
-                'nik' => $user->nik,
-                'birth_date' => $user->birth_date,
-                'gender' => $user->gender,
-                'institution' => $user->institution,
-                'work_unit' => $user->workUnit->name ?? '-',
-                'profile_picture' => $user->profile_picture,
-                'photo_url' => $photoUrl,
-            ]
-        ]);
-    }
-
-    /**
-     * Show the form for editing user profile
-     */
-    public function editProfile(User $user)
-    {
-        if (request()->user()->isNot($user)) {
-            abort(403, 'Anda tidak berhak mengedit profil ini.');
-        }
-
-        $user->load(['role', 'workUnit']);
-
-        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
-
-        return Inertia::render('User/Profile/Edit', [
-            'user' => [
-                'id' => $user->id,
-                'member_number' => $user->member_number,
-                'name' => $user->name,
-                'nik' => $user->nik,
-                'birth_date' => $user->birth_date,
-                'gender' => $user->gender,
-                'institution' => $user->institution,
-                'work_unit' => $user->workUnit->name ?? '-',
-                'profile_picture' => $user->profile_picture,
-                'photo_url' => $photoUrl,
-            ]
-        ]);
-    }
-
-    /**
-     * Update user profile
-     */
-    public function updateProfile(Request $request, User $user)
-    {
-        if ($request->user()->isNot($user)) {
-            abort(403, 'Anda tidak berhak memperbarui profil ini.');
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            // Ensure NIK is unique except for current user
-            'nik' => [
-                'required',
-                'string',
-                'size:16',
-                \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id, 'id'),
-            ],
-            'birth_date' => 'required|date|before_or_equal:today|after_or_equal:1900-01-01',
-            'gender' => 'required|string|in:Laki-laki,Perempuan',
-        ]);
-
-        $user->update($validated);
-
-        return redirect()->route('user.profile.show', $user)
-            ->with('success', 'Profil berhasil diperbarui');
-    }
-
-    /**
-     * Update user's profile picture
-     */
-    public function updateProfilePicture(Request $request, User $user)
-    {
-        if ($request->user()->isNot($user)) {
-            abort(403, 'Anda tidak berhak mengubah foto profil ini.');
-        }
-
-        $request->validate([
-            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $tmpPath = $request->file('profile_picture')->getPathname();
-        if (! @getimagesize($tmpPath)) {
-            return back()->withErrors(['profile_picture' => 'File tidak valid sebagai gambar.']);
-        }
-
-        if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
-            \Storage::disk('public')->delete($user->profile_picture);
-        }
-
-        // Store new profile picture
-        $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-
-        $user->update([
-            'profile_picture' => $path
-        ]);
-
-        return redirect()->back()->with('success', 'Foto profil berhasil diperbarui');
-    }
-
-    /**
-     * Delete user's profile picture
-     */
-    public function deleteProfilePicture(User $user)
-    {
-        // Authorization: only allow deleting own profile picture
-        if (request()->user()->isNot($user)) {
-            abort(403, 'Anda tidak berhak menghapus foto profil ini.');
-        }
-
-        if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
-            \Storage::disk('public')->delete($user->profile_picture);
-        }
-
-        $user->update([
-            'profile_picture' => null
-        ]);
-
-        return redirect()->back()->with('success', 'Foto profil berhasil dihapus');
-    }
-
 }

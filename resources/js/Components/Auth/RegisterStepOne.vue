@@ -23,7 +23,7 @@ const { errors } = useRegisterValidation(props.form)
   >
 
     <h2 class="text-2xl font-bold text-orange-500 font-head">
-        Create an Account
+        Buat Akun Anda
     </h2>
 
     <BaseInput
@@ -45,6 +45,7 @@ const { errors } = useRegisterValidation(props.form)
       v-model="form.nik"
       label="NIK"
       required
+      max="16"
       :error="errors.nik"
     />
 

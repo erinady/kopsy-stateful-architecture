@@ -1,17 +1,30 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
+import { Link, usePage, useForm } from '@inertiajs/vue3'
 import UserIcon from '../Icons/UserIcon.vue'
 import ThemeToggler from '../Components/ThemeToggler.vue'
 import Logo from '@/Components/Logo.vue'
+import Swal from 'sweetalert2'
+import { toast } from "vue3-toastify";
 
 const isMenuOpen = ref(true)
 const isUserDropdownOpen = ref(false)
 const page = usePage()
+const isActive = (url) => {
+    return page.url === url
+}
 
 // Get user from auth data
 const user = computed(() => {
     return page.props.auth?.user || null
+})
+
+// Get photo URL from profile_picture
+const photoUrl = computed(() => {
+    if (user.value?.profile_picture) {
+        return `/storage/${user.value.profile_picture}`
+    }
+    return null
 })
 
 // Get CSRF token
@@ -27,7 +40,61 @@ const toggleUserDropdown = () => {
     isUserDropdownOpen.value = !isUserDropdownOpen.value
 }
 
-console.log(isMenuOpen.value);
+const menuItems = [
+    {
+        name: "Beranda",
+        path: "/"
+    },
+    {
+        name: "Produk",
+        path: "/products"
+    },
+    {
+        name: "Tentang Kami",
+        path: "/about"
+    },
+    {
+        name: "Bantuan",
+        path: "/help"
+    }
+]
+
+const form = useForm({})
+
+const logout = () => {
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Apakah Anda yakin ingin keluar?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, keluar',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#007943',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.post(('/auth/logout'), {
+                onSuccess: () => {
+                    toast("Sampai jumpa!", {
+                        "type": "success",
+                        "position": "bottom-right",
+                        "transition": "slide",
+                        "dangerouslyHTMLString": true
+                    }).then(() => {
+                        window.location.href = route('landing')
+                    })
+                },
+                onError: () => {
+                    toast("Gagal keluar.", {
+                        "type": "error",
+                        "position": "bottom-right",
+                        "transition": "slide",
+                        "dangerouslyHTMLString": true
+                    })
+                }
+            })
+        }
+    })
+}
 </script>
 
 <template>
@@ -57,16 +124,15 @@ console.log(isMenuOpen.value);
                 <!-- Authenticated User Section -->
                 <template v-else>
                     <!-- User Avatar & Dropdown -->
-                    <Link :href="user.role?.name === 'User' ? '/dashboard' : '/admin/dashboard'"
+                    <Link :href="user.role?.name === 'Anggota' ? '/user/dashboard' : '/admin/dashboard'"
                         class="relative flex items-center justify-center text-dark-text transition-colors bg-transparent border border-gray-200 rounded-full hover:text-dark-900 h-11 w-11 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
                         <span class="icon-[material-symbols-light--home-outline-rounded]"
                             style="width: 24px; height: 24px;"></span>
                     </Link>
                     <div class="relative">
                         <button @click="toggleUserDropdown" class="flex items-center">
-                            <div v-if="user.profile_picture">
-                                <img class="w-10 h-10 rounded-lg cursor-pointer object-cover"
-                                    src="/public/images/user/owner.jpg" alt="User avatar">
+                            <div v-if="photoUrl" class="w-10 h-10 rounded-lg overflow-hidden cursor-pointer">
+                                <img class="w-full h-full object-cover" :src="photoUrl" :alt="user.name">
                             </div>
                             <div v-else
                                 class="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-gray-500 cursor-pointer">
@@ -76,15 +142,16 @@ console.log(isMenuOpen.value);
 
                         <!-- Dropdown Menu -->
                         <div v-if="isUserDropdownOpen"
-                            class="absolute right-0 z-10 mt-2 w-44 divide-y divide-gray-100 rounded-lg shadow bg-white dark:divide-gray-600">
-                            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                            class="absolute right-0 z-10 mt-2 w-44 divide-y divide-gray-100 rounded-lg hover:rounded-lg shadow bg-white dark:bg-gray-800 dark:divide-gray-600">
+                            <div class="px-4 py-3 text-sm cursor-default text-gray-900 dark:text-white dark:hover:bg-gray-600">
                                 <div>{{ user.name }}</div>
                                 <div class="font-medium truncate">{{ user.email }}</div>
                             </div>
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+                            <ul class="text-sm text-gray-700 dark:text-gray-200">
                                 <li>
-                                    <Link href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                        Settings
+                                    <Link href="/user/profile"
+                                        class="block px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        Profil
                                     </Link>
                                 </li>
                                 <li>
@@ -93,15 +160,10 @@ console.log(isMenuOpen.value);
                                     </Link>
                                 </li>
                             </ul>
-                            <div class="py-1">
-                                <form method="post" action="/auth/logout" style="display: inline;">
-                                    <input type="hidden" name="_token" :value="csrfToken" />
-                                    <button type="submit"
-                                        class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200">
-                                        Sign out
-                                    </button>
-                                </form>
-                            </div>
+                            <button type="button" @click="logout"
+                                class="w-full text-left block px-4 py-4 text-sm text-gray-700 hover:bg-gray-100 hover:rounded-b-lg dark:hover:bg-gray-600 dark:text-gray-200">
+                                Keluar
+                            </button>
                         </div>
                     </div>
                 </template>
@@ -121,41 +183,11 @@ console.log(isMenuOpen.value);
             <!-- Navigation Menu -->
             <div v-if="isMenuOpen" class="w-full md:flex md:w-auto md:order-1">
                 <ul
-                    class="flex flex-col font-medium gap-2 p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 dark:border-gray-700">
-                    <li>
-                        <Link href="/"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 dark:text-white">
-                            Beranda
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 dark:text-white">
-                            Produk
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 dark:text-white">
-                            Tentang Kami
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#"
-                            class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 dark:text-white">
-                            Bantuan
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/login"
-                            class="block py-2 px-3 text-gray-900 bg-white rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 md:hidden">
-                            Masuk
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/register"
-                            class="block py-2 px-3 text-white bg-light-accent rounded hover:bg-light-accent/90 md:hover:bg-transparent md:p-0 md:hidden">
-                            Daftar
+                    class="flex flex-col gap-2 p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 dark:border-gray-700">
+                    <li v-for="menu in menuItems">
+                        <Link :href="menu.path"
+                            :class="isActive(menu.path) ? 'block pb-2! px-3 text-gray-900 hover:bg-gray-100 font-semibold md:hover:bg-transparent md:p-0 dark:text-white border-b-accent border-b-2' : 'block pb-2! px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 dark:text-white'">
+                            {{ menu.name }}
                         </Link>
                     </li>
                 </ul>

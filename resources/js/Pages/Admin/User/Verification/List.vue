@@ -79,12 +79,17 @@ const toggleSort = (column) => {
     }
     applyFilters()
 }
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Verifikasi Calon Anggota'},
+];
 </script>
 
 <template>
     <AdminLayout title="Verifikasi Calon Anggota">
         <!-- Breadcrumb + Title -->
-        <PageBreadcrumb page-title="Verifikasi Calon Anggota" />
+        <PageBreadcrumb page-title="Verifikasi Calon Anggota" :items="breadcrumbItems" />
 
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
             <!-- Header -->

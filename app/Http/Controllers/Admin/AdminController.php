@@ -40,13 +40,13 @@ class AdminController extends Controller
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($qq) use ($request) {
                     $qq->where('name', 'like', "%{$request->search}%")
-                       ->orWhere('nik', 'like', "%{$request->search}%")
-                       ->orWhere('email', 'like', "%{$request->search}%");
+                        ->orWhere('nik', 'like', "%{$request->search}%")
+                        ->orWhere('email', 'like', "%{$request->search}%");
                 });
             })
             ->when(
                 $request->status && in_array($request->status, $allowedAdminStatuses),
-                fn ($q) => $q->where('status', $request->status)
+                fn($q) => $q->where('status', $request->status)
             )
             ->when($request->role && !in_array($request->role, ['User', 'Anggota']), 
                 fn ($q) =>
@@ -57,7 +57,7 @@ class AdminController extends Controller
             ->orderBy($sortBy, $sortDir)
             ->paginate($request->per_page ?? 10)
             ->withQueryString()
-            ->through(fn ($user) => [
+            ->through(fn($user) => [
                 'id' => $user->id,
                 'nik' => $user->nik,
                 'name' => $user->name,
@@ -84,14 +84,8 @@ class AdminController extends Controller
      */
     public function create()
     {
-        $work_units = WorkUnit::all()->map(fn($unit) => [
-            'id' => $unit->id,
-            'name' => $unit->name
-        ]);
-        $roles = Role::all()->map(fn($role) => [
-            'id' => $role->id,
-            'name' => $role->name
-        ]);
+        $work_units = WorkUnit::all();
+        $roles = Role::where('name', '!=', 'Anggota')->get();
 
         return inertia('Admin/Admins/Create', [
             'work_units' => $work_units,
@@ -117,7 +111,7 @@ class AdminController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.index');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withInput();
@@ -130,6 +124,11 @@ class AdminController extends Controller
     public function show(string $id)
     {
         $admin = User::with('role', 'workUnit')->findOrFail($id);
+
+        $admin->profile_picture = $admin->profile_picture
+            ? asset('storage/' . $admin->profile_picture)
+            : null;
+
         return inertia('Admin/Admins/Show', [
             'user' => $admin,
             'id' => $id,
@@ -143,7 +142,7 @@ class AdminController extends Controller
     {
         $admin = User::with('role', 'workUnit')->findOrFail($id);
         $work_units = WorkUnit::all();
-        $roles = Role::all();
+        $roles = Role::where('name', '!=', 'Anggota')->get();
 
         return inertia('Admin/Admins/Edit', [
             'admin' => $admin,
@@ -164,19 +163,10 @@ class AdminController extends Controller
             $admin = User::findOrFail($id);
             $admin->update($data);
             DB::commit();
-            return redirect()->route('admin.dashboard')->with('success', 'Admin berhasil diperbarui.');
+            return redirect()->route('admin.index');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withInput();
         }
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
 }

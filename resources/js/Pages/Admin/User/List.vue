@@ -98,12 +98,17 @@ const statusClass = (status) => {
             return 'bg-gray-100 text-gray-600 border border-gray-200'
     }
 }
+
+const breadcrumbItems = [
+    {name: 'Dashboard', link: '/admin'},
+    {name: 'Pengelolaan Data Anggota'},
+];
 </script>
 
 <template>
     <AdminLayout title="Daftar Anggota">
         <!-- Breadcrumb + Title -->
-         <PageBreadcrumb page-title="Pengelolaan Data Anggota"/>
+         <PageBreadcrumb page-title="Pengelolaan Data Anggota" :items="breadcrumbItems" />
 
         <!-- Ringkasan -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">

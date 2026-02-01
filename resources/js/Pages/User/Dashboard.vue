@@ -17,9 +17,9 @@ const rupiah = (value) =>
 
 <template>
     <Base title="Dashboard">
-        <div class="font-head min-h-screen bg-blue-900/20 dark:bg-gray-900 transition-colors">
+        <div class="font-head min-h-screen bg-brand-900/20 dark:bg-gray-900 transition-colors">
             <section
-                class="relative h-[450px] flex items-center"
+                class="relative h-112.5 flex items-center"
                 style="background-image: url('/images/home/polban_v2.png');
                     background-size: cover;
                     background-position: center;"
@@ -53,9 +53,9 @@ const rupiah = (value) =>
             <section class="-mt-16 relative z-20 max-w-7xl mx-auto px-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Total Simpanan -->
-                    <div class="bg-blue-900 rounded-2xl shadow-lg p-6 text-white flex items-center justify-center min-h-[140px]">
+                    <div class="bg-blue-900 rounded-2xl shadow-lg p-6 text-white flex items-center justify-center min-h-35">
                         <div class="flex items-center gap-4 w-full">
-                            <div class="flex-shrink-0">
+                            <div class="shrink-0">
                                 <Icon icon="tabler:wallet" class="w-12 h-12" />
                             </div>
 
@@ -67,9 +67,9 @@ const rupiah = (value) =>
                     </div>
 
                     <!-- Total Angsuran -->
-                    <div class="bg-orange-500 rounded-2xl shadow-lg p-6 text-white flex items-center justify-center min-h-[140px]">
+                    <div class="bg-orange-500 rounded-2xl shadow-lg p-6 text-white flex items-center justify-center min-h-35">
                         <div class="flex items-center gap-4 w-full">
-                            <div class="flex-shrink-0">
+                            <div class="shrink-0">
                                 <Icon icon="tabler:receipt" class="w-12 h-12" />
                             </div>
 
@@ -98,7 +98,7 @@ const rupiah = (value) =>
 
             <!-- Quick Access-->
             <section class="max-w-7xl mx-auto px-6 mt-12 grid md:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-[250px] flex flex-col">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-62.5 flex flex-col">
                     <h3 class="font-semibold text-lg mb-6">Quick Access</h3>
 
                     <div class="flex justify-around text-center">
@@ -153,7 +153,7 @@ const rupiah = (value) =>
                 </div>
 
                 <!-- Mini Ledger -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-[250px] flex flex-col">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-62.5 flex flex-col">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-semibold text-lg">Your Ledger</h3>
                         <Link

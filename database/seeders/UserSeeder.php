@@ -5,9 +5,8 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\WorkUnit;
+use App\Enums\UserStatus;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
 class UserSeeder extends Seeder
 {
     /**
@@ -15,18 +14,39 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $role = Role::create(['name' => 'Super Admin']);
-        $work_unit = WorkUnit::create(['name' => 'Jurusan Akuntansi']);
+        User::factory()->count(100)->create();
         User::create([
-            'member_number' => 'KS001',
-            'nik' => '0000000001',
+            'member_number' => 'KSP001',
+            'nik' => '1234567890123456',
             'name' => 'Admin',
             'email' => 'admin@example.com',
+            'institution' => 'KopSy Campus',
             'password' => bcrypt('password'),
-            'institution' => 'Polban',
-            'status' => 'Aktif',
-            'role_id' => $role->id,
-            'work_unit_id' => $work_unit->id,
+            'status' => UserStatus::ACTIVE->value,
+            'role_id' => Role::where('name', 'Admin')->first()->id,
+            'work_unit_id' => WorkUnit::inRandomOrder()->first()->id,
+        ]);
+        User::create([
+            'member_number' => 'KSP002',
+            'nik' => '6543210987654321',
+            'name' => 'Anggota',
+            'email' => 'contactsims11@gmail.com',
+            'institution' => 'KopSy Campus',
+            'password' => bcrypt('password'),
+            'status' => UserStatus::ACTIVE->value,
+            'role_id' => Role::where('name', 'Anggota')->first()->id,
+            'work_unit_id' => WorkUnit::inRandomOrder()->first()->id,
+        ]);
+        User::create([
+            'member_number' => 'KSP003',
+            'nik' => '1122334455667788',
+            'name' => 'Manajer',
+            'email' => 'manajer@example.com',
+            'institution' => 'KopSy Campus',
+            'password' => bcrypt('password'),
+            'status' => UserStatus::ACTIVE->value,
+            'role_id' => Role::where('name', 'Manajer')->first()->id,
+            'work_unit_id' => WorkUnit::inRandomOrder()->first()->id,
         ]);
     }
 }
