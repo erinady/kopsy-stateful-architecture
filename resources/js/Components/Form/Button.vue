@@ -38,7 +38,7 @@ const getStyles = () => {
         case 'info':
             return 'bg-blue-accent text-white hover:bg-blue-accent/80';
         case 'light':
-            return 'bg-white text-black hover:bg-gray-100 border border-gray-300';
+            return 'bg-white text-black hover:bg-gray-100 border border-gray-300 dark:bg-gray-800 dark:text-gray-300';
         case 'success':
             return 'bg-success-500 text-white hover:bg-success-400';
         case 'gray':

@@ -123,7 +123,7 @@ const applyFilter = () => {
                         <div class="max-w-full overflow-x-auto custom-scrollbar">
                             <table class="min-w-full">
                                 <thead>
-                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                    <tr class="border-t border-gray-100 dark:border-gray-500">
                                         <th class="py-5 text-left">
                                             <p class="font-medium text-gray-500 px-2 text-theme-xs dark:text-gray-400">
                                                 Nama</p>
@@ -152,7 +152,7 @@ const applyFilter = () => {
                                 </thead>
                                 <tbody v-if="registration_data?.length">
                                     <tr v-for="data in registration_data"
-                                        class="border-t border-gray-100 dark:border-gray-800">
+                                        class="border-t border-gray-100 dark:border-gray-500">
                                         <td class="py-5 px-2 whitespace-nowrap">
                                             <p class="text-dark-text text-theme-sm dark:text-gray-400">
                                                 {{ data.name }}
@@ -182,7 +182,7 @@ const applyFilter = () => {
                                     </tr>
                                 </tbody>
                                 <tbody v-else>
-                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                    <tr class="border-t border-gray-100 dark:border-gray-500">
                                         <td colspan="5" class="py-5 text-center">
                                             <NoArchiveIcon width="120px" height="120px" />
                                             <p class="text-dark-text text-sm dark:text-gray-400 pt-4">
@@ -209,7 +209,7 @@ const applyFilter = () => {
                         <div class="max-w-full overflow-x-auto custom-scrollbar">
                             <table class="min-w-full">
                                 <thead>
-                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                    <tr class="border-t border-gray-100 dark:border-gray-500">
                                         <th class="py-5 text-left">
                                             <p class="font-medium px-2 text-gray-500 text-theme-xs dark:text-gray-400">
                                                 No.
@@ -242,7 +242,7 @@ const applyFilter = () => {
                                 </thead>
                                 <tbody v-if="transaction_data?.length">
                                     <tr v-for="data in transaction_data"
-                                        class="border-t border-gray-100 dark:border-gray-800">
+                                        class="border-t border-gray-100 dark:border-gray-500">
                                         <td class="py-5 px-2 whitespace-nowrap">
                                             <p class="text-dark-text text-theme-sm dark:text-gray-400">
                                                 {{ data.transaction_code }}
@@ -278,7 +278,7 @@ const applyFilter = () => {
                                     </tr>
                                 </tbody>
                                 <tbody v-else>
-                                    <tr class="border-t border-gray-100 dark:border-gray-800">
+                                    <tr class="border-t border-gray-100 dark:border-gray-500">
                                         <td colspan="5" class="py-5 text-center">
                                             <NoArchiveIcon width="120px" height="120px" />
                                             <p class="text-dark-text text-sm dark:text-gray-400 pt-4">
