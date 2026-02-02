@@ -14,6 +14,7 @@ use App\Http\Controllers\User\AnggotaController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\User\SimpananController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\UserProfileController;
 
 Route::get('/', function () {
@@ -58,10 +59,12 @@ Route::prefix('auth')
         Route::post('/forgot-password', [ForgotPasswordController::class, 'submitRequest'])
             ->name('password.email');
 
-        // Password Reset Routes == SEMENTARA ==
-        Route::get('/reset-password/{token}', function (string $token) {
-            return view('auth.reset-password', ['token' => $token]);
-        })->name('password.reset');
+        Route::get('/reset-password/{token}', [ResetPasswordController::class, 'index'])
+            ->name('password.reset');
+        
+        Route::post('/reset-password', [ResetPasswordController::class, 'submitRequest'])
+            ->name('password.update');
+
     });
 
 Route::redirect('/login', '/auth/login')->middleware('guest')->name('login');
