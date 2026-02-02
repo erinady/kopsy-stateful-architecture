@@ -7,6 +7,7 @@ import PageBreadcrumb from '../../../../Components/PageBreadcrumb.vue'
 import BaseFunctionality from '../../../../Components/Table/BaseFunctionality.vue'
 import BaseTable from '../../../../Components/Table/BaseTable.vue'
 import Pagination from '../../../../Components/Table/Pagination.vue'
+import Button from '@/Components/Form/Button.vue'
 
 const isLoading = ref(false)
 
@@ -159,15 +160,11 @@ const breadcrumbItems = [
                 </template>
 
                 <template #cell-aksi="{ row }">
-                    <div class="flex justify-center gap-3">
-                        <Link
-                            :href="`/admin/resignation/${row.id}`"
-                            class="inline-flex items-center gap-2
-                                bg-blue-light-600 hover:bg-blue-light-900 text-white px-4 py-2 rounded-lg"
-                        >
+                    <div class="flex justify-left gap-3">
+                        <Button variant="info" size="small" :href="`/admin/resignation/${row.id}`">
                             <Icon icon="tabler:checklist" class="w-4 h-4" />
                             Tinjau
-                        </Link>
+                        </Button>
                     </div>
                 </template>
             </BaseTable>

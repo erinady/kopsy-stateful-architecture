@@ -6,4 +6,5 @@ enum LoanStatus: string
 {
     case PAID = 'Dibayar';
     case LATE = 'Terlambat';
+    case SCHEDULED = 'Terjadwal';
 }

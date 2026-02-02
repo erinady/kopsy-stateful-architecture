@@ -3,10 +3,17 @@ import AdminLayout from '@/Layouts/Admin/Layout.vue';
 import PageBreadcrumb from '@/Components/PageBreadcrumb.vue';
 import BaseInputAdmin from '@/Components/Form/BaseInputAdmin.vue';
 import { useForm } from '@inertiajs/vue3';
+import Button from '@/Components/Form/Button.vue'
+import ModalDocument from '@/Components/ModalDocument.vue'
+import { ref } from 'vue'
+import Swal from 'sweetalert2'
+import { toast } from "vue3-toastify";
 
-const prop = defineProps({
+const props = defineProps({
     data: { type: Object, required: true },
-    total_savings: { type: Number, required: true },
+    resign_doc : String,
+    total_obligation : String,
+    total_savings: { type: String, required: true },
 });
 
 const showModal = () => {
@@ -16,16 +23,12 @@ const hideModal = () => {
     document.getElementById('modal').classList.add('hidden');
 };
 
+const buktiResignRef = ref(null)
+
+const openDocModal = () => buktiResignRef.value?.openModal()
+
 const form = useForm({
-    name: prop.data.name || '',
-    member_number: prop.data.member_number || '',
-    join_date: prop.data.join_date || '',
-    email: prop.data.email || '',
-    work_unit: prop.data.work_unit.name || '',
-    total_savings: prop.total_savings || '',
-    total_liabilities: prop.data.total_liabilities || '',
-    notes: prop.data.notes || '',
-    photo_url: prop.data.user_docs[0]?.attachment || '',
+    notes: props.data.notes || '',
     status: '',
 });
 
@@ -36,18 +39,18 @@ const breadcrumbItems = [
 ];
 
 const acceptTransaction = () => {
-    form.status = 'accepted'
+    form.status = 'accept'
     Swal.fire({
         title: 'Konfirmasi',
         text: 'Apakah Anda yakin ingin menerima permohonan pengunduran diri ini?',
-        icon: 'warning',
+        icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Ya, terima',
         cancelButtonText: 'Batal',
         confirmButtonColor: '#007943',
     }).then((result) => {
         if (result.isConfirmed) {
-            form.put('/admin/savings/validate/' + props.data.id, {
+            form.put('/admin/resignation/' + props.data.id, {
                 onSuccess: () => {
                     toast("Permohonan pengunduran diri berhasil diterima!", {
                         "type": "success",
@@ -55,7 +58,7 @@ const acceptTransaction = () => {
                         "transition": "slide",
                         "dangerouslyHTMLString": true
                     }).then(() => {
-                        router.visit(route('admin.dashboard'))
+                        router.visit(route('admin.resignations.index'))
                     })
                 },
                 onError: () => {
@@ -72,11 +75,11 @@ const acceptTransaction = () => {
 }
 
 const rejectTransaction = () => {
-    form.status = 'rejected'
+    form.status = 'reject'
     Swal.fire({
         title: 'Konfirmasi',
         text: 'Apakah Anda yakin ingin menolak permohonan pengunduran diri ini?',
-        icon: 'warning',
+        icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Ya, tolak',
         cancelButtonText: 'Batal',
@@ -84,7 +87,7 @@ const rejectTransaction = () => {
     }).then((result) => {
         if (result.isConfirmed) {
             hideModal()
-            form.put('/admin/savings/validate/' + props.data.id, {
+            form.put('/admin/resignation/' + props.data.id, {
                 onSuccess: () => {
                     toast("Permohonan pengunduran diri berhasil ditolak!", {
                         "type": "success",
@@ -92,7 +95,7 @@ const rejectTransaction = () => {
                         "transition": "slide",
                         "dangerouslyHTMLString": true
                     }).then(() => {
-                        router.visit(route('admin.dashboard'))
+                        router.visit(route('admin.resignations.index'))
                     })
                 },
                 onError: () => {
@@ -111,39 +114,38 @@ const rejectTransaction = () => {
 
 <template>
     <AdminLayout title="Validasi Permohonan Pengunduran Diri">
-        <div class="flex flex-col mx-16">
+        <div class="flex flex-col">
             <PageBreadcrumb :items="breadcrumbItems" :page-title="'Validasi Permohonan Pengunduran Diri'" />
-            <div class="grid grid-cols-3 gap-6">
-                <div class="card-layout px-0! col-span-2">
+            <div class="grid lg:grid-cols-3 grid-cols-1 gap-6">
+                <div class="card-layout px-0! md:col-span-2">
                     <h1 class="card-title border-b border-b-stroke px-6 pb-6">Detail Data Pengunduran Diri Anggota</h1>
                     <div class="grid grid-cols-2 gap-6 p-8 pb-6">
-                        <BaseInputAdmin label="Nama" type="text" v-model="form.name" isDisabled />
-                        <BaseInputAdmin label="Nomor Anggota" type="text" v-model="form.member_number" isDisabled />
-                        <BaseInputAdmin label="Tanggal Bergabung" type="date" v-model="form.join_date" isDisabled />
-                        <BaseInputAdmin label="Email" type="email" v-model="form.email" isDisabled />
-                        <BaseInputAdmin label="Unit Kerja" type="text" v-model="form.work_unit" isDisabled />
+                        <BaseInputAdmin label="Nama" type="text" v-model="props.data.name" isDisabled />
+                        <BaseInputAdmin label="Nomor Anggota" type="text" v-model="props.data.member_number" isDisabled />
+                        <BaseInputAdmin label="Tanggal Bergabung" type="date" v-model="props.data.join_date" isDisabled />
+                        <BaseInputAdmin label="Email" type="email" v-model="props.data.email" isDisabled />
+                        <BaseInputAdmin label="Unit Kerja" type="text" v-model="props.data.work_unit.name" isDisabled />
                         <div class="grid grid-cols-2 col-span-2 gap-6">
-                            <BaseInputAdmin label="Total Simpanan" type="string" v-model="form.total_savings" isMoney
+                            <BaseInputAdmin label="Total Simpanan" type="string" v-model="props.total_savings" isMoney
                                 isDisabled />
-                            <BaseInputAdmin label="Total Kewajiban" type="number" v-model="form.total_liabilities"
+                            <BaseInputAdmin label="Total Kewajiban" type="number" v-model="props.total_obligation"
                                 isMoney isDisabled />
                         </div>
                     </div>
                     <div class="flex gap-6 items-center justify-center">
-                        <button
-                            class="bg-secondary rounded-xl px-10 py-3 text-white hover:bg-secondary/90">Terima</button>
-                        <button @click.prevent="showModal()" class="bg-red-700 rounded-xl px-10 py-3 text-white hover:bg-red-800">Tolak</button>
+                        <Button variant="secondary" @click="acceptTransaction()">Terima</Button>
+                        <Button variant="danger" @click.prevent="showModal()">Tolak</Button>
                     </div>
                 </div>
-                <div class="card-layout col-span-1 h-fit!">
+                <div class="card-layout md:col-span-1 h-fit!">
                     <h1 class="card-title">Dokumen Permohonan Pengunduran Diri</h1>
-                    <div class="flex flex-col gap-4 mt-4 px-6">
+                    <div class="flex flex-col items-center justify-center gap-4 mt-4 px-6">
                         <div
                             class="mx-auto flex w-60 aspect-square items-center justify-center rounded-lg border-2 bg-gray-50 dark:border-gray-700">
                             <img v-if="form.photo_url" :src="form.photo_url" alt="Foto calon anggota"
                                 class="h-full w-full rounded-lg object-cover" />
                         </div>
-                        <button class="bg-secondary rounded-xl px-6 py-3 text-white mx-auto">Lihat Detail</button>
+                        <Button @click="openDocModal()" variant="secondary">Lihat Detail</Button>
                     </div>
                 </div>
             </div>
@@ -156,16 +158,11 @@ const rejectTransaction = () => {
                     class="w-full p-2 border font-body border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="Masukkan alasan penolakan..."></textarea>
                 <div class="flex justify-end mt-4 gap-2">
-                    <button @click="hideModal()" type="button"
-                        class="px-8 text-theme-sm py-2.5 bg-gray-300 text-dark-text dark:text-gray-800 rounded-lg hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500">
-                        Batal
-                    </button>
-                    <button @click="rejectTransaction()" type="button"
-                        class="px-8 py-2.5 text-theme-sm bg-primary text-white rounded-lg hover:bg-brand-800">
-                        Simpan
-                    </button>
+                    <Button size="small" variant="light" @click="hideModal()">Batal</Button>
+                    <Button @click="rejectTransaction()" variant="secondary" size="small">Simpan</Button>
                 </div>
             </div>
         </div>
+        <ModalDocument ref="buktiResignRef" modal-id="modal-doc" title="Dokumen Pengunduran Diri Anggota" name="Dokumen Pengunduran Diri Anggota" :attachment="resign_doc" />
     </AdminLayout>
 </template>

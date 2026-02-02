@@ -99,7 +99,7 @@ const rupiah = (value) =>
             <!-- Quick Access-->
             <section class="max-w-7xl mx-auto px-6 mt-12 grid md:grid-cols-2 gap-6">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-62.5 flex flex-col">
-                    <h3 class="font-semibold text-lg mb-6">Quick Access</h3>
+                    <h3 class="font-semibold text-lg mb-6">Akses Cepat</h3>
 
                     <div class="flex justify-around text-center">
                         <Link href="/user/simpanan/penyetoran" class="group">
@@ -155,7 +155,7 @@ const rupiah = (value) =>
                 <!-- Mini Ledger -->
                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow dark:text-gray-100 h-62.5 flex flex-col">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-semibold text-lg">Your Ledger</h3>
+                        <h3 class="font-semibold text-lg">Buku Besar Anda</h3>
                         <Link
                             href="/user/ledger"
                             class="text-sm text-orange-500 font-medium border border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 px-3 py-1.5 rounded-lg transition-colors">

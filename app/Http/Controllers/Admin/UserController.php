@@ -137,11 +137,7 @@ class UserController extends Controller
                     ? round(($inReview / $memberBaseQuery->count()) * 100)
                     : 0,
             ],
-            'statuses' => [
-                'Aktif',
-                'Tidak Aktif',
-                'Mengundurkan Diri',
-            ],
+            'statuses' => array_column(UserStatus::cases(), 'value')
         ]);
     }
 

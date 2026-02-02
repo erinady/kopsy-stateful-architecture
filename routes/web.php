@@ -104,6 +104,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     // Resignation Routes
     Route::get('/resignations/list', [ResignationController::class, 'index'])->name('resignations.index');
     Route::get('/resignation/{id}', [ResignationController::class, 'validation'])->name('resignations.validation');
+    Route::put('/resignation/{id}', [ResignationController::class, 'validate'])->name('resignations.validate');
 });
 
 // User Routes

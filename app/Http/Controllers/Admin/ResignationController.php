@@ -9,6 +9,7 @@ use App\Enums\UserStatus;
 use Illuminate\Http\Request;
 use App\Enums\FinancingReqStatus;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 
 class ResignationController extends Controller
 {
@@ -24,6 +25,9 @@ class ResignationController extends Controller
         $work_unit_id = $request->input('work_unit_id', '');
 
         $query = User::with('workUnit')
+            ->whereHas('role', function ($q) {
+                $q->where('name', 'Anggota');
+            })
             ->where('status', UserStatus::RESIGNED_REQUESTED)
             ->when($search, function ($q) use ($search) {
                 return $q->where('name', 'like', "%{$search}%")
@@ -41,7 +45,11 @@ class ResignationController extends Controller
         $members = $query->paginate($per_page)->withQueryString();
 
         // Get all work units for filter
-        $workUnits = WorkUnit::all(['id', 'name']);
+        $workUnits = Cache::remember(
+            'work_units_all',
+            now()->addHours(6),
+            fn () => WorkUnit::all(['id', 'name'])
+        );
 
         return inertia('Admin/User/Resignation/List', [
             'members' => $members,
@@ -63,7 +71,7 @@ class ResignationController extends Controller
     {
         $user = User::with('userDocs', 'workUnit', 'savingAccounts', 'financings.loan')->where('status', UserStatus::RESIGNED_REQUESTED)->findOrFail($id);
         $user->userDocs()->where('name', 'Dokumen Pengunduran Diri')->first();
-        $user->userDocs->first()->attachment = $user->userDocs->first()->attachment ? asset('storage/' . $user->userDocs->first()->attachment) : null;
+        $resignationDoc = $user->userDocs?->first()?->attachment ? asset('storage/' . $user->userDocs->first()->attachment) : 0;
 
         $totalSavings = $user->savingAccounts()->sum('balance');
         $totalObligation = $user->financings()
@@ -87,6 +95,7 @@ class ResignationController extends Controller
             });
         return inertia('Admin/User/Resignation/Validation', [
             'data' => $user,
+            'resign_doc' => $resignationDoc,
             'total_savings' => $totalSavings,
             'total_obligation' => $totalObligation,
         ]);
@@ -99,18 +108,5 @@ class ResignationController extends Controller
         $user->save();
 
         return to_route('admin.resignations.index')->with('success', 'Pengunduran diri berhasil divalidasi.');
-    }
-
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
     }
 }
