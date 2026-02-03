@@ -3,6 +3,7 @@ import Base from '@/Layouts/Base.vue';
 import Footer from '@/Layouts/Footer.vue';
 import AccordionPanel from '@/Components/AccordionPanel.vue';
 import CheckIcon from '@/Icons/CheckIcon.vue';
+import HelpButton from '@/Components/HelpButton.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 
 const parallaxOffset = ref(0)
@@ -154,6 +155,7 @@ onUnmounted(() => {
                 </div>
             </section>
             <Footer />
+            <HelpButton />
         </div>
     </Base>
 </template>

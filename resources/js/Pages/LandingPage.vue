@@ -5,6 +5,7 @@ import Footer from '@/Layouts/Footer.vue'
 import { Link } from '@inertiajs/vue3'
 import CardProduct from '@/Components/CardProduct.vue'
 import UserIcon from '@/Icons/UserIcon.vue'
+import HelpButton from '@/Components/HelpButton.vue'
 
 const testimonials = [
     { quote: 'Berkat pembiayaan murabahah, saya bisa renovasi rumah tanpa riba. Angsuran ringan dan sesuai syariat.', name: 'Diana Latifah', title: 'Dosen Akuntansi'},
@@ -236,6 +237,7 @@ onUnmounted(() => {
                 </div>
             </section>
         <Footer />
+        <HelpButton />
         </div>
     </Base>
 </template>

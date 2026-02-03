@@ -1,6 +1,7 @@
 <script setup>
 import Base from '@/Layouts/Base.vue';
 import Footer from '@/Layouts/Footer.vue';
+import HelpButton from '@/Components/HelpButton.vue';
 </script>
 
 <template>
@@ -88,5 +89,6 @@ import Footer from '@/Layouts/Footer.vue';
             </section>
         </div>
         <Footer />
+        <HelpButton />
     </Base>
 </template>
