@@ -62,6 +62,7 @@ const submit = () => {
                             v-model="form.password_confirmation"
                             label="Ulang Password Baru"
                             type="password"
+                            :error="form.errors.password_confirmation"
                             required
                         />
 
