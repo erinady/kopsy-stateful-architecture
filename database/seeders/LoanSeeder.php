@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Loan;
-use App\Enums\LoanStatus;
 use App\Models\Financing;
 use App\Models\LoanPayment;
 use Illuminate\Database\Seeder;

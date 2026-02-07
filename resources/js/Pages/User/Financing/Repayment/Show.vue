@@ -32,7 +32,7 @@ const form = useForm({
 })
 
 const showPanel = ref(false);
-const togglePanel = (event) => {
+const togglePanel = () => {
     showPanel.value = !showPanel.value;
 }
 
@@ -69,8 +69,8 @@ const submitForm = () => {
             })
         },
 
-        onError: (errors) => {
-            toast(("Gagal mengirim permohonan:" + Object.values(errors).flat().join(' ')), {
+        onError: () => {
+            toast(("Gagal mengirim permohonan"), {
                 "type": "error",
                 "position": "bottom-right",
                 "transition": "slide",
