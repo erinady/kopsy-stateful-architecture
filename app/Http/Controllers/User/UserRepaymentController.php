@@ -101,6 +101,8 @@ class UserRepaymentController extends Controller
                 'user_id' => $user->id,
             ]);
 
+            DB::commit();
+
             return redirect()->route('user.userDashboard');
         } catch (\Exception $e) {
             DB::rollBack();

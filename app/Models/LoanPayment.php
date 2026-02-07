@@ -23,6 +23,7 @@ class LoanPayment extends Model
         'loan_payment_schedule_id',
         'payment_date',
         'updated_by',
+        'user_id',
     ];
 
     public function loanPaymentSchedule()

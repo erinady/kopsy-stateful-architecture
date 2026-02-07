@@ -48,7 +48,7 @@ class LoanSeeder extends Seeder
                 'amount' => fake()->numberBetween(100000, 500000),
                 'principal_paid' => fake()->numberBetween(50000, 300000),
                 'margin_paid' => fake()->numberBetween(10000, 200000),
-                'status' => LoanPaymentStatus::PAID,
+                'status' => LoanPaymentStatus::PAID->value,
                 'method' => TransactionMethods::CASH->value,
                 'attachment' => null,
                 'is_early_repayment' => false,

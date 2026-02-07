@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use Carbon\Carbon;
-use App\Models\User;
 use App\Models\UserDoc;
-use App\Enums\LoanStatus;
 use App\Enums\UserStatus;
 use App\Models\Financing;
 use Illuminate\Http\Request;
@@ -22,10 +20,12 @@ class AnggotaController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
+        $user = auth()->user();
 
         $totalSaving = SavingTransaction::where('status', TransactionStatus::COMPLETED)
-            ->whereHas('savingAccount', fn ($q) =>
+            ->whereHas(
+                'savingAccount',
+                fn($q) =>
                 $q->where('user_id', $user->id)
             )
             ->sum(DB::raw("
@@ -35,33 +35,23 @@ class AnggotaController extends Controller
                 END
             "));
 
-        $totalInstallment = $user->financings()
-        ->whereIn('status', [
-            FinancingReqStatus::APPROVED,
-            FinancingReqStatus::APPROVED_WITH_NOTES,
-        ])
-        ->whereHas('loan')
-        ->with(['loan.paymentSchedules' => fn ($q) =>
-            $q->where('paymentSchedules.status', LoanPaymentScheduleStatus::PAID)
-        ])
-        ->get()
-        ->sum(function ($financing) {
-            $loan = $financing->loan;
-            if (!$loan) return 0;
+        $totalInstallment = Financing::with('loan')->where('user_id', $user->id)
+            ->where('status', FinancingReqStatus::ACTIVE_INSTALLMENTS->value)
+            ->get()
+            ->sum(function ($financing) {
+                $loan = $financing->loan;
+                if (!$loan)
+                    return 0;
 
-            $totalPaid = $loan->paymentSchedules->sum('total_amount');
+                $totalUnpaid = $loan->remaining_principal + $loan->remaining_margin;
 
-            if ($totalPaid >= $loan->total_price) {
-                return 0;
-            }
-
-            return $loan->amount_ins ?? 0;
-        });
+                return $totalUnpaid;
+            });
 
         $ledger = SavingTransaction::where('status', TransactionStatus::COMPLETED)
             ->whereHas(
                 'savingAccount',
-                fn ($q) => $q->where('user_id', $user->id)
+                fn($q) => $q->where('user_id', $user->id)
             )
             ->with('savingAccount')
             ->latest('transaction_date')
@@ -69,30 +59,15 @@ class AnggotaController extends Controller
             ->get()
             ->map(function ($trx) {
                 return [
-                    'date'    => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
+                    'date' => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
                     'product' => $trx->savingAccount->type,
-                    'type'    => $trx->type,
-                    'amount'  => 'Rp ' . number_format($trx->amount, 0, ',', '.'),
+                    'type' => $trx->type,
+                    'amount' => 'Rp ' . number_format($trx->amount, 0, ',', '.'),
                 ];
             });
 
-        $activeMurabahahCount = $user->financings()
-            ->whereIn('status', [FinancingReqStatus::APPROVED, FinancingReqStatus::APPROVED_WITH_NOTES,])
-            ->whereHas('loan')
-            ->with(['loan.paymentSchedules' => fn ($q) =>
-                $q->where('paymentSchedules.status', LoanPaymentScheduleStatus::PAID)
-            ])
-            ->get()
-            ->filter(function ($financing) {
-                $loan = $financing->loan;
-                if (!$loan){
-                    return false;
-                }
-
-                $totalPaid = $loan->paymentSchedules->sum('total_amount');
-
-                return $totalPaid < $loan->total_price;
-            })
+        $activeMurabahahCount = Financing::where('user_id', $user->id)
+            ->where('status', FinancingReqStatus::ACTIVE_INSTALLMENTS->value)
             ->count();
 
         return inertia('User/Dashboard', [
@@ -112,7 +87,9 @@ class AnggotaController extends Controller
         $hasExistingResign = $user->status === UserStatus::RESIGNED_REQUESTED->value;
 
         $totalSaving = SavingTransaction::where('status', TransactionStatus::COMPLETED)
-            ->whereHas('savingAccount', fn ($q) =>
+            ->whereHas(
+                'savingAccount',
+                fn($q) =>
                 $q->where('user_id', $user->id)
             )
             ->sum(DB::raw("
@@ -127,7 +104,8 @@ class AnggotaController extends Controller
             ->get()
             ->sum(function ($financing) {
                 $loan = $financing->loan;
-                if (!$loan) return 0;
+                if (!$loan)
+                    return 0;
 
                 $totalUnpaid = $loan->remaining_principal + $loan->remaining_margin;
 
@@ -179,8 +157,8 @@ class AnggotaController extends Controller
             DB::commit();
 
             return redirect()
-            ->route('user.userDashboard')
-            ->with('success', 'Permohonan pengunduran diri berhasil dikirim.');
+                ->route('user.userDashboard')
+                ->with('success', 'Permohonan pengunduran diri berhasil dikirim.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors([
