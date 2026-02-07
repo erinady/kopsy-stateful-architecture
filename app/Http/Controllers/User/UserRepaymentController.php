@@ -6,8 +6,8 @@ use App\Models\Loan;
 use App\Models\Financing;
 use App\Models\LoanPayment;
 use App\Models\LoanPaymentSchedule;
+use DB;
 use Illuminate\Http\Request;
-use GuzzleHttp\Promise\Create;
 use App\Enums\LoanPaymentStatus;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -46,21 +46,28 @@ class UserRepaymentController extends Controller
     public function show(string $id)
     {
         $user = auth()->user();
+
         $data = [];
-        $data['financing'] = Financing::with('user', 'loan.paymentSchedules')->where('user_id', $user->id)->findOrFail($id);
+        $data['financing'] = Financing::
+            with('user', 'loan.paymentSchedules.payment')
+            ->where('user_id', $user->id)
+            ->findOrFail($id);
 
         $data['total_paid_installments'] = $data['financing']->loan->paymentSchedules->where('status', LoanPaymentScheduleStatus::PAID->value)->count();
 
         // Selisih harga cicilan dan tsaman naqdy
         $marginDiff = $data['financing']->loan->total_loan - $data['financing']->tsaman_naqdy;
         // Selisih harga cicilan dan tsaman naqdy per bulan
-        $data['margin_diff_per_month'] = $marginDiff / $data['financing']->loan->tenor;
+        if ($data['financing']->loan->tenor == 0) {
+            $data['margin_diff_per_month'] = 0;
+        } else {
+            $data['margin_diff_per_month'] = $marginDiff / $data['financing']->loan->tenor;
+        }
 
         $data['qimah_haliyyah'] = $data['financing']->tsaman_naqdy + ($data['margin_diff_per_month'] * ($data['total_paid_installments'] + 1)); // tambah satu untuk installment saat ini
         $data['payment_total'] = $data['financing']->loan->paymentSchedules->where('status', LoanPaymentScheduleStatus::PAID->value)->sum('total_amount');
         $data['repayment_total'] = $data['qimah_haliyyah'] - $data['payment_total'];
 
-        Log::info('Repayment data for user '.$user->id.': ', $data);
         return inertia('User/Financing/Repayment/Show', [
             'data' => $data,
         ]);
@@ -71,30 +78,34 @@ class UserRepaymentController extends Controller
         $user = auth()->user();
         $data = $request->validated();
 
-        $loanPaymentSchedule = LoanPaymentSchedule::where('loan_id', $data['loan_id'])
-            ->where('installment_number', $data['installment_number'])
-            ->firstOrFail();
+        DB::beginTransaction();
+        try {
 
-        $loanPaymentSchedule->update([
-            'total_amount' => $data['repayment_total'],
-            'principal_amount' => $data['principal_paid'],
-            'margin_amount' => $data['margin_paid'],
-            'status' => LoanPaymentScheduleStatus::PENDING->value
-        ]);
+            $loanPaymentSchedule = LoanPaymentSchedule::where('loan_id', $data['loan_id'])
+                ->where('installment_number', $data['installment_number'])
+                ->firstOrFail();
 
-        LoanPayment::create([
-            'transaction_code' => 'LP' . now(), // temporary
-            'amount' => $data['repayment_total'],
-            'principal_paid' => $data['principal_paid'],
-            'margin_paid' => $data['margin_paid'],
-            'status' => LoanPaymentStatus::PENDING->value,
-            'method' => $data['method'],
-            'is_early_repayment' => true,
-            'loan_payment_schedule_id' => $loanPaymentSchedule->id,
-            'user_id' => $user->id,
-        ]);
+            $loanPaymentSchedule->update([
+                'status' => LoanPaymentScheduleStatus::PENDING->value // still pending with default amount of angsuran, cuz it's not validated yet
+            ]);
 
-        return redirect()->route('user.userDashboard');
+            LoanPayment::create([
+                'transaction_code' => 'LP' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT), // temporary
+                'amount' => $data['repayment_total'],
+                'principal_paid' => $data['principal_paid'],
+                'margin_paid' => $data['margin_paid'],
+                'status' => LoanPaymentStatus::PENDING->value,
+                'method' => $data['method'],
+                'is_early_repayment' => true,
+                'loan_payment_schedule_id' => $loanPaymentSchedule->id,
+                'user_id' => $user->id,
+            ]);
+
+            return redirect()->route('user.userDashboard');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['message' => 'There was an error processing your repayment request. Please try again later.']);
+        }
     }
 
 
