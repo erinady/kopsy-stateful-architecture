@@ -4,8 +4,8 @@ import { Link, usePage } from '@inertiajs/vue3'
 import GridIcon from "../../Icons/GridIcon.vue";
 import UserIcon from "../../Icons/UserIcon.vue";
 import ProductIcon from "../../Icons/ProductIcon.vue";
-import LogoutIcon from "../../Icons/LogoutIcon.vue";
 import ChevronDownIcon from "../../Icons/ChevronDownIcon.vue";
+import SettingsIcon from "../../Icons/SettingsIcon.vue";
 import { useSidebar } from "@/Composables/useSidebar";
 import HorizontalDots from "@/Icons/HorizontalDots.vue";
 
@@ -56,6 +56,16 @@ const menuGroups = [
             },
         ],
     },
+    {
+        title: "Lainnya",
+        items: [
+            {
+                icon: SettingsIcon,
+                name: "Pengaturan",
+                path: "/admin/settings",
+            }
+        ],
+    }
 ];
 
 // Menggunakan Inertia untuk check active route
