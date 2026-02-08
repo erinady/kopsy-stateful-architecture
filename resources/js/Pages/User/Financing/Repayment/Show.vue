@@ -21,15 +21,20 @@ const hideModal = () => {
     document.getElementById('modal').classList.add('hidden');
 };
 
+const repaymentTotal = props.data.repayment_total ?? 0;
+const remainingPrincipal = props.data.financing.loan.remaining_principal ?? 0;
+const principalPaid = Math.min(remainingPrincipal, repaymentTotal);
+const marginPaid = Math.max(0, repaymentTotal - principalPaid);
+
 const form = useForm({
     isAgreed: false,
     loan_id: props.data.financing.loan.id,
     method: '',
     installment_number: props.data.total_paid_installments + 1,
-    repayment_total: props.data.repayment_total,
-    principal_paid: props.data.financing.loan.remaining_principal,
-    margin_paid: props.data.repayment_total - props.data.financing.loan.remaining_principal,
-})
+    repayment_total: repaymentTotal,
+    principal_paid: principalPaid,
+    margin_paid: marginPaid,
+});
 
 const showPanel = ref(false);
 const togglePanel = () => {
@@ -64,9 +69,8 @@ const submitForm = () => {
                 "position": "bottom-right",
                 "transition": "slide",
                 "dangerouslyHTMLString": true
-            }).then(() => {
-                window.location.href = route('user.userDashboard')
-            })
+            });
+            window.location.href = route('user.userDashboard');
         },
 
         onError: () => {
@@ -287,7 +291,7 @@ const submitForm = () => {
                 <div class="panel mx-8 mt-4">
                     <button :class="showPanel ? 'rounded-t-2xl! rounded-b-none!' : 'rounded-2xl'"
                         class="card-layout bg-light-bg! font-bold text-secondary! w-full flex items-center justify-between transition-all duration-500 ease-in-out"
-                        :aria-label="ariaTitle" @click.prevent="togglePanel">
+                        aria-label="Detail total pelunasan saat ini" @click.prevent="togglePanel">
                         <h1>Total Pelunasan Saat Ini</h1>
                         <div class="flex">
                             <p>
@@ -302,7 +306,7 @@ const submitForm = () => {
                         v-if="showPanel">
                         <ul>
                             <li class="flex justify-between border-b border-b-stroke pb-4">
-                                <h1>Qimah Haliyah</h1>
+                                <h1>Qimah Haliyyah</h1>
                                 <p>{{ moneyParser(props.data.qimah_haliyyah) }}</p>
                             </li>
                             <li class="flex justify-between border-b border-b-stroke py-4">

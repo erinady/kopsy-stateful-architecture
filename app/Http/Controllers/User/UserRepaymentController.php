@@ -81,7 +81,8 @@ class UserRepaymentController extends Controller
         DB::beginTransaction();
         try {
 
-            $loanPaymentSchedule = LoanPaymentSchedule::where('loan_id', $data['loan_id'])
+            $loanPaymentSchedule = LoanPaymentSchedule::with('loan.financing')->where('loan_id', $data['loan_id'])
+                ->where('loan.financing.user_id', $user->id)
                 ->where('installment_number', $data['installment_number'])
                 ->firstOrFail();
 
