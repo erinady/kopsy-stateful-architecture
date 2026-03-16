@@ -24,7 +24,7 @@ class SavingController extends Controller
         $search = $request->input('search');
         $tab = $request->input('tab', 'semua');
 
-        return SavingTransaction::with(['savingAccount.user.workUnit'])
+        return SavingTransaction::with(['savingAccount.user'])
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('savingAccount.user', function ($u) use ($search) {
                     $u->where('name', 'like', "%{$search}%")
@@ -231,7 +231,7 @@ class SavingController extends Controller
      */
     public function show(string $id)
     {
-        $data = SavingTransaction::with('savingAccount.user.workUnit', 'account', 'savingTransactionDoc')->find($id);
+        $data = SavingTransaction::with('savingAccount.user', 'account', 'savingTransactionDoc')->find($id);
 
         if ($data->savingTransactionDoc && $data->savingTransactionDoc->isNotEmpty()) {
             $firstDoc = $data->savingTransactionDoc->first();

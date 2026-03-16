@@ -30,7 +30,6 @@ class User extends Authenticatable
         'birth_place',
         'birth_date',
         'gender',
-        'institution',
         'marital_status',
         'address',
         'residential_address',
@@ -43,7 +42,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
-        'work_unit_id',
     ];
 
     /**
@@ -84,12 +82,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
-
-    public function workUnit()
-    {
-        return $this->belongsTo(WorkUnit::class);
-    }
-
     public function savingAccounts()
     {
         return $this->hasMany(SavingAccount::class);

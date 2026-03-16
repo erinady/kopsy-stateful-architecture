@@ -89,15 +89,13 @@ class DashboardController extends Controller
 
     private function getPendingRegistrations()
     {
-        return User::with('workUnit')
-            ->where('status', UserStatus::INREVIEW->value)
+        return User::where('status', UserStatus::INREVIEW->value)
             ->latest()->take(5)->get()
             ->map(fn($u) => [
                 'member_number' => $u->member_number,
                 'name' => $u->name,
                 'email' => $u->email,
                 'created_at' => $u->created_at,
-                'work_unit' => $u->workUnit?->name ?? '-',
             ]);
     }
 

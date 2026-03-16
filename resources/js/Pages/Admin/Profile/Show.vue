@@ -85,16 +85,6 @@ const photoUrl = computed(() => {
                                         '-'
                                         }}</span>
                                 </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.work_unit.name
-                                        }}</span>
-                                </li>
-                                <li class="flex flex-col gap-2">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Nama Lembaga</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.institution
-                                    }}</span>
-                                </li>
                             </ul>
                         </div>
                     </div>

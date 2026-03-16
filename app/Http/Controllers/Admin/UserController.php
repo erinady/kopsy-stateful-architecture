@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use Inertia\Inertia;
-use App\Models\WorkUnit;
 use App\Enums\UserStatus;
 use Illuminate\Http\Request;
 use App\Enums\TransactionStatus;
@@ -149,7 +148,6 @@ class UserController extends Controller
         $user = User::with([
             'userDocs',
             'role',
-            'workUnit',
             'savingAccounts.transactions'
             => function ($query) {
                 $query->latest('created_at')
@@ -173,7 +171,7 @@ class UserController extends Controller
 
     public function verificationDetail(User $user)
     {
-        $user->load(['workUnit:id,name', 'userDocs']);
+        $user->load('userDocs');
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
         $idCard = $user->userDocs
@@ -186,8 +184,6 @@ class UserController extends Controller
                 'member_number' => $user->member_number,
                 'name' => $user->name,
                 'nik' => $user->nik,
-                'work_unit' => $user->workUnit->name,
-                'institution' => $user->institution,
                 'email' => $user->email,
                 'photo_url' => $photoUrl,
                 'id_card_url' => $idCardUrl,
@@ -220,16 +216,12 @@ class UserController extends Controller
 
         $members = User::query()
             ->where('status', UserStatus::INREVIEW)
-            ->with('workUnit:id,name')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('nik', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
-            })
-            ->when($request->work_unit_id, function ($query, $unitId) {
-                $query->where('work_unit_id', $unitId);
             })
             ->orderBy($sortBy, $sortDir)
             ->paginate($perPage)
@@ -240,23 +232,16 @@ class UserController extends Controller
                 'name' => $user->name,
                 'nik' => $user->nik,
                 'email' => $user->email,
-                'unit_kerja' => $user->workUnit?->name ?? '-',
             ]);
 
         return Inertia::render('Admin/User/Verification/List', [
             'prospectiveMembers' => $members,
             'filters' => [
                 'search' => $request->search,
-                'work_unit_id' => $request->work_unit_id,
                 'per_page' => $perPage,
                 'sort_by' => $sortBy,
                 'sort_dir' => $sortDir,
             ],
-            'workUnits' => Cache::remember(
-                'work_units_all',
-                now()->addHours(6),
-                fn () => WorkUnit::all(['id', 'name'])
-            ),
             'title' => 'Verifikasi Calon Anggota',
         ]);
     }

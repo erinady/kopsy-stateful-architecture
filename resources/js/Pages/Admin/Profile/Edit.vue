@@ -14,7 +14,6 @@ import Base from '../../../Layouts/Base.vue';
 
 const props = defineProps({
     user: Object,
-    work_units: Object,
     educations: Array
 });
 
@@ -31,8 +30,6 @@ const form = useForm({
     birth_place: props.user.birth_place || '',
     birth_date: props.user.birth_date || '',
     gender: props.user.gender || '',
-    work_unit_id: props.user.work_unit_id || '',
-    institution: props.user.institution || '',
     address: props.user.address || '',
     residential_address: props.user.residential_address || '',
     phone_number: props.user.phone_number || '',
@@ -157,17 +154,6 @@ const photoUrl = computed(() => {
                                     { value: 'Laki-laki', text: 'Laki-laki' },
                                     { value: 'Perempuan', text: 'Perempuan' }
                         ]" :error="errors.gender">
-                            </BaseInputAdmin>
-                        </li>
-                        <li>
-                            <BaseInputAdmin v-model="form.work_unit_id" label="Unit Kerja" type="select"
-                                :selectables="work_units.map(unit => ({ value: unit.id, text: unit.name }))" required
-                                :error="errors.work_unit_id">
-                            </BaseInputAdmin>
-                        </li>
-                        <li>
-                            <BaseInputAdmin v-model="form.institution" label="Nama Lembaga" type="text" required
-                                placeholder="Masukkan nama lembaga" :error="errors.institution">
                             </BaseInputAdmin>
                         </li>
                         <li>

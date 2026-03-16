@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Role;
-use App\Models\User;
-use App\Models\WorkUnit;
+use App\Enums\Education;
 use App\Enums\UserStatus;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
 use App\Http\Requests\UpdateAdminRequest;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -48,7 +48,7 @@ class AdminController extends Controller
                 $request->status && in_array($request->status, $allowedAdminStatuses),
                 fn($q) => $q->where('status', $request->status)
             )
-            ->when($request->role && !in_array($request->role, ['User', 'Anggota']), 
+            ->when($request->role && !in_array($request->role, ['User', 'Anggota']),
                 fn ($q) =>
                     $q->whereHas('role', fn ($r) =>
                         $r->where('name', $request->role)
@@ -84,12 +84,12 @@ class AdminController extends Controller
      */
     public function create()
     {
-        $work_units = WorkUnit::all();
         $roles = Role::where('name', '!=', 'Anggota')->get();
+        $educations = array_column(Education::cases(), 'value');
 
         return inertia('Admin/Admins/Create', [
-            'work_units' => $work_units,
             'roles' => $roles,
+            'educations' => $educations,
         ]);
     }
 
@@ -104,7 +104,7 @@ class AdminController extends Controller
 
             User::create([
                 ...$data,
-                'member_number' => 'KSP' . $data['role_id'] . $data['work_unit_id'] . (User::count() + 1),
+                'member_number' => 'KSP' . $data['role_id'] . (User::count() + 1),
                 'password' => bcrypt('Password123'),
                 'status' => UserStatus::ACTIVE->value,
             ]);
@@ -123,7 +123,7 @@ class AdminController extends Controller
      */
     public function show(string $id)
     {
-        $admin = User::with('role', 'workUnit')->findOrFail($id);
+        $admin = User::with('role')->findOrFail($id);
 
         $admin->profile_picture = $admin->profile_picture
             ? asset('storage/' . $admin->profile_picture)
@@ -140,14 +140,14 @@ class AdminController extends Controller
      */
     public function edit(string $id)
     {
-        $admin = User::with('role', 'workUnit')->findOrFail($id);
-        $work_units = WorkUnit::all();
+        $admin = User::with('role')->findOrFail($id);
         $roles = Role::where('name', '!=', 'Anggota')->get();
+        $educations = array_column(Education::cases(), 'value');
 
         return inertia('Admin/Admins/Edit', [
             'admin' => $admin,
-            'work_units' => $work_units,
             'roles' => $roles,
+            'educations' => $educations,
         ]);
     }
 

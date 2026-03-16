@@ -306,8 +306,6 @@ const submit = () => {
                                         {{ option.label }}
                                     </option>
                                 </BaseSelect>
-                                <ReadonlyField label="Unit Kerja" :model-value="user.work_unit || '-'" />
-                                <ReadonlyField label="Nama Lembaga" :model-value="user.institution || '-'" />
                             </div>
                         </div>
 

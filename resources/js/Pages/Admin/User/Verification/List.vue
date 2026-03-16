@@ -13,7 +13,6 @@ const columns = [
     { key: 'no', label: 'No' },
     { key: 'name', label: 'Nama', sortable: true },
     { key: 'nik', label: 'NIK' },
-    { key: 'unit_kerja', label: 'Unit Kerja' },
     { key: 'email', label: 'Email' },
     { key: 'aksi', label: 'Aksi'},
 ]
@@ -21,23 +20,11 @@ const columns = [
 const props = defineProps({
     prospectiveMembers: Object,
     filters: Object,
-    workUnits: Array,
     title: String,
 })
 
-const selectFilters = [
-    {
-        key: 'work_unit_id',
-        label: 'Semua Unit Kerja',
-        options: props.workUnits,
-        optionLabel: 'name',
-        optionValue: 'id',
-    }
-]
-
 const filters = reactive({
     search: props.filters.search ?? '',
-    work_unit_id: props.filters.work_unit_id ?? '',
     per_page: props.filters.per_page ?? 10,
     sort_by: props.filters.sort_by ?? 'created_at',
     sort_dir: props.filters.sort_dir ?? 'desc',
@@ -48,7 +35,6 @@ const applyFilters = () => {
         '/admin/users/verification',
         {
             search: filters.search || undefined,
-            work_unit_id: filters.work_unit_id || undefined,
             per_page: filters.per_page,
             sort_by: filters.sort_by,
             sort_dir: filters.sort_dir,
@@ -68,7 +54,6 @@ watch(() => filters.search, () => {
 })
 
 watch(() => filters.per_page, applyFilters)
-watch(() => filters.work_unit_id, applyFilters)
 
 const toggleSort = (column) => {
     if (filters.sort_by === column) {
@@ -103,11 +88,8 @@ const breadcrumbItems = [
             <BaseFunctionality
                 :per-page="filters.per_page"
                 :search="filters.search"
-                :filters="{ work_unit_id: filters.work_unit_id }"
-                :selects="selectFilters"
                 @update:perPage="val => filters.per_page = val"
                 @update:search="val => filters.search = val"
-                @update:filters="val => filters.work_unit_id = val.work_unit_id"
             />
 
             <!-- Table -->

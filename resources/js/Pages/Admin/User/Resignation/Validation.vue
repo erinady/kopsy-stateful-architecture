@@ -123,7 +123,6 @@ const rejectTransaction = () => {
                         <BaseInputAdmin label="Nomor Anggota" type="text" v-model="props.data.member_number" isDisabled />
                         <BaseInputAdmin label="Tanggal Bergabung" type="date" v-model="props.data.joined_date" isDisabled />
                         <BaseInputAdmin label="Email" type="email" v-model="props.data.email" isDisabled />
-                        <BaseInputAdmin label="Unit Kerja" type="text" v-model="props.data.work_unit.name" isDisabled />
                         <div class="grid grid-cols-2 col-span-2 gap-6">
                             <BaseInputAdmin label="Total Simpanan" type="string" v-model="props.data.total_savings" isMoney
                                 isDisabled />

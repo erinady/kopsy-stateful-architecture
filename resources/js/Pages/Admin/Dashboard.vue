@@ -134,12 +134,6 @@ const applyFilter = () => {
                                         </th>
                                         <th class="py-5 text-left">
                                             <p class="font-medium text-gray-500 px-2 text-theme-xs dark:text-gray-400">
-                                                Unit
-                                                Kerja
-                                            </p>
-                                        </th>
-                                        <th class="py-5 text-left">
-                                            <p class="font-medium text-gray-500 px-2 text-theme-xs dark:text-gray-400">
                                                 Tanggal
                                             </p>
                                         </th>
@@ -161,11 +155,6 @@ const applyFilter = () => {
                                         <td class="py-5 px-2 whitespace-nowrap">
                                             <p class="text-dark-text text-theme-sm dark:text-gray-400">
                                                 {{ data.email }}
-                                            </p>
-                                        </td>
-                                        <td class="py-5 px-2 whitespace-nowrap">
-                                            <p class="text-dark-text text-theme-sm dark:text-gray-400">
-                                                {{ data.work_unit }}
                                             </p>
                                         </td>
                                         <td class="py-5 px-2 whitespace-nowrap">

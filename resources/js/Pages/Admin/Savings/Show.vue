@@ -208,12 +208,6 @@ const openModalBukti = () => modalRef.value?.openModal()
                                     <span class="font-medium text-dark-text dark:text-white">{{
                                         data.saving_account.user.status }}</span>
                                 </li>
-                                <li class="flex lg:flex-row flex-col gap-2 justify-between">
-                                    <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{
-                                        data.saving_account.user.work_unit.name
-                                    }}</span>
-                                </li>
                             </ul>
                         </div>
                         <div v-if="data.account" class="card-layout flex flex-col pb-12.5! gap-6">
