@@ -65,7 +65,7 @@ const breadcrumbItems = [
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Tempat, Tanggal Lahir</span>
-                                    <span class="font-medium text-dark-text dark:text-white">{{ user.birth_place }}, {{ user.birth_date ?? '-' }}</span>
+                                    <span class="font-medium text-dark-text dark:text-white">{{ user.birth_place ?? '-' }}, {{ user.birth_date ?? '-' }}</span>
                                 </li>
                                 <li class="flex flex-col gap-2">
                                     <span class="text-sm text-gray-500 dark:text-gray-300">Pendidikan Terakhir</span>
