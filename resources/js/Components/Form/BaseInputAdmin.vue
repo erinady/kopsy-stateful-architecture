@@ -5,7 +5,7 @@ import moneyParser from '../../Composables/moneyParser';
 
 const props = defineProps<{
     modelValue: string | number
-    label: string
+    label?: string
     type?: string
     required?: boolean
     error?: string
@@ -30,7 +30,7 @@ const inputType = computed(() => {
 
 <template>
     <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        <label v-if="label" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             {{ label }}<span class="text-red-500" v-if="required">*</span>
         </label>
         <!-- Regular Input -->

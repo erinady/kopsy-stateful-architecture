@@ -17,30 +17,6 @@ use App\Http\Requests\CreateRepaymentRequest;
 class UserRepaymentController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
@@ -81,14 +57,22 @@ class UserRepaymentController extends Controller
         DB::beginTransaction();
         try {
 
-            $loanPaymentSchedule = LoanPaymentSchedule::with('loan.financing')->where('loan_id', $data['loan_id'])
-                ->where('loan.financing.user_id', $user->id)
-                ->where('installment_number', $data['installment_number'])
-                ->firstOrFail();
+            $loanPaymentSchedules = LoanPaymentSchedule::with('loan.financing')->where('loan_id', $data['loan_id'])
+                ->whereHas('loan.financing', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->whereHas('loan', function ($query) use ($data) {
+                    $query->where('id', $data['loan_id']);
+                })
+                ->where('status', '!=', LoanPaymentScheduleStatus::PAID->value)
+                ->orderBy('installment_number', 'asc')
+                ->get();
 
-            $loanPaymentSchedule->update([
-                'status' => LoanPaymentScheduleStatus::PENDING->value // still pending with default amount of angsuran, cuz it's not validated yet
-            ]);
+            // update all loan payment schedules where status is SCHEDULED to PENDING for early repayment
+            $loanPaymentSchedules->each(function ($schedule) {
+                $schedule->status = LoanPaymentScheduleStatus::PENDING->value;
+                $schedule->save();
+            });
 
             LoanPayment::create([
                 'transaction_code' => 'LP' . str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT), // temporary
@@ -98,7 +82,7 @@ class UserRepaymentController extends Controller
                 'status' => LoanPaymentStatus::PENDING->value,
                 'method' => $data['method'],
                 'is_early_repayment' => true,
-                'loan_payment_schedule_id' => $loanPaymentSchedule->id,
+                'loan_payment_schedule_id' => $loanPaymentSchedules[0]->id,
                 'user_id' => $user->id,
             ]);
 

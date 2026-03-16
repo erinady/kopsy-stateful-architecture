@@ -30,6 +30,7 @@ class Financing extends Model
         'market_price',
         'supplier_id',
         'updated_by',
+        'akad_date',
         'user_id',
     ];
 

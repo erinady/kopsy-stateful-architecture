@@ -73,8 +73,8 @@ const submitForm = () => {
             window.location.href = route('user.userDashboard');
         },
 
-        onError: () => {
-            toast(("Gagal mengirim permohonan"), {
+        onError: (errors) => {
+            toast(("Gagal mengirim permohonan" + errors.message), {
                 "type": "error",
                 "position": "bottom-right",
                 "transition": "slide",

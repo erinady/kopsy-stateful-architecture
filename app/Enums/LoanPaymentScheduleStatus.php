@@ -9,4 +9,5 @@ enum LoanPaymentScheduleStatus: string
     case CANCELLED = 'Dibatalkan';
     case OVERDUE = 'Terlambat';
     case SCHEDULED = 'Terjadwal';
+    case REJECTED = 'Ditolak';
 }
