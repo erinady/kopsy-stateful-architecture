@@ -14,8 +14,6 @@ const props = defineProps({
 			member_number: '',
 			name: '',
 			nik: '',
-			work_unit: '',
-			institution: '',
 			email: '',
 			note: '',
 			photo_url: null,
@@ -32,8 +30,6 @@ const member = computed(() => ({
 	id: props.member?.id ?? '',
 	name: props.member?.name ?? '',
 	nik: props.member?.nik ?? '',
-	work_unit: props.member?.work_unit ?? '',
-	institution: props.member?.institution ?? '',
 	email: props.member?.email ?? '',
 	photo_url: props.member?.photo_url ?? null,
 	id_card_url: props.member?.id_card_url ?? null,
@@ -167,8 +163,6 @@ const handleContinue = () => {
 						<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 						<ReadonlyField label="Nama Lengkap" :model-value="member.name" />
 						<ReadonlyField label="NIK" :model-value="member.nik" />
-						<ReadonlyField label="Unit Kerja" :model-value="member.work_unit" />
-						<ReadonlyField label="Nama Lembaga" :model-value="member.institution" />
 						<ReadonlyField label="Email" :model-value="member.email" type="email" />
 							<div class="flex items-end justify-start gap-3 md:justify-end">
 								<button

@@ -14,7 +14,7 @@ class RepaymentController extends Controller
     {
         $data = [];
         $data['financing'] = Financing::
-            with('user.workUnit', 'loan.paymentSchedules.payment')
+            with('user', 'loan.paymentSchedules.payment')
             ->whereHas('loan.paymentSchedules', function ($query) use ($id) {
                 $query->where('status', LoanPaymentScheduleStatus::PENDING->value)->orderBy('installment_number', 'asc');
             })
@@ -43,7 +43,7 @@ class RepaymentController extends Controller
     public function validate(Request $request, string $id)
     {
         $financing = Financing::
-            with('user.workUnit', 'loan.paymentSchedules.payment')
+            with('user', 'loan.paymentSchedules.payment')
             ->findOrFail($id);
 
         if ($request->input('action') === 'accept') {

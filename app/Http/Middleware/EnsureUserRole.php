@@ -22,11 +22,11 @@ class EnsureUserRole
         }
 
         // Redirect based on role
-        if ($role === 'admin' && $user->role->name !== 'Admin') {
+        if ($role === 'admin' && $user->role->name === 'Anggota') {
             return redirect('/user/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman admin.');
         }
 
-        if ($role === 'user' && ($user->role->name === 'Admin' || $user->role->name === 'Manajer')) {
+        if ($role === 'user' && ($user->role->name !== 'Anggota')) {
             return redirect('/admin/dashboard')->with('error', 'Admin harus menggunakan dashboard admin.');
         }
 

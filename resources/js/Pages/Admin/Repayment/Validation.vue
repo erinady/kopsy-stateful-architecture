@@ -296,12 +296,6 @@ console.log(props.data.financing.loan.payment_schedules[props.data.total_paid_in
                             <span class="font-medium text-dark-text dark:text-white">{{
                                 props.data.financing.user.status }}</span>
                         </li>
-                        <li class="flex lg:flex-row flex-col gap-2 justify-between">
-                            <span class="text-sm text-gray-500 dark:text-gray-300">Unit Kerja</span>
-                            <span class="font-medium text-dark-text dark:text-white">{{
-                                props.data.financing.user.work_unit.name
-                            }}</span>
-                        </li>
                     </ul>
                 </div>
                 <div class="flex justify-end gap-4 col-span-3">

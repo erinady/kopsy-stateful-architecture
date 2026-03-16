@@ -6,8 +6,6 @@ export function useRegisterValidation(form: any) {
     nik: '',
     password: '',
     nama_lengkap: '',
-    work_unit_id: '',
-    nama_lembaga: '',
     password_confirmation: '',
   })
 
@@ -74,14 +72,6 @@ export function useRegisterValidation(form: any) {
 
   watch(() => form.nama_lengkap, (v) => {
     errors.nama_lengkap = v ? '' : 'Nama lengkap wajib diisi'
-  })
-
-  watch(() => form.work_unit_id, (v) => {
-    errors.work_unit_id = v ? '' : 'Unit kerja wajib diisi'
-  })
-
-  watch(() => form.nama_lembaga, (v) => {
-    errors.nama_lembaga = v ? '' : 'Nama lembaga wajib diisi'
   })
 
   return { errors }

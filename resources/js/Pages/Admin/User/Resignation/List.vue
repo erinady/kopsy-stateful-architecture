@@ -13,7 +13,6 @@ const isLoading = ref(false)
 
 const props = defineProps({
     members: Object,
-    workUnits: Array,
     filters: Object,
 })
 
@@ -21,7 +20,6 @@ const columns = [
     { key: 'no', label: 'No' },
     { key: 'member_number', label: 'Nomor Anggota' },
     { key: 'name', label: 'Nama' },
-    { key: 'work_unit', label: 'Unit Kerja' },
     { key: 'email', label: 'Email' },
     { key: 'aksi', label: 'Aksi' },
 ]
@@ -33,18 +31,7 @@ const filters = reactive({
     per_page: page.props.filters?.per_page ?? 10,
     sort_by: page.props.filters?.sort_by ?? 'created_at',
     sort_dir: page.props.filters?.sort_dir ?? 'desc',
-    work_unit_id: page.props.filters?.work_unit_id ?? ''
 })
-
-const selectFilters = [
-    {
-        key: 'work_unit_id',
-        label: 'Semua Unit Kerja',
-        options: props.workUnits || [],
-        optionLabel: 'name',
-        optionValue: 'id'
-    }
-]
 
 const searchTooltipItems = [
     'Nomor Anggota',
@@ -79,7 +66,6 @@ const applyFilters = () => {
             per_page: filters.per_page,
             sort_by: filters.sort_by,
             sort_dir: filters.sort_dir,
-            work_unit_id: filters.work_unit_id || undefined,
             page: 1,
         },
         {
@@ -99,7 +85,6 @@ watch(() => filters.search, () => {
 })
 
 watch(() => filters.per_page, applyFilters)
-watch(() => filters.work_unit_id, applyFilters)
 
 const breadcrumbItems = [
     {name: 'Dashboard', link: '/admin'},
@@ -122,12 +107,10 @@ const breadcrumbItems = [
             <BaseFunctionality
                 :per-page="filters.per_page"
                 :search="filters.search"
-                :filters="{ work_unit_id: filters.work_unit_id }"
                 :selects="selectFilters"
                 :search-tooltip="searchTooltipItems"
                 @update:per-page="val => filters.per_page = val"
                 @update:search="val => filters.search = val"
-                @update:filters="val => filters.work_unit_id = val.work_unit_id"
             />
 
             <BaseTable
@@ -149,10 +132,6 @@ const breadcrumbItems = [
 
                 <template #cell-name="{ row }">
                     {{ row.name }}
-                </template>
-
-                <template #cell-work_unit="{ row }">
-                    {{ row.work_unit?.name ?? '-' }}
                 </template>
 
                 <template #cell-email="{ row }">

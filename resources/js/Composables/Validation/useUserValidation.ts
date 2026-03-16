@@ -6,8 +6,6 @@ export function useUserValidation(form: any) {
         nik: "",
         name: "",
         role_id: "",
-        work_unit_id: "",
-        institution: "",
         phone_number: "",
         profile_picture: "",
     });
@@ -53,20 +51,6 @@ export function useUserValidation(form: any) {
         () => form.role_id,
         (v) => {
             errors.role_id = v ? "" : "Posisi wajib diisi";
-        }
-    );
-
-    watch(
-        () => form.work_unit_id,
-        (v) => {
-            errors.work_unit_id = v ? "" : "Unit kerja wajib diisi";
-        }
-    );
-
-    watch(
-        () => form.institution,
-        (v) => {
-            errors.institution = v ? "" : "Nama lembaga wajib diisi";
         }
     );
 

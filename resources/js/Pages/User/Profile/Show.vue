@@ -50,8 +50,6 @@ const props = defineProps({
                             <ReadonlyField label="NIK" :model-value="user.nik || '-'" />
                             <ReadonlyField label="Tanggal Lahir" :model-value="user.birth_date || '-'" />
                             <ReadonlyField label="Jenis Kelamin" :model-value="user.gender || '-'" />
-                            <ReadonlyField label="Unit Kerja" :model-value="user.work_unit || '-'" />
-                            <ReadonlyField label="Nama Lembaga" :model-value="user.institution || '-'" />
                         </div>
                     </div>
                 </div>

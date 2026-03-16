@@ -15,7 +15,7 @@ class UserProfileController extends Controller
     public function show()
     {
         $user = auth()->user();
-        $user->load(['role', 'workUnit']);
+        $user->load(['role']);
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
 
@@ -27,8 +27,6 @@ class UserProfileController extends Controller
                 'nik' => $user->nik,
                 'birth_date' => $user->birth_date,
                 'gender' => $user->gender,
-                'institution' => $user->institution,
-                'work_unit' => $user->workUnit->name ?? '-',
                 'profile_picture' => $user->profile_picture,
                 'photo_url' => $photoUrl,
             ]
@@ -41,7 +39,7 @@ class UserProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        $user->load(['role', 'workUnit']);
+        $user->load(['role']);
 
         $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
 
@@ -53,8 +51,6 @@ class UserProfileController extends Controller
                 'nik' => $user->nik,
                 'birth_date' => $user->birth_date,
                 'gender' => $user->gender,
-                'institution' => $user->institution,
-                'work_unit' => $user->workUnit->name ?? '-',
                 'profile_picture' => $user->profile_picture,
                 'photo_url' => $photoUrl,
             ]

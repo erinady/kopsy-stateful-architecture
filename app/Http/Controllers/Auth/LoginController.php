@@ -54,7 +54,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         // Redirect based on user role
-        if ($user->role->name === 'Admin' || $user->role->name === 'Manajer') {
+        if ($user->role->name !== 'Anggota') {
             return redirect()->intended('/admin/dashboard');
         }
 

@@ -11,7 +11,6 @@ import Button from '../../../Components/Form/Button.vue';
 const props = defineProps({
     admin: { type: Object, required: true },
     roles: { type: Array, required: true },
-    work_units: { type: Array, required: true },
 })
 
 const form = useForm({
@@ -19,8 +18,6 @@ const form = useForm({
     name: props.admin.name || '',
     email: props.admin.email || '',
     role_id: props.admin.role_id || '',
-    work_unit_id: props.admin.work_unit_id || '',
-    institution: props.admin.institution || '',
     address: props.admin.address || '',
     phone_number: props.admin.phone_number || '',
 })
@@ -95,18 +92,9 @@ const submitForm = () => {
                         <BaseInputAdmin v-model="form.name" label="Nama Lengkap" type="text" required
                             placeholder="Masukkan nama lengkap" :error="errors.name"></BaseInputAdmin>
 
-                        <!-- Unit Kerja -->
-                        <BaseInputAdmin v-model="form.work_unit_id" label="Unit Kerja" type="select" required
-                            :selectables="work_units.map(unit => ({ value: unit.id, text: unit.name }))"
-                            :error="errors.work_unit_id"></BaseInputAdmin>
-
                         <!-- Email -->
                         <BaseInputAdmin v-model="form.email" label="Email" type="email" required
                             placeholder="Masukkan email" :error="errors.email"></BaseInputAdmin>
-
-                        <!-- Lembaga -->
-                        <BaseInputAdmin v-model="form.institution" label="Lembaga" type="text" required
-                            placeholder="Masukkan nama lembaga" :error="errors.institution"></BaseInputAdmin>
 
                         <!-- Alamat (full width) -->
                         <BaseInputAdmin v-model="form.address" label="Alamat" type="textarea"

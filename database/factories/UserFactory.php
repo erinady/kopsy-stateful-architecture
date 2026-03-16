@@ -33,7 +33,6 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'birth_date' => fake()->date(),
             'gender' => fake()->randomElement(Gender::cases())->value,
-            'institution' => fake()->company(),
             'marital_status' => fake()->randomElement(MaritalStatus::cases())->value,
             'address' => fake()->address(),
             'residential_address' => fake()->address(),
@@ -48,7 +47,6 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'role_id' => fake()->numberBetween(1, 3),
-            'work_unit_id' => fake()->numberBetween(1, 10),
         ];
     }
 

@@ -2,12 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Log;
-use Request;
 use App\Enums\Education;
-use App\Models\WorkUnit;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\EditProfileAdminRequest;
 
 class ProfileController extends Controller
@@ -20,16 +16,10 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        $workUnits = Cache::remember(
-            'work_units_all',
-            now()->addHours(6),
-            fn() => WorkUnit::all(['id', 'name'])
-        );
         $educations = array_column(Education::cases(), 'value');
 
         return inertia('Admin/Profile/Edit', [
             'user' => $user,
-            'work_units' => $workUnits,
             'educations' => $educations
         ]);
     }

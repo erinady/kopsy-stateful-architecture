@@ -32,8 +32,6 @@ class EditProfileAdminRequest extends FormRequest
             'residential_address' => 'nullable|string|max:500',
             'phone_number' => 'nullable|string|size:16',
             'last_education' => 'nullable|string|max:100',
-            'institution' => 'nullable|string|max:255',
-            'work_unit_id' => 'required|exists:work_units,id',
             'profile_picture_file' => 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
         ];
     }

@@ -14,8 +14,6 @@ const form = useForm({
   email: '',
   nama_lengkap: '',
   nik: '',
-  work_unit_id: '',
-  nama_lembaga: '',
   password: '',
   password_confirmation: '',
   foto_pribadi: null,
@@ -28,7 +26,7 @@ const submit = () => {
     forceFormData: true,
     onError: (errors) => {
       console.error('Registration failed:', errors)
-      
+
       // error spesifik untuk setiap field
       if (errors.email) {
         toast.error(`Email: ${errors.email}`, {
@@ -60,10 +58,10 @@ const submit = () => {
           position: toast.POSITION.BOTTOM_RIGHT
         })
       }
-      
+
       const handledFields = ['email', 'nik', 'password', 'foto_pribadi', 'foto_ktp']
       const otherErrors = Object.keys(errors).filter(key => !handledFields.includes(key))
-      
+
       if (otherErrors.length > 0) {
         otherErrors.forEach(key => {
           toast.error(`${key}: ${errors[key]}`, {
@@ -81,8 +79,6 @@ const stepOneValid = computed(() => {
     form.email &&
     form.nama_lengkap &&
     form.nik &&
-    form.work_unit_id &&
-    form.nama_lembaga &&
     form.password &&
     form.password_confirmation
   )
@@ -92,12 +88,6 @@ const stepTwoValid = computed(() => {
   return !!form.foto_pribadi && !!form.foto_ktp
 })
 
-const props = defineProps({
-  workUnits: {
-    type: Array,
-    default: () => []
-  }
-})
 </script>
 
 <template>
@@ -140,7 +130,7 @@ const props = defineProps({
             </div>
           </div>
 
-          <RegisterStepOne v-if="step === 1" :form="form" :workUnits="props.workUnits" />
+          <RegisterStepOne v-if="step === 1" :form="form" />
           <RegisterStepTwo v-if="step === 2" :form="form" />
 
           <div class="mt-12 flex flex-col items-center gap-6">

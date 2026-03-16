@@ -12,22 +12,19 @@ const form = useForm({
     email: '',
     nik: '',
     role_id: '',
-    work_unit_id: '',
     name: '',
-    institution: '',
     address: '',
     phone_number: '',
 })
 
 const props = defineProps({
     roles: { type: Array, required: true },
-    work_units: { type: Array, required: true },
 })
 
 const breadcrumbItems = [
-    {name: 'Dashboard', link: '/admin'},
-    {name: 'Admin', link: '/admin/list'},
-    {name: 'Tambah Admin'},
+    { name: 'Dashboard', link: '/admin' },
+    { name: 'Admin', link: '/admin/list' },
+    { name: 'Tambah Admin' },
 ];
 
 const { errors } = useUserValidation(form)
@@ -96,27 +93,18 @@ const submitForm = () => {
                         <BaseInputAdmin v-model="form.name" label="Nama Lengkap" type="text" required
                             placeholder="Masukkan nama lengkap" :error="errors.name"></BaseInputAdmin>
 
-                        <!-- Unit Kerja -->
-                        <BaseInputAdmin v-model="form.work_unit_id" label="Unit Kerja" type="select" required
-                            :selectables="work_units.map(unit => ({ value: unit.id, text: unit.name }))"
-                            :error="errors.work_unit_id"></BaseInputAdmin>
-
                         <!-- Email -->
                         <BaseInputAdmin v-model="form.email" label="Email" type="email" required
                             placeholder="Masukkan email" :error="errors.email"></BaseInputAdmin>
-
-                        <!-- Lembaga -->
-                        <BaseInputAdmin v-model="form.institution" label="Lembaga" type="text" required
-                            placeholder="Masukkan nama lembaga" :error="errors.institution"></BaseInputAdmin>
-
-                        <!-- Alamat (full width) -->
-                        <BaseInputAdmin v-model="form.address" label="Alamat" type="textarea"
-                            placeholder="Masukkan alamat lengkap" rows="4" :error="errors.address"></BaseInputAdmin>
 
                         <!-- No. Telp -->
                         <BaseInputAdmin v-model="form.phone_number" label="Nomor Telepon" type="text"
                             placeholder="Masukkan nomor telepon" pattern="[0-9]*" :error="errors.phone_number">
                         </BaseInputAdmin>
+
+                        <!-- Alamat (full width) -->
+                        <BaseInputAdmin v-model="form.address" label="Alamat" type="textarea"
+                            placeholder="Masukkan alamat lengkap" rows="4" :error="errors.address"></BaseInputAdmin>
                     </div>
 
                     <div class="flex items-center justify-center gap-4 pt-10 px-8 pb-8">

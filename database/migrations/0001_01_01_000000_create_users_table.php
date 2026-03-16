@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('birth_place')->nullable();
             $table->string('birth_date')->nullable();
             $table->enum('gender', array_column(Gender::cases(), 'value'))->nullable();
-            $table->string('institution');
             $table->enum('marital_status', array_column(MaritalStatus::cases(), 'value'))->nullable();
             $table->string('spouse_name')->nullable();
             $table->text('address')->nullable();
@@ -38,7 +37,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('role_id')->constrained('roles');
-            $table->foreignId('work_unit_id')->constrained('work_units');
             $table->rememberToken();
             $table->timestamps();
 
