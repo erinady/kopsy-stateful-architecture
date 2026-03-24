@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\AnggotaController;
 use App\Http\Controllers\User\LedgerController;
@@ -49,16 +48,6 @@ Route::prefix('auth')
 
         Route::post('/login', [LoginController::class, 'store'])
             ->name('login.store');
-
-        Route::get('/register', [RegisterController::class, 'create'])
-            ->name('register');
-
-        Route::post('/register', [RegisterController::class, 'store'])
-            ->name('register.store');
-
-        Route::get('/register/success', function () {
-            return Inertia::render('Auth/RegisterSuccess');
-        })->name('register.success');
 
         Route::get('/forgot-password', [ForgotPasswordController::class, 'index'])
             ->name('password.request');
