@@ -223,7 +223,7 @@ const errorsForm = computed(() => {
     if (!bankName.value)      e.bank          = 'Pilih bank'
     if (!accountNumber.value) e.accountNumber = 'Isi nomor rekening'
     if (!accountName.value)   e.accountName   = 'Isi atas nama'
-    if (!paymentFile.value)   e.bukti         = 'Upload bukti transfer'
+    if (!paymentFile.value)   e.bukti         = 'Upload bukti pembayaran'
   }
   return e
 })
@@ -314,12 +314,12 @@ const breadcrumbItems = [
     <PageBreadcrumb page-title="Penyetoran Simpanan" :items="breadcrumbItems" />
 
     <div class="py-6 px-4 sm:px-6 lg:px-8">
-      <div class="w-full px-4 sm:px-10 lg:px-10 space-y-6">
+      <div class="w-full px-4 sm:px-10 lg:px-10 space-y-6 font-body">
 
         <!-- ══ Pilih Anggota ══ -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400 uppercase">
+            <h2 class="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400 uppercase font-head">
               Data Anggota
             </h2>
           </div>
@@ -327,7 +327,7 @@ const breadcrumbItems = [
           <div class="p-5 space-y-4">
             <!-- Search box -->
             <div class="relative">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                 Cari Anggota <span class="text-red-500">*</span>
               </label>
               <div class="relative">
@@ -392,7 +392,7 @@ const breadcrumbItems = [
         <!-- Detail Penyetoran -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400 uppercase">
+            <h2 class="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400 uppercase font-head">
               Detail Penyetoran
             </h2>
           </div>
@@ -422,7 +422,7 @@ const breadcrumbItems = [
 
               <!-- Jenis simpanan -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                   Jenis Simpanan <span class="text-red-500">*</span>
                 </label>
                 <select
@@ -442,7 +442,7 @@ const breadcrumbItems = [
 
                   <!-- Tabungan Berjangka — Tenor -->
                   <div v-if="jenisSimpanan === 'Tabungan Berjangka'">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                       Jangka Waktu <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
@@ -474,7 +474,7 @@ const breadcrumbItems = [
 
                   <!-- Tabungan Ibadah — Target -->
                   <div v-if="jenisSimpanan === 'Tabungan Ibadah'">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                       Target Tabungan <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
@@ -522,7 +522,7 @@ const breadcrumbItems = [
 
               <!-- Nominal -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                   Nominal <span class="text-red-500">*</span>
                 </label>
                 <div class="relative">
@@ -547,7 +547,7 @@ const breadcrumbItems = [
               <!-- Tanggal & Catatan -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                     Tanggal Setor <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -560,7 +560,7 @@ const breadcrumbItems = [
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">Catatan</label>
                   <input
                     v-model="catatan"
                     type="text"
@@ -574,7 +574,7 @@ const breadcrumbItems = [
 
               <!-- Metode -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 font-head">
                   Metode Penyetoran
                 </label>
                 <div class="flex gap-6">
@@ -584,7 +584,7 @@ const breadcrumbItems = [
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input type="radio" value="Non-Tunai" v-model="depositMethod" class="text-blue-600" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Transfer</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Non-Tunai</span>
                   </label>
                 </div>
               </div>
@@ -598,7 +598,7 @@ const breadcrumbItems = [
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Bank -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                         Bank <span class="text-red-500">*</span>
                       </label>
                       <select
@@ -614,7 +614,7 @@ const breadcrumbItems = [
 
                     <!-- No. Rekening -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                         No. Rekening <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -631,7 +631,7 @@ const breadcrumbItems = [
 
                     <!-- Atas Nama -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                         Atas Nama <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -649,7 +649,7 @@ const breadcrumbItems = [
 
                   <!-- Upload bukti -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 font-head">
                       Bukti Transfer <span class="text-red-500">*</span>
                     </label>
                     <div
