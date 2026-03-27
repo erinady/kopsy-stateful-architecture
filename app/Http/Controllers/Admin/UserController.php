@@ -27,7 +27,7 @@ class UserController extends Controller
 {
     public function create()
     {
-        return Inertia::render('Admin/User/Create', [
+        return Inertia::render('Admin/User/Create/Index', [
             'educationOptions' => $this->enumOptions(Education::cases()),
             'maritalStatusOptions' => $this->enumOptions(MaritalStatus::cases()),
             'heirRelationshipOptions' => $this->enumOptions(HeirEnum::cases()),
