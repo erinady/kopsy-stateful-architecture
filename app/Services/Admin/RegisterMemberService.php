@@ -64,6 +64,8 @@ class RegisterMemberService
      */
     private function createMemberUser(array $validated, string $roleId, string $memberNumber, string $initialPassword): User
     {
+        $email = $validated['email'] ?? null;
+
         return User::create([
             'member_number' => $memberNumber,
             'name' => $validated['name'],
@@ -73,7 +75,7 @@ class RegisterMemberService
             'gender' => $validated['gender'],
             'marital_status' => $validated['marital_status'],
             'phone_number' => $validated['phone_number'],
-            'email' => $validated['email'],
+            'email' => $email,
             'address' => $validated['address'],
             'residential_address' => $validated['residential_address'] ?? null,
             'last_education' => $validated['last_education'],
