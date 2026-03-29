@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\AnggotaController;
 use App\Http\Controllers\User\LedgerController;
@@ -50,16 +49,6 @@ Route::prefix('auth')
         Route::post('/login', [LoginController::class, 'store'])
             ->name('login.store');
 
-        Route::get('/register', [RegisterController::class, 'create'])
-            ->name('register');
-
-        Route::post('/register', [RegisterController::class, 'store'])
-            ->name('register.store');
-
-        Route::get('/register/success', function () {
-            return Inertia::render('Auth/RegisterSuccess');
-        })->name('register.success');
-
         Route::get('/forgot-password', [ForgotPasswordController::class, 'index'])
             ->name('password.request');
 
@@ -83,9 +72,6 @@ Route::post('/auth/logout', [LoginController::class, 'destroy'])
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'revalidate'])->group(function () {
     Route::get('/users/verification', [UserController::class, 'prospectiveMembers'])
         ->name('users.prospective');
-
-    Route::get('/verifikasi/{user:member_number}', [UserController::class, 'verificationDetail'])
-        ->name('users.verification.show');
 
     Route::post('/verifikasi/{user:member_number}/approval', [UserController::class, 'submitApproval'])
         ->name('users.verification.submit');
@@ -112,6 +98,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::get('/users/show/{id}', [UserController::class, 'show'])->name('users.show');
     Route::get('/accounts/{id}/mutasi', [UserController::class, 'getMutasi']);
     Route::get('/financings/{id}/riwayat', [UserController::class, 'getRiwayat']);
+    Route::get('/users/create', [UserController::class, 'create'])
+        ->middleware('role:sekretaris')
+        ->name('users.create');
+    Route::post('/users/store', [UserController::class, 'store'])
+        ->middleware('role:sekretaris')
+        ->name('users.store');
     Route::get('/users/list', [UserController::class, 'index'])->name('users.index');
     Route::put('/users/{id}/nonactive', [UserController::class, 'updateStatusToInactive'])->name('users.nonactive');
 
@@ -121,6 +113,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::put('/resignation/{id}', [ResignationController::class, 'validate'])->name('resignations.validate');
 
     Route::get('/financing/show/{id}', [FinancingController::class, 'show'])->name('financing.show');
+
+    Route::get('/simpanan/penyetoran', [SimpananController::class, 'createDeposit'])->name('deposit.create');
+    Route::post('/simpanan/penyetoran', [SimpananController::class, 'storeDeposit'])->name('deposit.store');
 });
 
 // User Routes
@@ -135,9 +130,6 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user', 'revalida
 
     Route::get('/resign', [AnggotaController::class, 'createResign'])->name('resign.create');
     Route::post('/resign', [AnggotaController::class, 'storeResign'])->name('resign.store');
-
-    Route::get('/simpanan/penyetoran', [SimpananController::class, 'createDeposit'])->name('deposit.create');
-    Route::post('/simpanan/penyetoran', [SimpananController::class, 'storeDeposit'])->name('deposit.store');
 
     // Ledger Routes
     Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
