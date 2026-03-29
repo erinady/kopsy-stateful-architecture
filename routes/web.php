@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ResignationController;
 use App\Http\Controllers\Admin\SavingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -88,6 +89,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::get('/savings/list', [SavingController::class, 'index'])->name('savings.index');
     Route::get('/savings/export/csv', [SavingController::class, 'exportCsv'])->name('savings.export.csv');
     Route::get('/savings/export/pdf', [SavingController::class, 'exportPdf'])->name('savings.export.pdf');
+    
+    Route::get('/savings/penarikan', [WithdrawalController::class, 'create'])->name('withdrawal.create');
+    Route::post('/savings/penarikan', [WithdrawalController::class, 'store'])->name('withdrawal.store');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
