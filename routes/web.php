@@ -140,6 +140,7 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user', 'revalida
     Route::get('/ledger/export', [LedgerController::class, 'export'])->name('ledger.export');
 
     // Pembiayaan
+    Route::get('/financing', [UserFinancingController::class, 'index'])->name('financing.index');
     Route::get('/financing/repayment/show/{id}', [UserRepaymentController::class, 'show'])->name('financing.repayment.show');
     Route::post('/financing/repayment/submit', [UserRepaymentController::class, 'sendRequest'])->name('financing.repayment.request');
     Route::get('/financing/show/{id}', [UserFinancingController::class, 'show'])->name('financing.show');

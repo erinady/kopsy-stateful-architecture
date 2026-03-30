@@ -16,12 +16,14 @@ const props = defineProps<{
     perPageOptions?: number[]
     selects?: SelectFilter[]
     searchTooltip?: string[]
+    showSearchButton?: boolean
     showBorder?: boolean
 }>()
 
 const emit = defineEmits<{
     (e: 'update:perPage', value: number): void
     (e: 'update:search', value: string): void
+    (e: 'submit:search', value: string): void
     (e: 'update:filters', value: Record<string, any>): void
 }>()
 
@@ -40,6 +42,15 @@ const onPerPageChange = (e: Event) => {
 const onSearchInput = (e: Event) => {
     const target = e.target as HTMLInputElement
     emit('update:search', target.value)
+}
+
+const onSearchEnter = (e: KeyboardEvent) => {
+    const target = e.target as HTMLInputElement
+    emit('submit:search', target.value)
+}
+
+const onSearchClick = () => {
+    emit('submit:search', props.search ?? '')
 }
 </script>
 
@@ -86,6 +97,7 @@ const onSearchInput = (e: Event) => {
                     <input
                         :value="props.search"
                         @input="onSearchInput"
+                        @keyup.enter="onSearchEnter"
                         type="text"
                         placeholder="Search"
                         class="pl-10 pr-4 py-2 w-64 text-sm
@@ -108,6 +120,18 @@ const onSearchInput = (e: Event) => {
                         <div class="absolute bottom-full right-4 border-4 border-transparent border-b-gray-900 dark:border-b-gray-700"></div>
                     </div>
                 </div>
+
+                <button
+                    v-if="props.showSearchButton === true"
+                    type="button"
+                    @click="onSearchClick"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
+                           bg-green-600 hover:bg-green-800 text-white transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <Icon icon="ic:baseline-search" class="w-4 h-4" />
+                    Cari
+                </button>
             </div>
 
             <!-- Dynamic Selects -->

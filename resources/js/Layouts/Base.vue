@@ -41,7 +41,7 @@ watch(
 <template>
     <ThemeProvider>
         <Head>
-            <title>{{ title }} - Koperasi Syariah Warga Polban</title>
+            <title>{{ title }} - Koperasi Syariah Berkah</title>
         </Head>
         <Navbar />
         <slot></slot>
