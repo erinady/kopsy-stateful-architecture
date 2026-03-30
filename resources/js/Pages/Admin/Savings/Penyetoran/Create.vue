@@ -315,6 +315,25 @@ const breadcrumbItems = [
   { name: 'Pengelolaan Simpanan',   link: '/admin/savings/list' },
   { name: 'Penyetoran Simpanan' },
 ]
+
+const akadType = computed(() => {
+  switch (jenisSimpanan.value) {
+    case 'Simpanan Pokok':
+    case 'Simpanan Wajib':
+      return 'musyarakah'
+
+    case 'Tabungan Anggota':
+    case 'Tabungan Sosial':
+      return 'wadiah'
+
+    case 'Tabungan Ibadah':
+    case 'Tabungan Berjangka':
+      return 'mudharabah'
+
+    default:
+      return null
+  }
+})
 </script>
 
 <template>
@@ -443,6 +462,38 @@ const breadcrumbItems = [
                   <option v-for="j in jenisList" :key="j" :value="j">{{ j }}</option>
                 </select>
               </div>
+
+              <!-- Informasi Akad -->
+              <Transition name="fade">
+                <div
+                  v-if="akadType"
+                  class="flex items-start gap-3 p-4 rounded-lg border
+                        bg-blue-50 dark:bg-blue-900/20
+                        border-blue-200 dark:border-blue-800"
+                >
+                  <div class="text-sm">
+                    <div class="font-semibold text-blue-700 dark:text-blue-300 mb-1">
+                      {{
+                        akadType === 'musyarakah'
+                          ? 'Akad Musyarakah'
+                          : akadType === 'wadiah'
+                          ? 'Akad Wadiah Yad Dhamanah'
+                          : 'Akad Mudharabah Mutlaqah'
+                      }}
+                    </div>
+
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {{
+                        akadType === 'musyarakah'
+                          ? 'Akad antara dua pihak atau lebih yang bersepakat menjalankan usaha bersama dengan pembagian keuntungan sesuai porsi modal dan menanggung risiko secara proporsional tanpa jaminan imbal hasil tetap.'
+                          : akadType === 'wadiah'
+                          ? 'Akad penitipan dana di mana penerima titipan diperbolehkan memanfaatkan dana tersebut namun wajib menjamin pengembalian pokoknya, pihak koperasi syariah diperbolehkan (tidak wajib) memberikan bonus kepada pemilik dana.'
+                          : 'Akad kerja sama antara pemilik dana (shahibul maal) dan pengelola (mudharib) di mana koperasi diberi kebebasan penuh mengelola dana dalam usaha halal. Keuntungan dibagi sesuai nisbah yang disepakati, sedangkan kerugian ditanggung pemilik dana selama tidak terdapat kelalaian dari pengelola.'
+                      }}
+                    </p>
+                  </div>
+                </div>
+              </Transition>
 
               <!-- Field dinamis: Tenor & Target -->
               <Transition name="fade">
