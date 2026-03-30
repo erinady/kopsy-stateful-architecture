@@ -117,6 +117,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::put('/resignation/{id}', [ResignationController::class, 'validate'])->name('resignations.validate');
 
     Route::get('/financing/show/{id}', [FinancingController::class, 'show'])->name('financing.show');
+    Route::get('/financing/create', [FinancingController::class, 'create'])->name('financing.create');
 
     Route::get('/simpanan/penyetoran', [SimpananController::class, 'createDeposit'])->name('deposit.create');
     Route::post('/simpanan/penyetoran', [SimpananController::class, 'storeDeposit'])->name('deposit.store');

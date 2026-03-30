@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Education;
+use App\Enums\FinancialCost;
+use App\Enums\FinancialIncome;
 use App\Enums\LoanPaymentScheduleStatus;
+use App\Enums\MaritalStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Financing;
 use Illuminate\Http\Request;
@@ -22,7 +26,17 @@ class FinancingController extends Controller
      */
     public function create()
     {
-        //
+        $educations = array_column(Education::cases(), 'value');
+        $marriageStatuses = array_column(MaritalStatus::cases(), 'value');
+        $incomes = array_column(FinancialIncome::cases(), 'value');
+        $costs = array_column(FinancialCost::cases(), 'value');
+
+        return inertia('Admin/Financing/Create', [
+            'educations' => $educations,
+            'marriageStatuses' => $marriageStatuses,
+            'incomes' => $incomes,
+            'costs' => $costs,
+        ]);
     }
 
     /**
@@ -40,7 +54,7 @@ class FinancingController extends Controller
     {
         $financing = Financing::with(['loan', 'loan.paymentSchedules.payment'])->findOrFail($id);
         $financing->total_price = $financing->cost_price + $financing->margin - $financing->down_payment;
-    
+
         $loan = $financing->loan;
         if ($loan !== null) {
             $financing->total_paid = $loan->paymentSchedules
