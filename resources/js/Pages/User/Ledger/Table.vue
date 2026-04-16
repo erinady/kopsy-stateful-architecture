@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { formatCurrency } from '../../../utils/currency'
-import Struk from '../../../Components/Savings/Struk.vue'
 
 interface Transaction {
     [key: string]: any
@@ -69,53 +68,22 @@ const sortedTransactions = computed(() => {
         .map((entry) => entry.row)
 })
 
-const strukMode = computed(() => {
-    if (!selectedTransaction.value) return 'withdrawal'
-    return isDepositType(selectedTransaction.value.jenis) ? 'deposit' : 'withdrawal'
+const strukAttachmentUrl = computed(() => {
+    return selectedTransaction.value?.struk_attachment || ''
 })
 
-const strukPayload = computed(() => {
-    const transaction = selectedTransaction.value
-    if (!transaction) return null
-
-    const getNormalizedTanggal = () => {
-        const rawDate = transaction.tanggal_raw
-        if (rawDate) {
-            const parsedRaw = new Date(rawDate)
-            if (!Number.isNaN(parsedRaw.getTime())) return parsedRaw.toISOString()
-        }
-
-        const displayDate = String(transaction.tanggal || '')
-        const [day, month, year] = displayDate.split('/').map(Number)
-        if (day && month && year) {
-            return new Date(year, month - 1, day, 12, 0, 0).toISOString()
-        }
-
-        return new Date().toISOString()
-    }
-
-    const resolvedMetode = transaction.metode || '-'
-    const resolvedNamaAnggota = transaction.nama_anggota || props.memberInfo?.nama || '-'
-    const resolvedNoAnggota = transaction.no_anggota || props.memberInfo?.no_anggota || '-'
-
-    return {
-        no_transaksi: transaction.no_transaksi || '-',
-        tanggal: getNormalizedTanggal(),
-        pengurus: transaction.petugas || '-',
-        nama_anggota: resolvedNamaAnggota,
-        no_anggota: resolvedNoAnggota,
-        jenis: transaction.jenis_simpanan || transaction.produk || '-',
-        metode: resolvedMetode,
-        nominal: Number(transaction.nominal_transaksi || Math.abs(getNominalValue(transaction)) || 0),
-        saldo_sebelum: Number(transaction.saldo_sebelum || 0),
-        saldo_sesudah: Number(transaction.saldo_sesudah || 0),
-        bank_name: transaction.bank_name || (resolvedMetode === 'Non-Tunai' ? '-' : ''),
-        account_name: transaction.account_name || (resolvedMetode === 'Non-Tunai' ? '-' : ''),
-        account_number: transaction.account_number || (resolvedMetode === 'Non-Tunai' ? '-' : ''),
-        tenor: transaction.tenor || null,
-        target: transaction.target || null,
-    }
+const attachmentExtension = computed(() => {
+    const url = String(strukAttachmentUrl.value || '').split('?')[0].toLowerCase()
+    return url.split('.').pop() || ''
 })
+
+const isImageAttachment = computed(() => {
+    return ['png', 'jpg', 'jpeg', 'webp'].includes(attachmentExtension.value)
+})
+
+const isPdfAttachment = computed(() => attachmentExtension.value === 'pdf')
+
+const hasStoredAttachment = computed(() => Boolean(strukAttachmentUrl.value))
 
 const openDetail = (row: Transaction) => {
     selectedTransaction.value = row
@@ -125,6 +93,11 @@ const openDetail = (row: Transaction) => {
 const closeDetail = () => {
     selectedTransaction.value = null
     document.body.classList.remove('overflow-hidden')
+}
+
+const openAttachmentInNewTab = () => {
+    if (!strukAttachmentUrl.value) return
+    window.open(strukAttachmentUrl.value, '_blank', 'noopener,noreferrer')
 }
 </script>
 
@@ -206,7 +179,7 @@ const closeDetail = () => {
         class="fixed inset-0 z-50 bg-black/55 flex items-center justify-center p-4"
         @click.self="closeDetail"
     >
-        <div class="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div>
                     <h3 class="font-semibold text-gray-900 dark:text-gray-100">Kwitansi Transaksi</h3>
@@ -221,14 +194,43 @@ const closeDetail = () => {
                 </button>
             </div>
 
-            <div class="overflow-y-auto max-h-[70vh] p-5 flex justify-center">
-                <Struk
-                    v-if="strukPayload"
-                    :mode="strukMode"
-                    :transaksi="strukPayload"
-                    :show-print-button="false"
-                    :show-time="false"
-                />
+            <div class="overflow-y-auto max-h-[70vh] p-5">
+                <div v-if="hasStoredAttachment" class="space-y-3">
+                    <img
+                        v-if="isImageAttachment"
+                        :src="strukAttachmentUrl"
+                        alt="Kwitansi transaksi"
+                        class="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
+
+                    <iframe
+                        v-else-if="isPdfAttachment"
+                        :src="strukAttachmentUrl"
+                        class="w-full min-h-[60vh] rounded-lg border border-gray-200 dark:border-gray-700"
+                    />
+
+                    <div
+                        v-else
+                        class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-sm text-gray-600 dark:text-gray-300"
+                    >
+                        Format lampiran tidak didukung untuk preview langsung.
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="openAttachmentInNewTab"
+                        class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg border border-emerald-300 text-emerald-700 text-sm font-medium hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-900/30 transition-colors"
+                    >
+                        Buka Lampiran Asli
+                    </button>
+                </div>
+
+                <div
+                    v-else
+                    class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-sm text-gray-600 dark:text-gray-300"
+                >
+                    Lampiran kwitansi belum tersedia untuk transaksi ini.
+                </div>
             </div>
         </div>
     </div>
