@@ -33,7 +33,7 @@ class FinancingSeeder extends Seeder
             'type_id' => 1,
         ]);
 
-        FinancingProduct::create([
+        $financingProduct = FinancingProduct::create([
             'product_id' => $product->id,
             'condition' => ConditionEnum::NEW->value,
             'cost_price' => 15000000,
@@ -47,6 +47,7 @@ class FinancingSeeder extends Seeder
             'financing_status' => FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value,
             'is_wakalah' => true,
             'down_payment' => 3000000,
+            'financing_product_id' => $financingProduct->id,
             'payment_method' => FinancingPaymentMethodEnum::INSTALLMENT->value,
             'updated_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'user_id' => User::where('member_code', 'KSP002')->first()?->id,

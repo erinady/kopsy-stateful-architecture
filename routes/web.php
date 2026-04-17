@@ -13,7 +13,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\AnggotaController;
 use App\Http\Controllers\User\LedgerController;
-use App\Http\Controllers\User\SimpananController;
 use App\Http\Controllers\User\UserFinancingController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserRepaymentController;
@@ -84,8 +83,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::get('/savings/export/csv', [SavingController::class, 'exportCsv'])->name('savings.export.csv');
     Route::get('/savings/export/pdf', [SavingController::class, 'exportPdf'])->name('savings.export.pdf');
 
-    Route::get('/savings/penarikan', [WithdrawalController::class, 'create'])->name('withdrawal.create');
-    Route::post('/savings/penarikan', [WithdrawalController::class, 'store'])->name('withdrawal.store');
+    Route::get('/saving/withdrawal', [WithdrawalController::class, 'create'])->name('withdrawal.create');
+    Route::post('/saving/withdrawal', [WithdrawalController::class, 'store'])->name('withdrawal.store');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -118,8 +117,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::post('/financing/store', [FinancingController::class, 'store'])->name('financing.store');
     Route::post('/financing/store/draft', [FinancingController::class, 'storeDraft'])->name('financing.storeDraft');
 
-    Route::get('/simpanan/penyetoran', [SimpananController::class, 'createDeposit'])->name('deposit.create');
-    Route::post('/simpanan/penyetoran', [SimpananController::class, 'storeDeposit'])->name('deposit.store');
+    Route::get('/saving/deposit', [SavingController::class, 'createDeposit'])->name('deposit.create');
+    Route::post('/saving/deposit', [SavingController::class, 'storeDeposit'])->name('deposit.store');
 });
 
 // User Routes

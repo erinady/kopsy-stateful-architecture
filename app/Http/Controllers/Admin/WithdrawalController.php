@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TransactionTypeEnum;
 use App\Enums\UserStatusEnum;
 use App\Http\Controllers\Controller;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\User;
 use App\Models\Account;
 use App\Models\SavingAccount;
 use App\Models\SavingTransaction;
-use App\Models\SavingTransactionDoc;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 use Inertia\Inertia;
 
 class WithdrawalController extends Controller
@@ -125,13 +124,12 @@ class WithdrawalController extends Controller
                 $saldoSebelum = $savingAccount->balance;
 
                 $transaction = SavingTransaction::create([
-                    'id' => Str::uuid(),
                     'saving_transaction_code' => $this->generateTransactionCode(),
                     'saving_account_id' => $savingAccount->id,
                     'saving_amount' => $validated['amount'],
-                    'transaction_type' => 'Penarikan',
+                    'transaction_type' => TransactionTypeEnum::WITHDRAWAL->value,
                     'saving_payment_method' => $validated['method'],
-                    'transaction_date' => $validated['withdrawal_date'],
+                    'transaction_date' => now(),
                     'saving_description' => $validated['notes'] ?? '',
                     'updated_by' => auth()->id(),
                 ]);
@@ -217,16 +215,6 @@ class WithdrawalController extends Controller
         if ($existingDoc && $existingDoc->attachment) {
             Storage::disk('public')->delete($existingDoc->attachment);
         }
-
-        SavingTransactionDoc::updateOrCreate(
-            [
-                'transaction_id' => $transaction->id,
-                'name' => 'Struk Penarikan',
-            ],
-            [
-                'attachment' => $path,
-            ]
-        );
     }
 
     /**
@@ -234,8 +222,8 @@ class WithdrawalController extends Controller
      */
     private function generateTransactionCode()
     {
-        $date = Carbon::now()->format('Ymd');
-        $latestTransaction = SavingTransaction::where('type', 'Penarikan')
+        $date = Carbon::now()->format('d');
+        $latestTransaction = SavingTransaction::where('transaction_type', 'Penarikan')
             ->whereDate('created_at', Carbon::today())
             ->latest()
             ->first();
@@ -246,6 +234,6 @@ class WithdrawalController extends Controller
             $codeNumber = 1;
         }
 
-        return 'WD' . $date . str_pad($codeNumber, 4, '0', STR_PAD_LEFT);
+        return 'W' . $date . str_pad($codeNumber, 4, '0', STR_PAD_LEFT);
     }
 }

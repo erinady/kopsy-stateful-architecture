@@ -12,6 +12,7 @@ use App\Models\UserDoc;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AnggotaController extends Controller
@@ -20,35 +21,16 @@ class AnggotaController extends Controller
     {
         $user = auth()->user();
 
-        $totalSaving = SavingTransaction::whereHas(
-                'savingAccount',
-                fn($q) =>
-                $q->where('user_id', $user->id)
-            )
-            ->sum(DB::raw("
-                CASE
-                    WHEN transaction_type = 'Penyetoran' THEN amount
-                    WHEN transaction_type = 'Penarikan' THEN -amount
-                END
-            "));
+        $totalSaving = DB::table('get_saving_account_balance')
+            ->where('user_id', $user->id)
+            ->sum('total_balance');
 
-        $totalInstallment = Financing::with('installment')->where('user_id', $user->id)
-            ->where('status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
-            ->get()
-            ->sum(function ($financing) {
-                $installment = $financing->installment;
-                if (!$installment)
-                    return 0;
-
-                $totalUnpaid = $installment->remaining_principal + $installment->remaining_margin;
-
-                return $totalUnpaid;
-            });
+        $totalInstallment = DB::table('get_total_financing')->where('user_id', $user->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
 
         $ledger = SavingTransaction::whereHas(
-                'savingAccount',
-                fn($q) => $q->where('user_id', $user->id)
-            )
+            'savingAccount',
+            fn($q) => $q->where('user_id', $user->id)
+        )
             ->with('savingAccount')
             ->latest('transaction_date')
             ->limit(5)
@@ -56,14 +38,14 @@ class AnggotaController extends Controller
             ->map(function ($trx) {
                 return [
                     'date' => Carbon::parse($trx->transaction_date)->format('d/m/Y'),
-                    'product' => $trx->savingAccount->type,
-                    'type' => $trx->type,
-                    'amount' => 'Rp ' . number_format($trx->amount, 0, ',', '.'),
+                    'product' => $trx->savingAccount->saving_type,
+                    'type' => $trx->transaction_type,
+                    'amount' => 'Rp ' . number_format($trx->saving_amount, 0, ',', '.'),
                 ];
             });
 
         $activeMurabahahCount = Financing::where('user_id', $user->id)
-            ->where('status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
+            ->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
             ->count();
 
         return inertia('User/Dashboard', [
@@ -82,30 +64,21 @@ class AnggotaController extends Controller
 
         $hasExistingResign = $user->status === UserStatusEnum::RESIGNED_REQUESTED->value;
 
+        Log::info('User ' . $user->id . ' is accessing resignation form with existing resign: ' . ($hasExistingResign ? 'yes' : 'no')) ;
+
         $totalSaving = SavingTransaction::whereHas(
-                'savingAccount',
-                fn($q) =>
-                $q->where('user_id', $user->id)
-            )
+            'savingAccount',
+            fn($q) =>
+            $q->where('user_id', $user->id)
+        )
             ->sum(DB::raw("
                 CASE
-                    WHEN type = 'Penyetoran' THEN amount
-                    WHEN type = 'Penarikan' THEN -amount
+                    WHEN transaction_type = 'Penyetoran' THEN saving_amount
+                    WHEN transaction_type = 'Penarikan' THEN -saving_amount
                 END
             "));
 
-        $totalObligation = Financing::with('installment')->where('user_id', $user->id)
-            ->where('status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
-            ->get()
-            ->sum(function ($financing) {
-                $installment = $financing->installment;
-                if (!$installment)
-                    return 0;
-
-                $totalUnpaid = $installment->remaining_principal + $installment->remaining_margin;
-
-                return $totalUnpaid;
-            });
+        $totalObligation = DB::table('get_total_financing')->where('user_id', $user->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
 
         return inertia('User/Resign/Create', [
             'member' => [
@@ -122,6 +95,8 @@ class AnggotaController extends Controller
         $user = auth()->user();
 
         $hasExistingResign = $user->status === UserStatusEnum::RESIGNED_REQUESTED->value;
+
+        Log::info('User ' . $user->id . ' is trying to submit resignation with existing resign: ' . ($hasExistingResign ? 'yes' : 'no')) ;
 
         if ($hasExistingResign) {
             return back()->withErrors([

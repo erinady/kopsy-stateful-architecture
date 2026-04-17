@@ -18,6 +18,7 @@ class SavingTransaction extends Model
         'transaction_type',
         'saving_payment_method',
         'saving_description',
+        'transaction_date',
 
         'updated_by',
         'saving_account_id',

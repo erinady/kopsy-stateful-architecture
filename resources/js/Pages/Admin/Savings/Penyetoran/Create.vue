@@ -8,18 +8,20 @@ import PageBreadcrumb from '@/Components/PageBreadcrumb.vue'
 import ConfirmationModal from '@/Components/Savings/ConfirmationModal.vue'
 import Struk from '@/Components/Savings/Struk.vue'
 
-const page = usePage()
+const props = defineProps({
+    saving_types: { type: Array, required: true },
+    members: { type: Array, required: true },
+    accounts: { type: Array, required: true },
+    pengurus: { type: Object, required: true }
+})
 
-const members  = computed(() => page.props.members  || [])
-const accounts = computed(() => page.props.accounts || [])
-const pengurus = computed(() => page.props.pengurus || {})
 const memberQuery   = ref('')
 const selectedMember = ref(null)
 
 const memberSuggestions = computed(() => {
   const q = memberQuery.value.toLowerCase().trim()
   if (!q || q.length < 2) return []
-  return members.value
+  return props.members
     .filter(m =>
       m.name?.toLowerCase().includes(q) ||
       m.member_code?.toLowerCase().includes(q)
@@ -159,7 +161,7 @@ const bankOptions = ['BCA','BNI','BRI','Mandiri','BTN','CIMB Niaga','Permata','D
 
 const filteredAccounts = computed(() => {
   if (!selectedMember.value) return []
-  return accounts.value.filter(a => a.user_id === selectedMember.value.id)
+  return props.accounts.filter(a => a.user_id === selectedMember.value.id)
 })
 
 const accountNameOptions   = computed(() => filteredAccounts.value.map(a => a.account_name))
@@ -182,22 +184,10 @@ function removeFile() {
   if (fileInput.value) fileInput.value.value = ''
 }
 
-// Jenis simpanan
-const allJenis = [
-  'Simpanan Pokok',
-  'Simpanan Wajib',
-  'Tabungan Anggota',
-  'Tabungan Berjangka',
-  'Tabungan Ibadah',
-  'Tabungan Sosial',
-]
-
-const jenisList = computed(() => allJenis)
-
 const selectedAccount = computed(() => {
   if (!selectedMember.value || !jenisSimpanan.value) return null
   return (selectedMember.value.savingAccounts || []).find(
-    acc => acc.type === jenisSimpanan.value
+    acc => acc.saving_type === jenisSimpanan.value
   ) || null
 })
 
@@ -252,7 +242,7 @@ const confirmationData = computed(() => ({
   date: tanggalSetor.value,
   tenorMonths: tenorMonths.value,
   targetAmount: targetAmount.value,
-  officerName: pengurus.value?.name,
+  officerName: props.pengurus.value?.name,
 }))
 
 function handleConfirm() {
@@ -277,7 +267,7 @@ function handleConfirm() {
     formData.append('payment_proof', paymentFile.value)
   }
 
-  router.post('/admin/simpanan/penyetoran', formData, {
+  router.post('/admin/saving/deposit', formData, {
     forceFormData: true,
     preserveScroll: true,
     onSuccess: (page) => {
@@ -459,7 +449,7 @@ const akadType = computed(() => {
                          focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>— Pilih jenis simpanan —</option>
-                  <option v-for="j in jenisList" :key="j" :value="j">{{ j }}</option>
+                  <option v-for="j in saving_types" :key="j" :value="j">{{ j }}</option>
                 </select>
               </div>
 

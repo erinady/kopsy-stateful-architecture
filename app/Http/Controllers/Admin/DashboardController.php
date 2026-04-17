@@ -44,7 +44,7 @@ class DashboardController extends Controller
                 $activeUserCount,
                 User::where('status', UserStatusEnum::ACTIVE->value)->where('created_at', '<=', $prevEndDate)->count()
             ),
-            'total_saving_amount' => DB::table('get_saving_account_balance')->sum('saldo_akhir') ?? '0',
+            'total_saving_amount' => DB::table('get_saving_account_balance')->sum('total_balance') ?? '0',
             'total_financing_amount' => $totalFinancingAmount,
             'total_financing_percentage' => $this->calculatePercentage(
                 $totalFinancingAmount,
