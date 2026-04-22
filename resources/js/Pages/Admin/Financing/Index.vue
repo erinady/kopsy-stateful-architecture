@@ -65,7 +65,7 @@ const page = usePage()
 const filters = reactive({
     search: page.props.filters?.search ?? '',
     per_page: page.props.filters?.per_page ?? 10,
-    tab: page.props.filters?.tab ?? 'semua',
+    tab: page.props.filters?.tab ?? 'all',
     sort_by: page.props.filters?.sort_by ?? 'transaction_date',
     sort_dir: page.props.filters?.sort_dir ?? 'desc',
 })
