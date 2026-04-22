@@ -166,18 +166,7 @@ watch(() => filters.tab, applyFilters)
                 <!-- Functionality -->
                 <BaseFunctionality :per-page="filters.per_page" :search="filters.search"
                     @update:per-page="val => filters.per_page = val" @update:search="val => filters.search = val">
-                    <template #actions>
-                        <a :href="`/admin/savings/export/csv?${exportQuery}`"
-                            class="inline-flex items-center gap-2 px-3 py-2 text-sm bg-green-600 text-white rounded-lg">
-                            <Icon icon="mdi:file-delimited-outline" class="w-4 h-4" />
-                            Export CSV
-                        </a>
-                        <a :href="`/admin/savings/export/pdf?${exportQuery}`"
-                            class="inline-flex items-center gap-2 px-3 py-2 text-sm bg-red-600 text-white rounded-lg">
-                            <Icon icon="mdi:file-pdf-box" class="w-4 h-4" />
-                            Export PDF
-                        </a>
-                    </template>
+                    <template #actions></template>
                 </BaseFunctionality>
 
                 <!-- Table -->
