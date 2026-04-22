@@ -92,9 +92,11 @@ class FinancingController extends Controller
                     'id' => $f->id,
                     'financing_transaction_code' => $f->financing_transaction_code,
                     'akad_date' => $f->akad_date,
-                    'user' => $f->user->member_code . ' - ' . $f->user->name,
+                    'user' => $f->user
+                        ? ($f->user?->member_code . ' - ' . $f->user?->name)
+                        : '-',
                     'tenor_left' => $f->installment ? $f->installment->payment_schedules_count : 0,
-                    'product_type' => $f->financingProduct->product->productType->product_type_name ?? null,
+                    'product_type' => $f->financingProduct?->product?->productType?->product_type_name,
                     'financing_status' => $f->financing_status,
                 ];
             });
