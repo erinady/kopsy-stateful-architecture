@@ -105,7 +105,7 @@ const prevStep = () => {
                             Simpan Sementara
                         </Button>
                         <Button v-if="activeStep < totalSteps && activeStep !== 5" @click="nextStep" variant="primary"
-                            :disabled="(activeStep === 1 && !isMemberSelected) || (activeStep === 2 && form.member.incomes.length === 0) || (activeStep === 2 && form.member.expenses.length === 0) || (activeStep === 3 && !form.financing_object.object_name) || (activeStep === 4 && !form.financing.cost_price)">
+                            :disabled="(activeStep === 1 && !isMemberSelected) || (activeStep === 2 && form.member.incomes.length === 0) || (activeStep === 2 && form.member.expenses.length === 0) || (activeStep === 3 && !form.financing.product_name) || (activeStep === 4 && !form.financing.cost_price)">
                             Selanjutnya
                         </Button>
                         <Button v-else-if="activeStep === totalSteps" type="submit" variant="secondary">Ajukan Permohonan</Button>
