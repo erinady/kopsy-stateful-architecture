@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_jobs', function (Blueprint $table) {
+        Schema::create('member_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('job_title');
             $table->string('company_or_business_name')->nullable();
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('workplace_address')->nullable();
             $table->string('workplace_contact', 20)->nullable();
 
-            $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
+            $table->foreign('member_code')->constrained('members')->onDelete('cascade');
             $table->timestamps();
         });
     }

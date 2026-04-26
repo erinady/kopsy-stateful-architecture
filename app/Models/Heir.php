@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Member;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,11 +19,11 @@ class Heir extends Model
         'heir_name',
         'relationship',
         'heir_contact',
-        'user_id',
+        'member_code',
     ];
 
-    public function user()
+    public function member()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Member::class, 'member_code');
     }
 }

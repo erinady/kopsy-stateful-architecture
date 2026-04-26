@@ -13,14 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoice_transactions', function (Blueprint $table) {
+        Schema::create('amdk_transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('invoice_number')->unique();
             $table->enum('payment_method', array_column(PaymentMethodsEnum::cases(), 'value'));
             $table->enum('buyer_type', array_column(BuyerTypeEnum::cases(), 'value'));
+            $table->string('invoice_receipt')->nullable();
 
             $table->foreignId('point_id')->nullable()->constrained('point_transactions')->onDelete('set null');
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreign('member_code')->nullable()->constrained('members')->onDelete('set null');
+            $table->foreignUuid('stokist_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignUuid('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

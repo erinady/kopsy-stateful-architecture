@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('financial_transactions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('receipt_number')->unique();
+            $table->dateTime('transaction_date');
+            $table->text('description')->nullable();
+            $table->string('transaction_receipt')->nullable();
+            $table->uuid('updated_by')->nullable();
+            $table->nullableMorphs('source');
+            $table->timestamps();
+
+            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
+            $table->index(['source_type', 'source_id']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('financial_transactions');
+    }
+};

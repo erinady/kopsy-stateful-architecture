@@ -2,21 +2,25 @@
 
 namespace App\Models;
 
+use App\Models\PointTransaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class InvoiceTransaction extends Model
+class AmdkTransaction extends Model
 {
     use HasUuids;
     protected $keyType = 'string';
     public $incrementing = false;
-    //
     protected $fillable = [
         'invoice_number',
         'point_id',
-        'user_id',
+        'member_code',
         'payment_method',
-        'buyer_type'
+        'buyer_type',
+        'invoice_receipt',
+        'stokist_id',
+        'updated_by',
     ];
 
     public function point()
@@ -24,8 +28,13 @@ class InvoiceTransaction extends Model
         return $this->belongsTo(PointTransaction::class);
     }
 
-    public function user()
+    public function updatedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function stokist()
+    {
+        return $this->belongsTo(User::class, 'stokist_id');
     }
 }

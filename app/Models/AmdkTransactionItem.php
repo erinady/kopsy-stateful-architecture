@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Models\AmdkProduct;
+use App\Models\AmdkTransaction;
 use Illuminate\Database\Eloquent\Model;
 
-class TransactionItem extends Model
+class AmdkTransactionItem extends Model
 {
     //
     protected $fillable = [
@@ -17,7 +18,7 @@ class TransactionItem extends Model
 
     public function invoice()
     {
-        return $this->belongsTo(InvoiceTransaction::class);
+        return $this->belongsTo(AmdkTransaction::class);
     }
 
     public function amdkProduct()

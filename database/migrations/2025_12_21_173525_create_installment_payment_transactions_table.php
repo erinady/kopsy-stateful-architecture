@@ -20,9 +20,11 @@ return new class extends Migration
             $table->enum('installment_payment_method', array_column(PaymentMethodsEnum::cases(), 'value'));
             $table->boolean('is_early_repayment')->default(false);
             $table->datetime('payment_date');
+            $table->string('installment_payment_receipt')->nullable();
 
-            $table->foreignId('schedule_id')->nullable()->constrained('installment_payment_schedules')->onDelete('set null');
-            $table->foreignUuid('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('point_id')->constrained('point_transactions')->onDelete('cascade');
+            $table->foreignId('schedule_id')->constrained('installment_payment_schedules')->onDelete('set null');
+            $table->foreignUuid('updated_by')->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

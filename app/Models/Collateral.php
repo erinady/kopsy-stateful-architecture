@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Financing;
 use Illuminate\Database\Eloquent\Model;
 
 class Collateral extends Model

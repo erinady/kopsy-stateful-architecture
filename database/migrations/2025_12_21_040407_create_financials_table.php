@@ -19,8 +19,8 @@ return new class extends Migration
             $table->enum('category', array_column(FinancialCategoryEnum::cases(), 'value'));
             $table->decimal('amount', 15, 2);
 
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
-            $table->unique(['user_id', 'financial_type']);
+            $table->foreign('member_code')->constrained('members')->onDelete('cascade');
+            $table->unique(['member_code', 'financial_type']);
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\AmdkProduct;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class StokistProduct extends Model

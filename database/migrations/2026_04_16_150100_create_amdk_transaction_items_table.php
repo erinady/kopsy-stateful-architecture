@@ -10,12 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('transaction_items', function (Blueprint $table) {
+        Schema::create('amdk_transaction_items', function (Blueprint $table) {
             $table->id();
             $table->decimal('price_per_item', 10, 2);
             $table->integer('qty');
 
-            $table->foreignUuid('invoice_id')->constrained('invoice_transactions')->onDelete('cascade');
+            $table->foreignUuid('invoice_id')->constrained('amdk_transactions')->onDelete('cascade');
             $table->foreignId('amdk_product_id')->constrained('amdk_products')->onDelete('cascade');
             $table->timestamps();
         });

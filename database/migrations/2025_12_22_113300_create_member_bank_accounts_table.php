@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('member_bank_accounts', function (Blueprint $table) {
             $table->string('account_number', 20)->primary();
             $table->string('bank_name');
             $table->string('account_name');
-            
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+
+            $table->foreign('member_code')->constrained('members')->onDelete('cascade');
             $table->timestamps();
         });
     }

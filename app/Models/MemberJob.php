@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Member;
 use Illuminate\Database\Eloquent\Model;
 
-class UserJob extends Model
+class MemberJob extends Model
 {
     protected $fillable = [
-        'user_id',
+        'member_code',
         'job_title',
         'company_or_business_name',
         'business_field',
@@ -17,8 +18,8 @@ class UserJob extends Model
         'workplace_contact',
     ];
 
-    public function users()
+    public function member()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Member::class);
     }
 }

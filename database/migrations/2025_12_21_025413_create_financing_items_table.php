@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('financing_products', function (Blueprint $table) {
+        Schema::create('financing_items', function (Blueprint $table) {
             $table->id();
             $table->text('request_description');
             $table->integer('qty');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('margin_amount', 10, 2)->nullable();
             $table->string('purchase_receipt')->nullable();
 
-            $table->foreignId('product_id')->references('id')->on('products')->onDelete('set null');
+            $table->foreignId('product_id')->references('id')->on('financing_products')->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('f_inancing_products');
+        Schema::dropIfExists('financing_items');
     }
 };

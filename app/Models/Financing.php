@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\Models\Collateral;
-use App\Models\FinancingProduct;
+use App\Models\FinancingItem;
 use App\Models\Installment;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,28 +26,36 @@ class Financing extends Model
         'financing_status',
         'payment_method',
         'signed_akad_document',
-        'user_id',
+        'member_code',
         'updated_by',
-        'financing_product_id'
+        'financing_item_id'
     ];
 
-    public function user()
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function updatedBy()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Angsuran
     public function installment()
     {
         return $this->hasOne(Installment::class);
     }
 
-    public function financingProduct()
+    // Objek Pembiayaan
+    public function financingItem()
     {
-        return $this->belongsTo(FinancingProduct::class);
+        return $this->belongsTo(FinancingItem::class);
     }
 
+    // Rahn atau Jaminan
     public function collaterals()
     {
-        return $this->hasMany(Collateral::class);
+        return $this->hasOne(Collateral::class);
     }
 }

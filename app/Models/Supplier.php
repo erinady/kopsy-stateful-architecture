@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\AmdkProduct;
+use App\Models\FinancingItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
@@ -17,8 +19,13 @@ class Supplier extends Model
         'website_url',
     ];
 
-    public function products()
+    public function financingItems()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(FinancingItem::class);
+    }
+
+    public function amdkProducts()
+    {
+        return $this->hasMany(AmdkProduct::class);
     }
 }

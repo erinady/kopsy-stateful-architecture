@@ -2,23 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Member;
 use Illuminate\Database\Eloquent\Model;
 
 class Financial extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $fillable = [
-        'user_id',
+        'member_code',
         'financial_type',
         'amount',
         'category',
     ];
 
-    public function user()
+    public function member()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Member::class);
     }
 }

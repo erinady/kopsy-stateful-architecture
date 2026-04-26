@@ -1,9 +1,5 @@
 <?php
 
-use App\Enums\EducationEnum;
-use App\Enums\Gender;
-use App\Enums\GenderEnum;
-use App\Enums\MaritalStatusEnum;
 use App\Enums\UserStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,20 +13,10 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('member_code', 10)->unique();
             $table->string('profile_picture')->nullable();
             $table->string('nik', 16)->unique();
             $table->string('name');
-            $table->enum('gender', array_column(GenderEnum::cases(), 'value'))->nullable();
-            $table->string('birth_place', 150)->nullable();
-            $table->date('birth_date')->nullable();
             $table->enum('status', array_column(UserStatusEnum::cases(), 'value'))->default('Aktif');
-            $table->text('domicile_address')->nullable();
-            $table->text('residential_address')->nullable();
-            $table->enum('marital_status', array_column(MaritalStatusEnum::cases(), 'value'))->nullable();
-            $table->string('spouse_name')->nullable();
-            $table->enum('last_education', array_column(EducationEnum::cases(), 'value'))->nullable();
-            $table->integer('dependents')->nullable();
             $table->string('email')->unique();
             $table->string('phone_number', 20)->unique();
             $table->date('joined_date')->nullable();
@@ -41,7 +27,6 @@ return new class extends Migration {
             $table->rememberToken();
             $table->timestamps();
 
-            $table->index('member_code');
             $table->index('name');
         });
 

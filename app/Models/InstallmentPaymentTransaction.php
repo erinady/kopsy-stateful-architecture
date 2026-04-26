@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\InstallmentPaymentSchedule;
+use App\Models\PointTransaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,10 +18,12 @@ class InstallmentPaymentTransaction extends Model
         'installment_payment_method',
         'is_early_repayment',
         'principal_paid',
-        'margin_paid',
+        'margin_paid', // margin_amount / tenor
         'payment_date',
         'schedule_id',
         'updated_by',
+        'point_id',
+        'installment_payment_receipt'
     ];
 
     protected $casts = [
@@ -34,5 +38,10 @@ class InstallmentPaymentTransaction extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function point()
+    {
+        return $this->belongsTo(PointTransaction::class, 'point_id');
     }
 }

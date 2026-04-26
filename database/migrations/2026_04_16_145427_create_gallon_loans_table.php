@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('return_date')->nullable();
             $table->enum('loan_status', array_column(LoanStatusEnum::cases(), 'value'));
 
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreign('member_code')->nullable()->constrained('members')->onDelete('set null');
             $table->foreignUuid('updated_by')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('amdk_product_id')->nullable()->constrained('amdk_products')->onDelete('set null');
             $table->timestamps();

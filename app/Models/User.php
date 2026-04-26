@@ -2,17 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Account;
-use App\Models\Financial;
+use App\Models\AmdkTransaction;
+use App\Models\FinancialTransaction;
 use App\Models\Financing;
-use App\Models\Heir;
+use App\Models\InstallmentPaymentTransaction;
+use App\Models\Member;
 use App\Models\PointTransaction;
 use App\Models\Role;
-use App\Models\SavingAccount;
 use App\Models\SavingTransaction;
-use App\Models\UserDoc;
-use App\Models\UserJob;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -33,23 +30,13 @@ class User extends Authenticatable
     public $incrementing = false;
 
     protected $fillable = [
-        'member_code',
         'profile_picture',
         'nik',
         'name',
-        'gender',
-        'birth_place',
-        'birth_date',
-        'status',
-        'domicile_address',
-        'residential_address',
-        'marital_status',
-        'spouse_name',
-        'last_education',
-        'dependents',
         'email',
         'phone_number',
         'joined_date',
+        'status',
         'password',
         'role_id',
     ];
@@ -88,48 +75,10 @@ class User extends Authenticatable
         return asset('images/default-avatar.png');
     }
 
+    // universal relation
     public function role()
     {
         return $this->belongsTo(Role::class);
-    }
-    public function savingAccounts()
-    {
-        return $this->hasMany(SavingAccount::class);
-    }
-
-    public function financials()
-    {
-        return $this->hasMany(Financial::class);
-    }
-
-    public function accounts()
-    {
-        return $this->hasMany(Account::class);
-    }
-
-    public function heirs()
-    {
-        return $this->hasMany(Heir::class);
-    }
-
-    public function userDocs()
-    {
-        return $this->hasMany(UserDoc::class);
-    }
-
-    public function savingTransactions()
-    {
-        return $this->hasMany(SavingTransaction::class);
-    }
-
-    public function financings()
-    {
-        return $this->hasMany(Financing::class);
-    }
-
-    public function userJobs()
-    {
-        return $this->hasMany(UserJob::class);
     }
 
     public function pointTransactions()
@@ -137,11 +86,35 @@ class User extends Authenticatable
         return $this->hasMany(PointTransaction::class);
     }
 
-    /**
-     * Use member_code for route model binding
-     */
-    public function getRouteKeyName()
+    // Is-a
+    public function member()
     {
-        return 'member_code';
+        return $this->hasOne(Member::class);
+    }
+
+    // Verifies if the user has a specific role
+    public function amdkTransactions()
+    {
+        return $this->hasMany(AmdkTransaction::class);
+    }
+
+    public function financing()
+    {
+        return $this->hasMany(Financing::class);
+    }
+
+    public function savingTransactions()
+    {
+        return $this->hasMany(SavingTransaction::class);
+    }
+
+    public function installmentPayments()
+    {
+        return $this->hasMany(InstallmentPaymentTransaction::class);
+    }
+
+    public function financialTransactions()
+    {
+        return $this->hasMany(FinancialTransaction::class);
     }
 }

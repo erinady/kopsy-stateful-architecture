@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Financing;
-use App\Models\Product;
+use App\Models\FinancingItem;
+use App\Models\ProductType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,22 +12,20 @@ class FinancingProduct extends Model
     use HasFactory;
     //
     protected $fillable = [
-        'request_description',
-        'qty',
-        'condition',
-        'cost_price',
-        'margin_amount',
-        'product_id',
-        'purchase_receipt',
+        'product_code',
+        'name',
+        'brand',
+        'specification',
+        'type_id',
     ];
 
-    public function product()
+    public function productType()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductType::class, 'type_id');
     }
 
-    public function financing()
+    public function financingItems()
     {
-        return $this->belongsTo(Financing::class);
+        return $this->hasMany(FinancingItem::class);
     }
 }

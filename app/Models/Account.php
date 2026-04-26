@@ -2,31 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\JournalEntry;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Account extends Model
 {
-    use HasFactory;
-    protected $primaryKey = 'account_number';
-    protected $keyType = 'string';
+    protected $primaryKey = 'account_code';
     public $incrementing = false;
-
+    protected $keyType = 'string';
     protected $fillable = [
-        'account_number',
-        'bank_name',
+        'account_code',
         'account_name',
-        'user_id',
+        'account_category',
     ];
 
-    public function user(): BelongsTo
+    public function journalEntries()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public function savingTransactions()
-    {
-        return $this->hasMany(SavingTransaction::class, 'account_number', 'account_number');
+        return $this->hasMany(JournalEntry::class, 'account_code', 'account_code');
     }
 }

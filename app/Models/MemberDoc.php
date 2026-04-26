@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Member;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserDoc extends Model
+class MemberDoc extends Model
 {
     use HasUuids;
     protected $keyType = 'string';
@@ -14,11 +15,11 @@ class UserDoc extends Model
     protected $fillable = [
         'doc_name',
         'doc_attachment',
-        'user_id',
+        'member_code',
     ];
 
-    public function user(): BelongsTo
+    public function member(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Member::class);
     }
 }

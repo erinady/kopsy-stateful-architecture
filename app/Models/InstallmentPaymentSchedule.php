@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Installment;
+use App\Models\InstallmentPaymentTransaction;
 use Illuminate\Database\Eloquent\Model;
 
 class InstallmentPaymentSchedule extends Model

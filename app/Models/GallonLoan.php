@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\AmdkProduct;
+use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class GallonLoan extends Model
@@ -10,7 +12,7 @@ class GallonLoan extends Model
     //
     protected $fillable = [
         'amdk_product_id',
-        'user_id',
+        'member_code',
         'return_date',
         'loan_status',
 
@@ -22,9 +24,9 @@ class GallonLoan extends Model
         return $this->belongsTo(AmdkProduct::class, 'amdk_product_id');
     }
 
-    public function user()
+    public function member()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Member::class, 'member_code');
     }
 
     public function updatedBy()

@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_docs', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('doc_name');
-            $table->string('doc_attachment');
-            
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+        Schema::create('saving_products', function (Blueprint $table) {
+            $table->id();
             $table->timestamps();
         });
     }
@@ -26,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_docs');
+        Schema::dropIfExists('saving_products');
     }
 };

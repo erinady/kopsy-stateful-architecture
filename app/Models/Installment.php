@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\LoanPaymentSchedule;
+use App\Models\Financing;
+use App\Models\InstallmentPaymentSchedule;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Installment extends Model
 {
