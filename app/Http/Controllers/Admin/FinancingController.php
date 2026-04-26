@@ -187,14 +187,14 @@ class FinancingController extends Controller
             ]);
 
             // Ahli waris
-            $user->heirs()->delete();
-            $user->heirs()->createMany($validated['member']['heirs']);
+            $user->heirs->delete();
+            $user->heirs->createMany($validated['member']['heirs']);
 
             // Data finansial
-            $user->financials()->delete();
+            $user->financials->delete();
 
             foreach ($validated['member']['incomes'] as $income) {
-                $user->financials()->create([
+                $user->financials->create([
                     'financial_type' => $income['financial_type'],
                     'amount' => $income['amount'],
                     'category' => FinancialCategoryEnum::INCOME->value,
@@ -208,16 +208,6 @@ class FinancingController extends Controller
                     'category' => FinancialCategoryEnum::EXPENSE->value,
                 ]);
             }
-
-            // Data supplier
-            $supplier = Supplier::updateOrCreate(
-                ['name' => $validated['supplier']['name']],
-                [
-                    'address' => $validated['supplier']['address'] ?? null,
-                    'contact' => $validated['supplier']['contact'] ?? null,
-                    'website_url' => $validated['supplier']['website_url'] ?? null,
-                ]
-            );
 
             // Data pembiayaan
             Financing::create([

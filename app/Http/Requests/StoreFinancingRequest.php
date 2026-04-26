@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\Education;
-use App\Enums\Gender;
-use App\Enums\MaritalStatus;
+use App\Enums\EducationEnum;
+use App\Enums\GenderEnum;
+use App\Enums\MaritalStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreFinancingRequest extends FormRequest
@@ -25,23 +25,22 @@ class StoreFinancingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'member.user_code' => 'required|exists:users,user_code',
             'member.name' => 'required|string|max:255',
             'member.nik' => 'required|string|digits:16',
             'member.birth_place' => 'nullable|string|max:255',
             'member.birth_date' => 'nullable|date',
-            'member.gender' => 'nullable|in:'. implode(',', array_column(Gender::cases(), 'value')),
-            'member.marital_status' => 'nullable|in:' . implode(',', array_column(MaritalStatus::cases(), 'value')),
-            'member.last_education' => 'nullable|in:' . implode(',', array_column(Education::cases(), 'value')),
+            'member.gender' => 'nullable|in:'. implode(',', array_column(GenderEnum::cases(), 'value')),
+            'member.marital_status' => 'nullable|in:' . implode(',', array_column(MaritalStatusEnum::cases(), 'value')),
+            'member.last_education' => 'nullable|in:' . implode(',', array_column(EducationEnum::cases(), 'value')),
             'member.domicile_address' => 'nullable|string|max:500',
             'member.residential_address' => 'nullable|string|max:500',
             'member.phone_number' => 'nullable|string|max:20',
             'member.email' => 'nullable|email|max:255',
             'member.dependents' => 'nullable|integer|min:0',
-            'member.heirs.*.name' => 'nullable|string|max:255',
-            'member.heirs.*.nik' => 'nullable|string|digits:16',
+            'member.heirs.*.heir_name' => 'nullable|string|max:255',
+            'member.heirs.*.heir_nik' => 'nullable|string|digits:16',
             'member.heirs.*.relationship' => 'nullable|string|max:255',
-            'member.heirs.*.contact' => 'nullable|string|max:20',
+            'member.heirs.*.heir_contact' => 'nullable|string|max:20',
             'member.incomes.*.type' => 'nullable|string|max:255',
             'member.incomes.*.amount' => 'nullable|numeric|min:0',
             'member.expenses.*.type' => 'nullable|string|max:255',
