@@ -3,33 +3,33 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\FinancingReqStatusEnum;
-use App\Enums\UserStatusEnum;
+use App\Enums\MemberStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateResignRequest;
 use App\Models\Financing;
+use App\Models\MemberDoc;
 use App\Models\SavingTransaction;
-use App\Models\UserDoc;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class AnggotaController extends Controller
+class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('member');
 
         $totalSaving = DB::table('get_saving_account_balance')
-            ->where('user_id', $user->id)
+            ->where('member_id', $user->member->id)
             ->sum('total_balance');
 
-        $totalInstallment = DB::table('get_total_financing')->where('user_id', $user->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
+        $totalInstallment = DB::table('get_total_financing')->where('member_id', $user->member->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
 
         $ledger = SavingTransaction::whereHas(
-            'savingAccount',
-            fn($q) => $q->where('user_id', $user->id)
+            'savingAccount.member',
+            fn($q) => $q->where('member_id', $user->member->id)
         )
             ->with('savingAccount')
             ->latest('transaction_date')
@@ -44,7 +44,7 @@ class AnggotaController extends Controller
                 ];
             });
 
-        $activeMurabahahCount = Financing::where('user_id', $user->id)
+        $activeMurabahahCount = Financing::where('member_id', $user->member->id)
             ->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
             ->count();
 
@@ -60,16 +60,16 @@ class AnggotaController extends Controller
 
     public function createResign()
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('member');
 
-        $hasExistingResign = $user->status === UserStatusEnum::RESIGNED_REQUESTED->value;
+        $hasExistingResign = $user->member->status === MemberStatusEnum::RESIGNED_REQUESTED->value;
 
         Log::info('User ' . $user->id . ' is accessing resignation form with existing resign: ' . ($hasExistingResign ? 'yes' : 'no')) ;
 
         $totalSaving = SavingTransaction::whereHas(
             'savingAccount',
             fn($q) =>
-            $q->where('user_id', $user->id)
+            $q->where('member_id', $user->member->id)
         )
             ->sum(DB::raw("
                 CASE
@@ -78,7 +78,7 @@ class AnggotaController extends Controller
                 END
             "));
 
-        $totalObligation = DB::table('get_total_financing')->where('user_id', $user->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
+        $totalObligation = DB::table('get_total_financing')->where('member_id', $user->member->id)->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->sum('total_financing');
 
         return inertia('User/Resign/Create', [
             'member' => [
@@ -92,9 +92,9 @@ class AnggotaController extends Controller
 
     public function storeResign(CreateResignRequest $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('member');
 
-        $hasExistingResign = $user->status === UserStatusEnum::RESIGNED_REQUESTED->value;
+        $hasExistingResign = $user->member->status === MemberStatusEnum::RESIGNED_REQUESTED->value;
 
         Log::info('User ' . $user->id . ' is trying to submit resignation with existing resign: ' . ($hasExistingResign ? 'yes' : 'no')) ;
 
@@ -116,12 +116,12 @@ class AnggotaController extends Controller
 
         DB::beginTransaction();
         try {
-            UserDoc::create([
+            MemberDoc::create([
                 'name' => 'Dokumen Pengunduran Diri',
                 'attachment' => $path,
-                'user_id' => $user->id,
+                'member_id' => $user->member->id,
             ]);
-            $user->status = UserStatusEnum::RESIGNED_REQUESTED->value;
+            $user->member->status = MemberStatusEnum::RESIGNED_REQUESTED->value;
             $user->save();
 
             DB::commit();

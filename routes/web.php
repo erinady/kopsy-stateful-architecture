@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\User\AnggotaController;
+use App\Http\Controllers\User\MemberController;
 use App\Http\Controllers\User\LedgerController;
 use App\Http\Controllers\User\UserFinancingController;
 use App\Http\Controllers\User\UserProfileController;
@@ -124,7 +124,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
 
 // User Routes
 Route::prefix('user')->name('user.')->middleware(['auth', 'role:user', 'revalidate'])->group(function () {
-    Route::get('/dashboard', [AnggotaController::class, 'index'])->name('userDashboard');
+    Route::get('/dashboard', [MemberController::class, 'index'])->name('userDashboard');
 
     Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('profile.edit');
@@ -133,8 +133,8 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user', 'revalida
     Route::delete('/profile/picture', [UserProfileController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
     Route::post('/profile/update-password', [UserProfileController::class, 'updatePassword'])->name('profile.update-password');
 
-    Route::get('/resign', [AnggotaController::class, 'createResign'])->name('resign.create');
-    Route::post('/resign', [AnggotaController::class, 'storeResign'])->name('resign.store');
+    Route::get('/resign', [MemberController::class, 'createResign'])->name('resign.create');
+    Route::post('/resign', [MemberController::class, 'storeResign'])->name('resign.store');
 
     // Ledger Routes
     Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
