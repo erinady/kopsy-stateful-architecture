@@ -12,6 +12,7 @@ import FinancingObjectData from './Create/FinancingObjectData.vue'
 import ProcurementData from './Create/ProcurementData.vue'
 import FinalizationData from './Create/Finalization.vue'
 import Stepper from './Create/Stepper.vue'
+import Documents from './Create/Documents.vue'
 
 const activeStep = ref(1)
 const totalSteps = 5
@@ -23,13 +24,11 @@ const breadcrumbItems = [
 ]
 
 const props = defineProps({
-    educations: Array,
-    marriageStatuses: Array,
-    income_types: Array,
-    expense_types: Array,
-    relationships: Array,
-    conditions: Array,
+    data: Object,
+    financing: Object,
 })
+
+console.log('Create Financing - form data:', props.data) // Debugging line to check the structure of data prop
 
 const {
     form,
@@ -58,7 +57,7 @@ const {
     removeHeir,
     resetMemberSelection,
     submitDraft,
-} = useFinancingForm()
+} = useFinancingForm(props.financing)
 
 const { errors } = useUserValidation(form)
 
@@ -75,19 +74,17 @@ const prevStep = () => {
     <AdminLayout title="Permohonan Pembiayaan Murabahah">
         <PageBreadcrumb page-title="Permohonan Pembiayaan Murabahah" :items="breadcrumbItems" />
         <div class="grid grid-cols-6 gap-6">
-            <div class="card-layout col-span-4 px-0!">
+            <div class="card-layout justify-between flex flex-col col-span-4 px-0!">
                 <PersonalData v-if="activeStep === 1" :form="form" :search-query="searchQuery"
                     :is-loading-search="isLoadingSearch" :is-member-selected="isMemberSelected"
-                    :filtered-members="filteredMembers" :educations="educations" :relationships="relationships"
-                    :errors="errors" @update:search-query="searchQuery = $event" @selectMember="selectMember"
-                    @addHeir="addHeir" @removeHeir="removeHeir" @resetMemberSelection="resetMemberSelection" />
+                    :filtered-members="filteredMembers" :data="props.data" :errors="errors"
+                    @update:search-query="searchQuery = $event" @selectMember="selectMember" @addHeir="addHeir"
+                    @removeHeir="removeHeir" @resetMemberSelection="resetMemberSelection" />
 
-                <FinancialData v-if="activeStep === 2" :form="form" :marriage-statuses="marriageStatuses"
-                    :income_types="income_types" :expense_types="expense_types" :total-income="totalIncome"
-                    :total-expense="totalExpense" :net-income="netIncome" @addIncome="addIncome"
+                <FinancialData v-if="activeStep === 2" :form="form" :data="props.data" @addIncome="addIncome"
                     @removeIncome="removeIncome" @addExpense="addExpense" @removeExpense="removeExpense" />
 
-                <FinancingObjectData v-if="activeStep === 3" :form="form" :conditions="conditions" />
+                <FinancingObjectData v-if="activeStep === 3" :form="form" :data="props.data" />
 
                 <ProcurementData v-if="activeStep === 4" :form="form" :search-supplier-query="searchSupplierQuery"
                     :is-loading-search-supplier="isLoadingSearchSupplier" :is-supplier-selected="isSupplierSelected"
@@ -96,24 +93,28 @@ const prevStep = () => {
 
                 <FinalizationData v-if="activeStep === 5" :form="form" />
 
-                <div :class="activeStep === 1 ? 'justify-end' : 'justify-between' " class="flex gap-4 p-4">
+                <div :class="activeStep === 1 ? 'justify-end' : 'justify-between'" class="flex gap-4 p-4">
                     <Button v-if="activeStep > 1" @click="prevStep" variant="gray">
                         Kembali
                     </Button>
                     <div class="flex items-center gap-4 justify-end">
-                        <Button v-if="activeStep > 2" variant="light" @click="submitDraft">
+                        <Button variant="light" @click="submitDraft">
                             Simpan Sementara
                         </Button>
                         <Button v-if="activeStep < totalSteps && activeStep !== 5" @click="nextStep" variant="primary"
-                            :disabled="(activeStep === 1 && !isMemberSelected) || (activeStep === 2 && form.member.incomes.length === 0) || (activeStep === 2 && form.member.expenses.length === 0) || (activeStep === 3 && !form.financing.product_name) || (activeStep === 4 && !form.financing.cost_price)">
+                            :disabled="(activeStep === 1 && !isMemberSelected) || (activeStep === 2 && form.member.incomes.length === 0) || (activeStep === 2 && form.member.expenses.length === 0) || (activeStep === 3 && !form.financing.name) || (activeStep === 4 && !form.financing.cost_price)">
                             Selanjutnya
                         </Button>
-                        <Button v-else-if="activeStep === totalSteps" type="submit" variant="secondary">Ajukan Permohonan</Button>
+                        <Button v-else-if="activeStep === totalSteps" type="submit" variant="secondary">Ajukan
+                            Permohonan</Button>
                     </div>
                 </div>
             </div>
 
-            <Stepper :active-step="activeStep" />
+            <div class="flex flex-col w-full col-span-2 gap-6">
+                <Stepper :active-step="activeStep" />
+                <Documents :form="form" />
+            </div>
         </div>
     </AdminLayout>
 </template>

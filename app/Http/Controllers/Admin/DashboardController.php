@@ -116,7 +116,7 @@ class DashboardController extends Controller
             ->map(fn($f) => [
                 'id' => $f->id,
                 'transaction_code' => $f->financing_transaction_code,
-                'product_name' => $f->financingItem->product->product_name ?? '-',
+                'product_name' => $f->financingItem->name ?? '-',
                 'status' => $f->financing_status,
                 'user_code' => $f->member->user->user_code,
                 'user_name' => $f->member->user->name,

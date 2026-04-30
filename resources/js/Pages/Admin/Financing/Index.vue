@@ -154,13 +154,19 @@ watch(() => filters.tab, applyFilters)
             <!-- Table Card -->
             <div class="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden relative z-10">
                 <!-- Header Table -->
-                <div class="px-6 pt-6 pb-4 border-b border-gray-100 dark:border-slate-700">
-                    <h2 class="font-head text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0.5">
-                        {{ tableTitle }}
-                    </h2>
-                    <p class="text-sm text-gray-500 dark:text-slate-400">
-                        Lacak transaksi pembiayaan murabahah di sini
-                    </p>
+                <div class="flex justify-between items-center">
+                    <div class="px-6 pt-6 pb-4 border-b border-gray-100 dark:border-slate-700">
+                        <h2 class="font-head text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0.5">
+                            {{ tableTitle }}
+                        </h2>
+                        <p class="text-sm text-gray-500 dark:text-slate-400">
+                            Lacak transaksi pembiayaan murabahah di sini
+                        </p>
+                    </div>
+                    <Button :href="`/admin/financing/create`" variant="secondary" size="small" class="mx-6">
+                        <Icon icon="mdi:plus" class="w-5 h-5 mr-1" />
+                        Tambah Pembiayaan
+                    </Button>
                 </div>
 
                 <!-- Functionality -->

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinancingController;
+use App\Http\Controllers\Admin\ProductTypeController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ResignationController;
 use App\Http\Controllers\Admin\SavingController;
@@ -11,8 +12,8 @@ use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\User\MemberController;
 use App\Http\Controllers\User\LedgerController;
+use App\Http\Controllers\User\MemberController;
 use App\Http\Controllers\User\UserFinancingController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserRepaymentController;
@@ -113,10 +114,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::get('/financing', [FinancingController::class, 'index'])->name('financing.index');
     Route::get('/financing/show/{id}', [FinancingController::class, 'show'])->name('financing.show');
     Route::get('/financing/create', [FinancingController::class, 'create'])->name('financing.create');
-    Route::get('/members/search', [UserController::class, 'searchMembers'])->name('admin.members.search');
+    Route::get('/members/search', [FinancingController::class, 'searchMembers'])->name('admin.members.search');
     Route::get('/suppliers/search', [FinancingController::class, 'searchSuppliers'])->name('admin.suppliers.search');
     Route::post('/financing/store', [FinancingController::class, 'store'])->name('financing.store');
     Route::post('/financing/store/draft', [FinancingController::class, 'storeDraft'])->name('financing.storeDraft');
+    Route::resource('product-types', ProductTypeController::class);
+    Route::get('/financing/load-draft/{id}', [FinancingController::class, 'loadDraft'])->name('financing.load-draft');
 
     Route::get('/saving/deposit', [SavingController::class, 'createDeposit'])->name('deposit.create');
     Route::post('/saving/deposit', [SavingController::class, 'storeDeposit'])->name('deposit.store');

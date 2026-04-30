@@ -53,7 +53,7 @@ class Financing extends Model
     }
 
     // Rahn atau Jaminan
-    public function collaterals()
+    public function collateral()
     {
         return $this->hasOne(Collateral::class);
     }
