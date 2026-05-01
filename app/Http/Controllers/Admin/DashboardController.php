@@ -111,7 +111,7 @@ class DashboardController extends Controller
 
     private function getRecentFinancings()
     {
-        return Financing::with('member.user', 'financingItem.product')
+        return Financing::with('member.user', 'financingItem')
             ->latest()->take(5)->get()
             ->map(fn($f) => [
                 'id' => $f->id,

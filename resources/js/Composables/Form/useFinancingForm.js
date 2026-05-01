@@ -59,6 +59,13 @@ export function useFinancingForm(initialData = null) {
             akad_date: initialData?.financing?.akad_date || '',
             down_payment: initialData?.financing?.down_payment || 0,
             notes: initialData?.financing?.notes || '',
+            financing_status: initialData?.financing?.financing_status || 'Menunggu Kelengkapan Dokumen',
+        },
+        collateral: {
+            collateral_type: initialData?.collateral?.collateral_type || '',
+            owner_name: initialData?.collateral?.owner_name || '',
+            estimated_market_value: initialData?.collateral?.estimated_market_value || 0,
+            collateral_location: initialData?.collateral?.collateral_location || '',
         },
         documents: {
             family_card: initialData?.documents?.family_card || null,
@@ -84,7 +91,6 @@ export function useFinancingForm(initialData = null) {
         family_card_file: null,
         income_slip_file: null,
         bank_book_file: null,
-        down_payment_proof_file: null,
         procurement_proof_file: null,
         akad_document_file: null,
     })
@@ -195,6 +201,13 @@ export function useFinancingForm(initialData = null) {
             akad_date: '',
             down_payment: 0,
             notes: '',
+            financing_status: ''
+        }
+        form.collateral = {
+            collateral_type: '',
+            owner_name: '',
+            estimated_market_value: 0,
+            collateral_location: '',
         }
         form.supplier = {
             supplier_name: '',
@@ -207,7 +220,7 @@ export function useFinancingForm(initialData = null) {
 
     // search supplier
     watch(() => searchSupplierQuery.value, async (query) => {
-        if (!query || query.length < 2) {
+        if (!query || query.length < 3) {
             supplierResults.value = []
             return
         }
@@ -217,7 +230,8 @@ export function useFinancingForm(initialData = null) {
             const response = await axios.get('/admin/suppliers/search', {
                 params: { q: query }
             })
-            supplierResults.value = response.data
+            // Ensure we're setting an array
+            supplierResults.value = Array.isArray(response.data) ? response.data : response.data?.data || []
         } catch (error) {
             console.error('Error searching suppliers:', error)
             supplierResults.value = []
@@ -240,12 +254,8 @@ export function useFinancingForm(initialData = null) {
         isSupplierSelected.value = true
     }
 
-    // Filter supplier
     const filteredSuppliers = computed(() => {
-        return supplierResults.value.filter(m =>
-            m.supplier_name.toLowerCase().includes(searchSupplierQuery.value.toLowerCase()) ||
-            m.contact.includes(searchSupplierQuery.value)
-        )
+        return Array.isArray(supplierResults.value) ? supplierResults.value : []
     })
 
     // Income & Expense
@@ -329,10 +339,12 @@ export function useFinancingForm(initialData = null) {
         return totalIncome.value - totalExpense.value
     })
 
-    const submitDraft = () => {
+    const submit = (status) => {
+        form.financing.financing_status = status === 'WAITING_DOCUMENTS' ? 'Menunggu Kelengkapan Dokumen' : 'Belum Ditinjau'
+        console.log('Submitting form with status:', form.financing.financing_status)
         Swal.fire({
             title: 'Konfirmasi',
-            text: 'Apakah Anda yakin ingin menyimpan draft ini?',
+            text: 'Apakah Anda yakin ingin menyimpan permohonan ini?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Ya, simpan',
@@ -340,7 +352,7 @@ export function useFinancingForm(initialData = null) {
             confirmButtonColor: '#007943',
         }).then((result) => {
             if (result.isConfirmed) {
-                form.post('/admin/financing/store/draft', {
+                form.post('/admin/financing/store', {
                     onSuccess: (page) => {
                         if (page.props.flash?.success) {
                             toast(page.props.flash.success, {
@@ -361,7 +373,7 @@ export function useFinancingForm(initialData = null) {
                                 position: 'bottom-right',
                             })
                         } else {
-                            toast('Gagal menyimpan draft', {
+                            toast('Gagal menyimpan permohonan', {
                                 type: 'error',
                                 position: 'bottom-right',
                             })
@@ -408,6 +420,6 @@ export function useFinancingForm(initialData = null) {
         removeExpense,
         addHeir,
         removeHeir,
-        submitDraft,
+        submit,
     }
 }

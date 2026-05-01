@@ -72,13 +72,8 @@ const closeModal = () => {
                 required />
 
             <div>
-                <BaseInputAdmin
-                    :model-value="form.financing.product_type_id"
-                    label="Kategori Produk"
-                    type="select"
-                    :selectables="productTypeSelectables"
-                    @update:modelValue="handleProductTypeChange"
-                />
+                <BaseInputAdmin :model-value="form.financing.product_type_id" label="Kategori Produk" type="select"
+                    :selectables="productTypeSelectables" @update:modelValue="handleProductTypeChange" />
                 <!-- <small class="text-gray-500">Selected: {{ form.financing.product_type_id }}</small> -->
             </div>
 
@@ -88,6 +83,18 @@ const closeModal = () => {
             <BaseInputAdmin v-model="form.financing.qty" label="Jumlah" type="number" min="1" />
             <BaseInputAdmin v-model="form.financing.request_description" label="Deskripsi" type="textarea" rows="4"
                 placeholder="Masukkan deskripsi produk" />
+        </div>
+        <div class="border-y border-gray-200 px-8 py-4">
+            <h1 class="card-title">Jaminan (Rahn)</h1>
+        </div>
+        <div class="grid grid-cols-2 gap-4 p-4">
+            <BaseInputAdmin v-model="form.collateral.collateral_type" label="Jenis Agunan"
+                placeholder="Masukkan jenis agunan" required />
+            <BaseInputAdmin v-model="form.collateral.owner_name" label="Atas Nama" placeholder="Masukkan nama pemilik" />
+            <BaseInputAdmin v-model="form.collateral.estimated_market_value" label="Nilai Perkiraan Pasar"
+                placeholder="Masukkan nilai perkiraan pasar" />
+            <BaseInputAdmin v-model="form.collateral.collateral_location" label="Lokasi/Kondisi Agunan" type="textarea"
+                rows="4" placeholder="Masukkan lokasi atau kondisi agunan" />
         </div>
     </section>
 
@@ -99,30 +106,23 @@ const closeModal = () => {
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kategori</label>
-                    <input
-                        v-model="newProductTypeName"
-                        type="text"
-                        placeholder="Masukkan nama kategori..."
+                    <input v-model="newProductTypeName" type="text" placeholder="Masukkan nama kategori..."
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-brand-300 focus:ring-brand-500/10 focus:ring-3 focus:outline-none"
-                        @keyup.enter="createNewProductType"
-                    />
+                        @keyup.enter="createNewProductType" />
                 </div>
 
                 <div class="flex gap-3 justify-end">
-                    <button
-                        @click="closeModal"
-                        class="px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
-                    >
+                    <button @click="closeModal"
+                        class="px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium">
                         Batal
                     </button>
-                    <button
-                        @click="createNewProductType"
+                    <button @click="createNewProductType"
                         :disabled="isCreatingProductType || !newProductTypeName.trim()"
-                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
-                    >
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium">
                         <span v-if="!isCreatingProductType">Buat</span>
                         <span v-else class="flex items-center gap-2">
-                            <div class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            <div class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full">
+                            </div>
                             Membuat...
                         </span>
                     </button>

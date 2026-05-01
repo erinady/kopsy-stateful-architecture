@@ -165,10 +165,13 @@ class FinancingController extends Controller
             });
 
         $summary = [
-            ['title' => 'Total Pengajuan Pembiayaan Murabahah', 'value' => Financing::whereIn('financing_status', [
-                FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
-                FinancingReqStatusEnum::PENDING_REVIEW->value,
-            ])->count()],
+            [
+                'title' => 'Total Pengajuan Pembiayaan Murabahah',
+                'value' => Financing::whereIn('financing_status', [
+                    FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
+                    FinancingReqStatusEnum::PENDING_REVIEW->value,
+                ])->count()
+            ],
             ['title' => 'Total Pembiayaan Berlangsung', 'value' => Financing::where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->count()],
             ['title' => 'Total Pengajuan Pelunasan Sebelum Jatuh Tempo', 'value' => Financing::where('financing_status', FinancingReqStatusEnum::PAID_EARLY_REQUESTED->value)->count()],
         ];
@@ -196,7 +199,12 @@ class FinancingController extends Controller
     public function loadDraft(string $id)
     {
         $financing = Financing::where('id', $id)
-            ->where('financing_status', FinancingReqStatusEnum::WAITING_DOCUMENTS->value)
+            ->whereIn('financing_status', [
+                FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
+                FinancingReqStatusEnum::APPROVED->value,
+                FinancingReqStatusEnum::APPROVED_WITH_NOTES->value,
+                FinancingReqStatusEnum::REJECTED->value,
+            ])
             ->with([
                 'member.user',
                 'member.financials',
@@ -205,6 +213,7 @@ class FinancingController extends Controller
                 'member.memberJobs',
                 'financingItem.productType',
                 'financingItem.supplier',
+                'collateral',
             ])
             ->first();
 
@@ -234,6 +243,13 @@ class FinancingController extends Controller
                     'payment_method' => $financing->payment_method,
                     'akad_date' => $financing->akad_date,
                     'notes' => $financing->notes,
+                    'financing_status' => $financing->financing_status,
+                ],
+                'collateral' => [
+                    'collateral_type' => $financing->collateral?->collateral_type,
+                    'owner_name' => $financing->collateral?->owner_name,
+                    'estimated_market_value' => $financing->collateral?->estimated_market_value,
+                    'collateral_location' => $financing->collateral?->collateral_location,
                 ],
                 'documents' => [
                     'family_card' => $financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment,
@@ -254,10 +270,101 @@ class FinancingController extends Controller
         ]);
     }
 
+    public function showValidation(string $id)
+    {
+        $financing = Financing::where('id', $id)
+            ->where('financing_status', FinancingReqStatusEnum::PENDING_REVIEW->value)
+            ->with([
+                'member.user',
+                'member.financials',
+                'member.memberDocs',
+                'member.heirs',
+                'member.memberJobs',
+                'financingItem.productType',
+                'financingItem.supplier',
+                'collateral',
+            ])
+            ->first();
+
+        if (!$financing) {
+            return redirect()->route('admin.financing.index')->withErrors(['error' => 'Data pembiayaan tidak ditemukan atau tidak dalam status yang valid untuk divalidasi']);
+        }
+
+        return inertia('Admin/Financing/Validation', [
+            'data' => [
+                'member' => $this->formatMemberData($financing->member),
+                'financing' => [
+                    'id' => $financing->id,
+                    'financing_transaction_code' => $financing->financing_transaction_code,
+                    'name' => $financing->financingItem->name,
+                    'product_type_id' => $financing->financingItem->product_type_id,
+                    'brand' => $financing->financingItem->brand,
+                    'condition' => $financing->financingItem->condition,
+                    'qty' => $financing->financingItem->qty,
+                    'request_description' => $financing->financingItem->request_description,
+                    'cost_price' => $financing->financingItem->cost_price,
+                    'margin_amount' => $financing->financingItem->margin_amount,
+                    'supplier_id' => $financing->financingItem->supplier_id,
+                    'down_payment' => $financing->down_payment,
+                    'is_wakalah' => $financing->is_wakalah,
+                    'payment_method' => $financing->payment_method,
+                    'akad_date' => $financing->akad_date,
+                    'notes' => $financing->notes,
+                    'financing_status' => $financing->financing_status,
+                    'product_type' => $financing->financingItem->productType?->product_type_name,
+                ],
+                'collateral' => [
+                    'collateral_type' => $financing->collateral?->collateral_type,
+                    'owner_name' => $financing->collateral?->owner_name,
+                    'estimated_market_value' => $financing->collateral?->estimated_market_value,
+                    'collateral_location' => $financing->collateral?->collateral_location,
+                ],
+                'documents' => [
+                    'family_card' => $financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment,
+                    'income_slip' => $financing->member->memberDocs->where('doc_name', 'slip_gaji')->first()?->doc_attachment,
+                    'bank_book' => $financing->member->memberDocs->where('doc_name', 'buku_tabungan')->first()?->doc_attachment,
+                    'purchase_receipt' => $financing->financingItem->purchase_receipt,
+                    'akad_document' => $financing->signed_akad_document,
+                    'collateral_proof' => $financing->collateral?->collateral_proof,
+                ],
+                'supplier' => $financing->financingItem->supplier ? [
+                    'supplier_name' => $financing->financingItem->supplier->supplier_name,
+                    'contact' => $financing->financingItem->supplier->contact,
+                    'address' => $financing->financingItem->supplier->address,
+                    'website_url' => $financing->financingItem->supplier->website_url,
+                ] : null,
+            ],
+        ]);
+    }
+
+    public function validate(Request $request, string $id)
+    {
+        $request->validate([
+            'financing_status' => 'required',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            $financing = Financing::where('id', $id)
+                ->where('financing_status', FinancingReqStatusEnum::PENDING_REVIEW->value)
+                ->firstOrFail();
+
+            $financing->update([
+                'financing_status' => $request->input('financing_status'),
+                'notes' => $request->input('notes'),
+            ]);
+
+            return inertia('admin.financing.index');
+        } catch (Exception $e) {
+            Log::error('Error validating financing: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Gagal menyimpan keputusan validasi']);
+        }
+    }
+
     /**
      * Store draft financing
      */
-    public function storeDraft(StoreFinancingRequest $request)
+    public function store(StoreFinancingRequest $request)
     {
         try {
             DB::beginTransaction();
@@ -339,46 +446,63 @@ class FinancingController extends Controller
                 'workplace_contact' => $validated['member']['workplace_contact'] ?? null,
             ]);
 
-            // Create/update financing
-            $financing = Financing::updateOrCreate(
-                ['member_id' => $user->member->id, 'financing_status' => FinancingReqStatusEnum::WAITING_DOCUMENTS->value],
-                [
-                    'down_payment' => $validated['financing']['down_payment'] ?? 0,
-                    'akad_date' => $validated['financing']['akad_date'] ?? null,
-                    'is_wakalah' => $validated['financing']['is_wakalah'] ?? null,
-                    'payment_method' => $validated['financing']['payment_method'] ?? null,
-                    'updated_by' => $verifier->id,
-                    'financing_status' => FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
-                ]
-            );
+            Log::info('Member and related data updated for status financing: ' . ($validated['financing_status'] ?? 'N/A') . ' by user ID: ' . $verifier->id);
 
-            // Update financing item
-            $financing->financingItem()->updateOrCreate(
+            // Create/update financing
+            if (isset($validated['financing'])) {
+                $financing = Financing::updateOrCreate(
+                    ['member_id' => $user->member->id, 'financing_status' => FinancingReqStatusEnum::WAITING_DOCUMENTS->value],
+                    [
+                        'financing_transaction_code' => $financing->financing_transaction_code ?? 'TRX-' . strtoupper(uniqid()),
+                        'down_payment' => $validated['financing']['down_payment'] ?? 0,
+                        'akad_date' => $validated['financing']['akad_date'] ?? null,
+                        'is_wakalah' => $validated['financing']['is_wakalah'] ?? null,
+                        'payment_method' => $validated['financing']['payment_method'] ?? null,
+                        'updated_by' => $verifier->id,
+                        'financing_status' => $validated['financing_status'] ?? FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
+                    ]
+                );
+
+                $financing->financingItem()->updateOrCreate(
+                    ['financing_id' => $financing->id],
+                    [
+                        'name' => $validated['financing']['name'] ?? null,
+                        'brand' => $validated['financing']['brand'] ?? null,
+                        'request_description' => $validated['financing']['request_description'] ?? null,
+                        'qty' => $validated['financing']['qty'] ?? null,
+                        'condition' => $validated['financing']['condition'] ?? null,
+                        'cost_price' => $validated['financing']['cost_price'] ?? null,
+                        'margin_amount' => $validated['financing']['margin_amount'] ?? null,
+                        'product_type_id' => $validated['financing']['product_type_id'] ?? null,
+                        'supplier_id' => $validated['financing']['supplier_id'] ?? null,
+                        'purchase_receipt' => $request->hasFile('purchase_receipt_file')
+                            ? $request->file('purchase_receipt_file')->store('documents', 'public')
+                            : null,
+                    ]
+                );
+            }
+
+            $financing->collateral()->updateOrCreate(
                 ['financing_id' => $financing->id],
                 [
-                    'name' => $validated['financing']['name'] ?? null,
-                    'brand' => $validated['financing']['brand'] ?? null,
-                    'request_description' => $validated['financing']['request_description'] ?? null,
-                    'qty' => $validated['financing']['qty'] ?? null,
-                    'condition' => $validated['financing']['condition'] ?? null,
-                    'cost_price' => $validated['financing']['cost_price'] ?? null,
-                    'margin_amount' => $validated['financing']['margin_amount'] ?? null,
-                    'product_type_id' => $validated['financing']['product_type_id'] ?? null,
-                    'supplier_id' => $validated['financing']['supplier_id'] ?? null,
-                    'purchase_receipt' => $request->hasFile('purchase_receipt_file')
-                        ? $request->file('purchase_receipt_file')->store('documents', 'public')
+                    'collateral_type' => $validated['collateral']['collateral_type'] ?? null,
+                    'owner_name' => $validated['collateral']['owner_name'] ?? null,
+                    'estimated_market_value' => $validated['collateral']['estimated_market_value'] ?? null,
+                    'collateral_location' => $validated['collateral']['collateral_location'] ?? null,
+                    'collateral_proof' => $request->hasFile('collateral_proof_file')
+                        ? $request->file('collateral_proof_file')->store('documents', 'public')
                         : null,
                 ]
             );
 
             DB::commit();
 
-            return back()->with('success', 'Draft berhasil disimpan');
+            return inertia('admin.financing.index');
 
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error storing draft: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Gagal menyimpan draft: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menyimpan permohonan: ' . $e->getMessage()]);
         }
     }
 
@@ -417,13 +541,8 @@ class FinancingController extends Controller
     {
         $query = $request->get('q');
 
-        if (strlen($query) < 2) {
-            return response()->json(['suppliers' => []]);
-        }
-
-        $suppliers = Supplier::query()
+        $suppliers = DB::table('suppliers')
             ->where('supplier_name', 'ILIKE', "%{$query}%")
-            ->select('id', 'supplier_name', 'contact', 'address', 'website_url')
             ->limit(5)
             ->get();
 

@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/Admin/Layout.vue'
 import PageBreadcrumb from '@/Components/PageBreadcrumb.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Button from '@/Components/Form/Button.vue'
 import { useUserValidation } from '@/Composables/Validation/useUserValidation'
 import { useFinancingForm } from '@/Composables/Form/useFinancingForm'
@@ -19,7 +19,7 @@ const totalSteps = 5
 
 const breadcrumbItems = [
     { name: 'Dashboard', link: '/admin' },
-    { name: 'Pengelolaan Pembiayaan Murabahah', link: '/admin/financing/list' },
+    { name: 'Pengelolaan Pembiayaan Murabahah', link: '/admin/financing' },
     { name: 'Permohonan Pembiayaan Murabahah' },
 ]
 
@@ -56,7 +56,7 @@ const {
     addHeir,
     removeHeir,
     resetMemberSelection,
-    submitDraft,
+    submit,
 } = useFinancingForm(props.financing)
 
 const { errors } = useUserValidation(form)
@@ -68,6 +68,21 @@ const nextStep = () => {
 const prevStep = () => {
     activeStep.value--
 }
+
+const isStep1Valid = computed(() => isMemberSelected.value)
+
+const isStep2Valid = computed(() =>
+    form.member.incomes.length > 0 && form.member.expenses.length > 0
+)
+
+const isStep3Valid = computed(() =>
+    form.financing.name &&
+    form.financing.product_type_id &&
+    form.financing.financing_status !== 'Menunggu Kelengkapan Dokumen'
+)
+
+const isStep4Valid = computed(() => isSupplierSelected.value)
+
 </script>
 
 <template>
@@ -98,15 +113,22 @@ const prevStep = () => {
                         Kembali
                     </Button>
                     <div class="flex items-center gap-4 justify-end">
-                        <Button variant="light" @click="submitDraft">
+                        <Button v-if="activeStep < totalSteps" variant="light"
+                            @click="submit('Menunggu Kelengkapan Dokumen')">
                             Simpan Sementara
                         </Button>
-                        <Button v-if="activeStep < totalSteps && activeStep !== 5" @click="nextStep" variant="primary"
-                            :disabled="(activeStep === 1 && !isMemberSelected) || (activeStep === 2 && form.member.incomes.length === 0) || (activeStep === 2 && form.member.expenses.length === 0) || (activeStep === 3 && !form.financing.name) || (activeStep === 4 && !form.financing.cost_price)">
+
+                        <Button v-if="activeStep < totalSteps" @click="nextStep" variant="primary" :disabled="(activeStep === 1 && !isStep1Valid) ||
+                            (activeStep === 2 && !isStep2Valid) ||
+                            (activeStep === 3 && !isStep3Valid) ||
+                            (activeStep === 4 && !isStep4Valid)
+                            ">
                             Selanjutnya
                         </Button>
-                        <Button v-else-if="activeStep === totalSteps" type="submit" variant="secondary">Ajukan
-                            Permohonan</Button>
+
+                        <Button v-else-if="activeStep === 3 && form.financing.financing_status === 'Menunggu Kelengkapan Dokumen'" type="submit" @click="submit('Belum Ditinjau')" variant="secondary">
+                            Ajukan Permohonan
+                        </Button>
                     </div>
                 </div>
             </div>

@@ -117,9 +117,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'reval
     Route::get('/members/search', [FinancingController::class, 'searchMembers'])->name('admin.members.search');
     Route::get('/suppliers/search', [FinancingController::class, 'searchSuppliers'])->name('admin.suppliers.search');
     Route::post('/financing/store', [FinancingController::class, 'store'])->name('financing.store');
-    Route::post('/financing/store/draft', [FinancingController::class, 'storeDraft'])->name('financing.storeDraft');
     Route::resource('product-types', ProductTypeController::class);
-    Route::get('/financing/load-draft/{id}', [FinancingController::class, 'loadDraft'])->name('financing.load-draft');
+    Route::get('/financing/draft/{id}', [FinancingController::class, 'loadDraft'])->name('financing.load-draft');
+    Route::get('/financing/validation/{id}', [FinancingController::class, 'showValidation'])->name('financing.validation');
+    Route::put('/financing/validate/{id}', [FinancingController::class, 'validate'])->name('financing.validation.submit');
 
     Route::get('/saving/deposit', [SavingController::class, 'createDeposit'])->name('deposit.create');
     Route::post('/saving/deposit', [SavingController::class, 'storeDeposit'])->name('deposit.store');
