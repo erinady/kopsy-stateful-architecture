@@ -229,82 +229,109 @@ class WithdrawalController extends Controller
         }
     }
 
-    /**
-     * Generate and store withdrawal receipt as PNG, then return relative storage path.
-     */
     private function storeReceiptImage(SavingTransaction $transaction, array $strukData): ?string
     {
-        if (!function_exists('imagecreatetruecolor')) {
-            return null;
+        return $this->storeReceiptViaPdf($transaction, $strukData);
+    }
+
+    /**
+     * Generate receipt via dompdf and save as PDF.
+     */
+    private function storeReceiptViaPdf(SavingTransaction $transaction, array $strukData): ?string
+    {
+        try {
+            $html = $this->getReceiptHtml($strukData);
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+                ->setPaper([0, 0, 226.77, 650], 'portrait');
+
+            $directory = 'saving-transactions/receipts/' . now()->format('Y-m');
+            $filename = 'struk-withdrawal-' . $transaction->id . '.pdf';
+            $path = $directory . '/' . $filename;
+
+            Storage::disk('public')->put($path, $pdf->output());
+
+            // verify file saved
+            if (!Storage::disk('public')->exists($path)) {
+                try {
+                    $full = storage_path('app/public/' . $path);
+                    $dir = dirname($full);
+                    if (!is_dir($dir)) {
+                        mkdir($dir, 0755, true);
+                    }
+                    file_put_contents($full, $pdf->output());
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
+            if (Storage::disk('public')->exists($path) || file_exists(storage_path('app/public/' . $path))) {
+                return $path;
+            }
+        } catch (\Throwable $e) {
+            report($e);
         }
 
-        $width = 700;
-        $height = 900;
-        $image = imagecreatetruecolor($width, $height);
+        return null;
+    }
 
-        $white = imagecolorallocate($image, 255, 255, 255);
-        $black = imagecolorallocate($image, 17, 24, 39);
-        $gray = imagecolorallocate($image, 107, 114, 128);
-        $green = imagecolorallocate($image, 22, 163, 74);
 
-        imagefill($image, 0, 0, $white);
 
-        $y = 30;
-        imagestring($image, 5, 24, $y, 'KOPERASI POLBAN - STRUK PENARIKAN', $black);
-        $y += 26;
-        imagestring($image, 3, 24, $y, 'Tanggal cetak: ' . now()->format('d/m/Y H:i:s'), $gray);
-
-        $y += 24;
-        imageline($image, 24, $y, $width - 24, $y, $gray);
-
+    /**
+     * Generate receipt HTML markup.
+     */
+    private function getReceiptHtml(array $strukData): string
+    {
         $rows = [
-            ['No Transaksi', (string) ($strukData['no_transaksi'] ?? '-')],
-            ['Nama Anggota', (string) ($strukData['nama_anggota'] ?? '-')],
-            ['No Anggota', (string) ($strukData['no_anggota'] ?? '-')],
-            ['Jenis Simpanan', (string) ($strukData['jenis'] ?? '-')],
-            ['Metode', (string) ($strukData['metode'] ?? '-')],
-            ['Tanggal Penarikan', Carbon::parse($strukData['tanggal'] ?? now())->format('d/m/Y')],
-            ['Nominal', 'Rp ' . number_format((float) ($strukData['nominal'] ?? 0), 0, ',', '.')],
-            ['Saldo Sebelum', 'Rp ' . number_format((float) ($strukData['saldo_sebelum'] ?? 0), 0, ',', '.')],
-            ['Saldo Sesudah', 'Rp ' . number_format((float) ($strukData['saldo_sesudah'] ?? 0), 0, ',', '.')],
+            'No Transaksi' => $strukData['no_transaksi'] ?? '-',
+            'Nama Anggota' => $strukData['nama_anggota'] ?? '-',
+            'No Anggota' => $strukData['no_anggota'] ?? '-',
+            'Jenis Simpanan' => $strukData['jenis'] ?? '-',
+            'Metode' => $strukData['metode'] ?? '-',
+            'Tanggal Penarikan' => Carbon::parse($strukData['tanggal'] ?? now())->format('d/m/Y'),
+            'Nominal' => 'Rp ' . number_format((float) ($strukData['nominal'] ?? 0), 0, ',', '.'),
+            'Saldo Sebelum' => 'Rp ' . number_format((float) ($strukData['saldo_sebelum'] ?? 0), 0, ',', '.'),
+            'Saldo Sesudah' => 'Rp ' . number_format((float) ($strukData['saldo_sesudah'] ?? 0), 0, ',', '.'),
         ];
 
         if (($strukData['metode'] ?? '') === 'Non-Tunai') {
-            $rows[] = ['Bank', (string) ($strukData['bank_name'] ?? '-')];
-            $rows[] = ['Atas Nama', (string) ($strukData['account_name'] ?? '-')];
-            $rows[] = ['No Rekening', (string) ($strukData['account_number'] ?? '-')];
+            $rows['Bank'] = $strukData['bank_name'] ?? '-';
+            $rows['Atas Nama'] = $strukData['account_name'] ?? '-';
+            $rows['No Rekening'] = $strukData['account_number'] ?? '-';
         }
 
-        $rows[] = ['Pengurus', (string) ($strukData['pengurus'] ?? '-')];
+        $rows['Pengurus'] = $strukData['pengurus'] ?? '-';
 
-        $y += 18;
-        foreach ($rows as [$label, $value]) {
-            imagestring($image, 3, 24, $y, $label . ':', $gray);
-            imagestring($image, 4, 240, $y - 1, mb_strimwidth($value, 0, 56, '...'), $black);
-            $y += 28;
+        $rowsHtml = '';
+        foreach ($rows as $label => $value) {
+            $rowsHtml .= "<tr><td style='font-weight:bold;'>{$label}:</td><td>{$value}</td></tr>";
         }
 
-        $y += 8;
-        imageline($image, 24, $y, $width - 24, $y, $gray);
-        $y += 18;
-        imagestring($image, 4, 24, $y, 'Transaksi berhasil diposting.', $green);
-
-        ob_start();
-        imagepng($image);
-        $binary = ob_get_clean();
-        imagedestroy($image);
-
-        if ($binary === false) {
-            return null;
-        }
-
-        $directory = 'saving-transactions/receipts/' . now()->format('Y-m');
-        $filename = 'struk-withdrawal-' . $transaction->id . '.png';
-        $path = $directory . '/' . $filename;
-
-        Storage::disk('public')->put($path, $binary);
-
-        return $path;
+        return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Struk Penarikan</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        td { padding: 8px; border-bottom: 1px solid #ccc; }
+        .footer { text-align: center; margin-top: 20px; color: green; font-weight: bold; }
+        .timestamp { text-align: center; font-size: 12px; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>KOPERASI POLBAN - STRUK PENARIKAN</h1>
+    <div class="timestamp">Tanggal cetak: {$strukData['tanggal']}</div>
+    <table>
+        {$rowsHtml}
+    </table>
+    <div class="footer">Transaksi berhasil diposting.</div>
+</body>
+</html>
+HTML;
     }
 
     /**
