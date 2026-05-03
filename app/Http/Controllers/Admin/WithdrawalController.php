@@ -240,10 +240,9 @@ class WithdrawalController extends Controller
     private function storeReceiptViaPdf(SavingTransaction $transaction, array $strukData): ?string
     {
         try {
-            $html = $this->getReceiptHtml($strukData);
-
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
-                ->setPaper([0, 0, 226.77, 650], 'portrait');
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.withdrawal_receipt', [
+                'struk' => $strukData,
+            ])->setPaper('A6', 'portrait');
 
             $directory = 'saving-transactions/receipts/' . now()->format('Y-m');
             $filename = 'struk-withdrawal-' . $transaction->id . '.pdf';
@@ -273,65 +272,6 @@ class WithdrawalController extends Controller
         }
 
         return null;
-    }
-
-
-
-    /**
-     * Generate receipt HTML markup.
-     */
-    private function getReceiptHtml(array $strukData): string
-    {
-        $rows = [
-            'No Transaksi' => $strukData['no_transaksi'] ?? '-',
-            'Nama Anggota' => $strukData['nama_anggota'] ?? '-',
-            'No Anggota' => $strukData['no_anggota'] ?? '-',
-            'Jenis Simpanan' => $strukData['jenis'] ?? '-',
-            'Metode' => $strukData['metode'] ?? '-',
-            'Tanggal Penarikan' => Carbon::parse($strukData['tanggal'] ?? now())->format('d/m/Y'),
-            'Nominal' => 'Rp ' . number_format((float) ($strukData['nominal'] ?? 0), 0, ',', '.'),
-            'Saldo Sebelum' => 'Rp ' . number_format((float) ($strukData['saldo_sebelum'] ?? 0), 0, ',', '.'),
-            'Saldo Sesudah' => 'Rp ' . number_format((float) ($strukData['saldo_sesudah'] ?? 0), 0, ',', '.'),
-        ];
-
-        if (($strukData['metode'] ?? '') === 'Non-Tunai') {
-            $rows['Bank'] = $strukData['bank_name'] ?? '-';
-            $rows['Atas Nama'] = $strukData['account_name'] ?? '-';
-            $rows['No Rekening'] = $strukData['account_number'] ?? '-';
-        }
-
-        $rows['Pengurus'] = $strukData['pengurus'] ?? '-';
-
-        $rowsHtml = '';
-        foreach ($rows as $label => $value) {
-            $rowsHtml .= "<tr><td style='font-weight:bold;'>{$label}:</td><td>{$value}</td></tr>";
-        }
-
-        return <<<HTML
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Struk Penarikan</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { text-align: center; font-size: 16px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        td { padding: 8px; border-bottom: 1px solid #ccc; }
-        .footer { text-align: center; margin-top: 20px; color: green; font-weight: bold; }
-        .timestamp { text-align: center; font-size: 12px; color: #666; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <h1>KOPERASI POLBAN - STRUK PENARIKAN</h1>
-    <div class="timestamp">Tanggal cetak: {$strukData['tanggal']}</div>
-    <table>
-        {$rowsHtml}
-    </table>
-    <div class="footer">Transaksi berhasil diposting.</div>
-</body>
-</html>
-HTML;
     }
 
     /**
