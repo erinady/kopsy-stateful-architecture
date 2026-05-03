@@ -28,8 +28,6 @@ const props = defineProps({
     financing: Object,
 })
 
-console.log('Create Financing - form data:', props.data) // Debugging line to check the structure of data prop
-
 const {
     form,
     searchQuery,
@@ -74,20 +72,22 @@ const goToStep = (step) => {
     activeStep.value = step
 }
 
-const isStep1Valid = computed(() => isMemberSelected.value)
+const isStep1Valid = computed(() => isMemberSelected.value && form.member.heirs.length > 0 && (form.family_card_file || form.documents?.family_card))
 
 const isStep2Valid = computed(() =>
-    form.member.incomes.length > 0 && form.member.expenses.length > 0
+    form.member.incomes.length > 0 && form.member.expenses.length > 0 && (form.documents?.income_slip || form.income_slip_file) && (form.documents?.bank_book || form.bank_book_file) && form.member.job_title && form.member.company_or_business_name && form.member.business_field && form.member.tenure_year && form.member.workplace_contact && form.member.workplace_address
 )
 
 const isStep3Valid = computed(() =>
-    form.financing.name &&
-    form.financing.financing_status !== 'Menunggu Kelengkapan Dokumen'
+    form.financing.name && form.collateral.collateral_type &&
+    form.financing.financing_status !== 'Menunggu Kelengkapan Dokumen' && form.financing.financing_status !== 'Ditolak'
 )
 
-console.log('Financing status in form:', form.financing.financing_status) // Debugging line to check financing status
+const isStep4Valid = computed(() => form.supplier && form.financing.cost_price && (form.purchase_receipt_file || form.documents.purchase_receipt))
 
-const isStep4Valid = computed(() => form.supplier || form.financing.cost_price)
+const isRequestValid = computed(() => isStep1Valid.value && isStep2Valid.value && form.financing.name && form.collateral.collateral_type)
+
+const isFinalizationValid = computed(() => form.financing.financing_status === 'Disetujui' && form.financing.akad_date && (form.akad_document_file || form.documents.akad_document) && form.financing.payment_method)
 
 </script>
 
@@ -120,7 +120,11 @@ const isStep4Valid = computed(() => form.supplier || form.financing.cost_price)
                     </Button>
                     <div class="flex items-center gap-4 justify-end">
                         <Button v-if="activeStep < totalSteps" variant="light"
-                            @click="submit()">
+                            @click="submit()" :disabled="(activeStep === 1 && !isStep1Valid) ||
+                            (activeStep === 2 && !isStep2Valid) ||
+                            (activeStep === 3 && !isStep3Valid) ||
+                            (activeStep === 4 && !isStep4Valid)
+                            ">
                             Simpan Sementara
                         </Button>
 
@@ -132,11 +136,11 @@ const isStep4Valid = computed(() => form.supplier || form.financing.cost_price)
                             Selanjutnya
                         </Button>
 
-                        <Button v-if="activeStep === 3 && form.financing.financing_status === 'Menunggu Kelengkapan Dokumen'" type="submit" @click="submit('PENDING_REVIEW')" variant="secondary">
+                        <Button :disabled="!isRequestValid" v-if="activeStep === 3 && (form.financing.financing_status === 'Menunggu Kelengkapan Dokumen' || form.financing.financing_status === 'Ditolak')" type="submit" @click="submit('PENDING_REVIEW')" variant="secondary">
                             Ajukan Permohonan
                         </Button>
 
-                        <Button v-if="activeStep === 5 && form.financing.financing_status === 'Disetujui'" type="submit" @click="submit('FINAL')" variant="secondary">
+                        <Button :disabled="!isFinalizationValid"  v-if="activeStep === 5" type="submit" @click="submit('FINAL')" variant="secondary">
                             Finalisasi Pembiayaan
                         </Button>
                     </div>

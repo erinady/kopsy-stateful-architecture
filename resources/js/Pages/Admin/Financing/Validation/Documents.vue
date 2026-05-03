@@ -9,7 +9,7 @@ const documentsList = [
     { key: 'family_card', label: 'Kartu Keluarga' },
     { key: 'income_slip', label: 'Slip Gaji' },
     { key: 'bank_book', label: 'Buku Tabungan' },
-    { key: 'procurement_proof', label: 'Bukti Pengadaan' },
+    { key: 'purchase_receipt', label: 'Bukti Pembelian' },
     { key: 'akad_document', label: 'Dokumen Akad' },
     { key: 'collateral_proof', label: 'Bukti Jaminan' },
 ]

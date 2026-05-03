@@ -66,8 +66,6 @@ const submit = () => {
 
     const finalStatus = statusMapping[form.final_decision_status]
 
-    console.log('Submitting validation with status:', finalStatus)
-
     Swal.fire({
         title: 'Konfirmasi',
         text: 'Apakah Anda yakin ingin menyimpan validasi permohonan ini?',
@@ -93,7 +91,6 @@ const submit = () => {
                     }
                 },
                 onError: (errors) => {
-                    console.log('Validation errors:', errors)
                     const errorMessages = Object.values(errors).flat()
 
                     if (errorMessages.length > 0) {

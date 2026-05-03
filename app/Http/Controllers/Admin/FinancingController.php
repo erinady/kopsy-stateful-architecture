@@ -11,11 +11,12 @@ use App\Enums\FinancingReqStatusEnum;
 use App\Enums\HeirEnum;
 use App\Enums\InstallmentPaymentScheduleStatusEnum;
 use App\Enums\MaritalStatusEnum;
+use App\Enums\PositionEnum;
 use App\Enums\UserStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFinancingRequest;
 use App\Models\Financing;
-use App\Models\InstallmentPaymentSchedule;
+use App\Models\JournalEntry;
 use App\Models\Member;
 use App\Models\Supplier;
 use App\Models\User;
@@ -28,7 +29,7 @@ class FinancingController extends Controller
 {
     private function baseQuery(Request $request)
     {
-        $verifier = auth()->user()->load('role');
+        $verifier = auth()->user();
         $search = $request->input('search');
         $tab = $request->input('tab', 'all');
 
@@ -56,12 +57,12 @@ class FinancingController extends Controller
                 });
             })
             ->when($tab === 'request', function ($q) use ($verifier) {
-                if (in_array($verifier->role->role_name, ['Ketua Murabahah'])) {
+                if (in_array($verifier->getRoleNames()->first(), ['Ketua Murabahah'])) {
                     $q->where(
                         'financing_status',
                         FinancingReqStatusEnum::PENDING_REVIEW->value,
                     );
-                } else if (in_array($verifier->role->role_name, ['Staf Murabahah'])) {
+                } else if (in_array($verifier->getRoleNames()->first(), ['Staf Murabahah'])) {
                     $q->whereIn('financing_status', [
                         FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
                     ]);
@@ -82,6 +83,84 @@ class FinancingController extends Controller
                 );
             })->latest('updated_at');
     }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+
+        \Log::info('User:', ['user' => $user?->id, 'role' => $user?->role?->name]);
+        \Log::info('Permissions:', ['perms' => $user?->getPermissionsViaRoles()->pluck('name')->toArray()]);
+
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        $tab = $request->input('tab', 'all');
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortDir = $request->input('sort_dir', 'desc');
+
+        $query = $this->baseQuery($request)->orderBy($sortBy, $sortDir);
+
+        $financings = $query
+            ->paginate($perPage)
+            ->withQueryString()
+            ->through(function ($f) {
+                return [
+                    'id' => $f->id,
+                    'financing_transaction_code' => $f->financing_transaction_code,
+                    'akad_date' => $f->akad_date,
+                    'user' => $f->member->user
+                        ? ($f->member->user->user_code . ' - ' . $f->member->user->name)
+                        : '-',
+                    'tenor_left' => $f->installment?->payment_schedules_count ?? 0,
+                    'product_name' => $f->financingItem?->name,
+                    'financing_status' => $f->financing_status,
+                ];
+            });
+
+        $summary = [
+            [
+                'title' => 'Total Pengajuan Pembiayaan Murabahah',
+                'value' => Financing::whereIn('financing_status', [
+                    FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
+                    FinancingReqStatusEnum::PENDING_REVIEW->value,
+                ])->count()
+            ],
+            ['title' => 'Total Pembiayaan Berlangsung', 'value' => Financing::where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->count()],
+            ['title' => 'Total Modal Belum Diputar', 'value' => $this->getModalBelumDiputar()],
+        ];
+
+        return inertia('Admin/Financing/Index', [
+            'financings' => $financings,
+            'summary' => $summary,
+            'filters' => compact('search', 'perPage', 'tab', 'sortBy', 'sortDir'),
+        ]);
+    }
+
+    private function getModalBelumDiputar()
+    {
+        $modalCredit = JournalEntry::
+            with([
+                'account' => function ($q) {
+                    $q->where('account_name', 'Modal Murabahah');
+                }
+            ])
+            ->where('position', PositionEnum::CREDIT->value)
+            ->sum('nominal');
+
+        $modalDebit = JournalEntry::
+            with([
+                'account' => function ($q) {
+                    $q->where('account_name', 'Modal Murabahah');
+                }
+            ])
+            ->where('position', PositionEnum::DEBIT->value)
+            ->sum('nominal');
+
+        return $modalCredit - $modalDebit;
+    }
+
     /**
      * Get common dropdown data
      */
@@ -144,55 +223,6 @@ class FinancingController extends Controller
         ];
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $search = $request->input('search');
-        $tab = $request->input('tab', 'all');
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortDir = $request->input('sort_dir', 'desc');
-
-        $query = $this->baseQuery($request)->orderBy($sortBy, $sortDir);
-
-        $financings = $query
-            ->paginate($perPage)
-            ->withQueryString()
-            ->through(function ($f) {
-                return [
-                    'id' => $f->id,
-                    'financing_transaction_code' => $f->financing_transaction_code,
-                    'akad_date' => $f->akad_date,
-                    'user' => $f->member->user
-                        ? ($f->member->user->user_code . ' - ' . $f->member->user->name)
-                        : '-',
-                    'tenor_left' => $f->installment?->payment_schedules_count ?? 0,
-                    'product_name' => $f->financingItem?->name,
-                    'financing_status' => $f->financing_status,
-                ];
-            });
-
-        $summary = [
-            [
-                'title' => 'Total Pengajuan Pembiayaan Murabahah',
-                'value' => Financing::whereIn('financing_status', [
-                    FinancingReqStatusEnum::WAITING_DOCUMENTS->value,
-                    FinancingReqStatusEnum::PENDING_REVIEW->value,
-                ])->count()
-            ],
-            ['title' => 'Total Pembiayaan Berlangsung', 'value' => Financing::where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)->count()],
-            ['title' => 'Total Modal Belum Diputar', 'value' => 0]
-        ];
-
-        return inertia('Admin/Financing/Index', [
-            'financings' => $financings,
-            'summary' => $summary,
-            'filters' => compact('search', 'perPage', 'tab', 'sortBy', 'sortDir'),
-        ]);
-    }
-
     public function show(string $id)
     {
         $financing = Financing::with(['installment', 'installment.paymentSchedules.payment'])->findOrFail($id);
@@ -213,7 +243,6 @@ class FinancingController extends Controller
             'data' => $financing
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -285,13 +314,12 @@ class FinancingController extends Controller
                     'collateral_location' => $financing->collateral?->collateral_location,
                 ],
                 'documents' => [
-                    'family_card' => asset($financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment),
-                    'income_slip' => asset($financing->member->memberDocs->where('doc_name', 'slip_gaji')->first()?->doc_attachment),
-                    'bank_book' => asset($financing->member->memberDocs->where('doc_name', 'buku_tabungan')->first()?->doc_attachment),
-                    'down_payment_proof' => asset($financing->member->memberDocs->where('doc_name', 'down_payment_proof')->first()?->doc_attachment),
-                    'purchase_receipt' => asset($financing->financingItem->purchase_receipt),
-                    'akad_document' => asset($financing->signed_akad_document),
-                    'collateral_proof' => asset($financing->collateral?->collateral_proof),
+                    'family_card' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment),
+                    'income_slip' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'slip_gaji')->first()?->doc_attachment),
+                    'bank_book' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'buku_tabungan')->first()?->doc_attachment),
+                    'down_payment_proof' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'down_payment_proof')->first()?->doc_attachment),
+                    'purchase_receipt' => $this->getDocumentUrl($financing->financingItem->purchase_receipt),
+                    'akad_document' => $this->getDocumentUrl($financing->signed_akad_document),
                 ],
                 'supplier' => $financing->financingItem->supplier ? [
                     'supplier_name' => $financing->financingItem->supplier->supplier_name,
@@ -301,6 +329,11 @@ class FinancingController extends Controller
                 ] : null,
             ],
         ]);
+    }
+
+    private function getDocumentUrl($path)
+    {
+        return $path ? asset('storage/' . $path) : null;
     }
 
     public function showValidation(string $id)
@@ -353,12 +386,12 @@ class FinancingController extends Controller
                     'collateral_location' => $financing->collateral?->collateral_location,
                 ],
                 'documents' => [
-                    'family_card' => $financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment,
-                    'income_slip' => $financing->member->memberDocs->where('doc_name', 'slip_gaji')->first()?->doc_attachment,
-                    'bank_book' => $financing->member->memberDocs->where('doc_name', 'buku_tabungan')->first()?->doc_attachment,
-                    'purchase_receipt' => $financing->financingItem->purchase_receipt,
-                    'akad_document' => $financing->signed_akad_document,
-                    'collateral_proof' => $financing->collateral?->collateral_proof,
+                    'family_card' =>    $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'kartu_keluarga')->first()?->doc_attachment),
+                    'income_slip' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'slip_gaji')->first()?->doc_attachment),
+                    'bank_book' => $this->getDocumentUrl($financing->member->memberDocs->where('doc_name', 'buku_tabungan')->first()?->doc_attachment),
+                    'purchase_receipt' => $this->getDocumentUrl($financing->financingItem->purchase_receipt),
+                    'akad_document' => $this->getDocumentUrl($financing->signed_akad_document),
+                    'collateral_proof' => $this->getDocumentUrl($financing->collateral?->collateral_proof),
                 ],
                 'supplier' => $financing->financingItem->supplier ? [
                     'supplier_name' => $financing->financingItem->supplier->supplier_name,
@@ -395,7 +428,7 @@ class FinancingController extends Controller
     }
 
     /**
-     * Store draft financing
+     * Store financing
      */
     public function store(StoreFinancingRequest $request)
     {
@@ -531,21 +564,17 @@ class FinancingController extends Controller
                             'owner_name' => $validated['collateral']['owner_name'] ?? null,
                             'estimated_market_value' => $validated['collateral']['estimated_market_value'] ?? null,
                             'collateral_location' => $validated['collateral']['collateral_location'] ?? null,
-                            'collateral_proof' => $request->hasFile('collateral_proof_file')
-                                ? $request->file('collateral_proof_file')->store('documents', 'public')
-                                : null,
                         ]
                     );
                 }
 
-                if (isset($validated['financing']['akad_document_file'])) {
+                if ($request->hasFile('akad_document_file')) {
                     $financing->update([
                         'signed_akad_document' => $request->file('akad_document_file')->store('documents', 'public'),
                     ]);
                 }
-                Log::info(isset($validated['tenor']));
 
-                if ((isset($validated['tenor']) && $validated['tenor'] > 0)) {
+                if ($validated['tenor']) {
                     $installment = $financing->installment()->create([
                         'financing_id' => $financing->id,
                         'tenor' => $validated['tenor'],
@@ -557,7 +586,7 @@ class FinancingController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.financing.index');
+            return redirect()->route('admin.financing.index')->with('success', 'Permohonan pembiayaan berhasil disimpan');
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -580,7 +609,7 @@ class FinancingController extends Controller
         $members = Member::query()
             ->with(['user:id,user_code,name,email,nik,phone_number,role_id', 'memberDocs', 'financials', 'heirs', 'memberJobs'])
             ->whereHas('user', function ($q) use ($query) {
-                $q->whereHas('role', fn($roleQ) => $roleQ->where('role_name', 'Anggota'))
+                $q->whereHas('role', fn($roleQ) => $roleQ->where('name', 'Anggota'))
                     ->where('status', UserStatusEnum::ACTIVE->value)
                     ->where(function ($searchQ) use ($query) {
                         $searchQ->where('name', 'ILIKE', "%{$query}%")

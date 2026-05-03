@@ -32,16 +32,16 @@ const netIncome = computed(() => {
 
         <div class="flex flex-col">
             <div class="border-b border-gray-200 grid grid-cols-2 gap-4 p-4">
-                <BaseInputAdmin v-model="form.member.job_title" label="Jabatan" placeholder="Masukkan jabatan" />
-                <BaseInputAdmin v-model="form.member.company_or_business_name" label="Nama Perusahaan atau Bisnis"
+                <BaseInputAdmin v-model="form.member.job_title" required label="Jabatan" placeholder="Masukkan jabatan" />
+                <BaseInputAdmin v-model="form.member.company_or_business_name" required label="Nama Perusahaan atau Bisnis"
                     placeholder="Masukkan nama perusahaan atau bisnis" />
-                <BaseInputAdmin v-model="form.member.business_field" label="Bidang Pekerjaan"
+                <BaseInputAdmin v-model="form.member.business_field" required label="Bidang Pekerjaan"
                     placeholder="Masukkan bidang pekerjaan" />
-                <BaseInputAdmin v-model="form.member.tenure_year" label="Lama Bekerja (Tahun)" type="number"
+                <BaseInputAdmin v-model="form.member.tenure_year" required label="Lama Bekerja (Tahun)" type="number"
                     placeholder="Masukkan lama bekerja" />
-                <BaseInputAdmin v-model="form.member.workplace_contact" max="13" label="Kontak Perusahaan"
+                <BaseInputAdmin v-model="form.member.workplace_contact" max="13" required label="Kontak Perusahaan"
                     placeholder="Masukkan kontak perusahaan" />
-                <BaseInputAdmin rows="3" v-model="form.member.workplace_address" label="Alamat Perusahaan"
+                <BaseInputAdmin rows="3" v-model="form.member.workplace_address" required label="Alamat Perusahaan"
                     type="textarea" placeholder="Masukkan alamat perusahaan" />
             </div>
 
@@ -78,7 +78,7 @@ const netIncome = computed(() => {
                             </tr>
                             <tr class="font-semibold text-dark-text">
                                 <td class="pt-4 text-left pl-6">Total Penghasilan Bulanan</td>
-                                <td colspan="2" class="pt-4 text-right pr-6">{{ totalIncome }}</td>
+                                <td colspan="2" class="pt-4 text-right pr-6">{{ moneyParser(totalIncome) }}</td>
                             </tr>
                         </tbody>
                         <tbody v-else>

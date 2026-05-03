@@ -87,7 +87,7 @@ const totalPrice = computed(() => {
         <div class="card-layout mx-4">
             <h1 class="card-title">Pengadaan Barang</h1>
             <div class="grid grid-cols-2 gap-4 pt-4">
-                <BaseInputAdmin type="file" label="Bukti Pembelian" v-model="form.procurement_proof_file"
+                <BaseInputAdmin type="file" label="Bukti Pembelian" v-model="form.purchase_receipt_file"
                     accept=".pdf,.jpg,.jpeg,.png" required />
                 <BaseInputAdmin v-model.number="form.financing.down_payment" label="Uang Muka" type="number"
                     placeholder="Masukkan uang muka" />
@@ -107,6 +107,13 @@ const totalPrice = computed(() => {
                 </div>
             </div>
             <div class="col-span-2 grid grid-cols-2 items-end gap-6 mt-4" v-if="form.is_wakalah">
+                <a href="/docs/AkadWakalah.docx" target="_blank"
+                    class="border border-gray-300 flex justify-between rounded-lg p-4">
+                    <div class="text-sm text-primary hover:underline">
+                        Unduh Dokumen Akad Wakalah
+                    </div>
+                    <span class="icon-[tabler--download] text-green-500"></span>
+                </a>
                 <div class="flex flex-col gap-2">
                     <BaseInputAdmin type="file" label="Upload Dokumen Wakalah Tertandatangani"
                         v-model="form.akad_wakalah_file" accept=".jpg,.jpeg,.png, application/pdf" required />

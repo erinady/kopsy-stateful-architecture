@@ -6,7 +6,7 @@ import BaseFunctionality from '@/Components/Table/BaseFunctionality.vue';
 import BaseTable from '@/Components/Table/BaseTable.vue';
 import Pagination from '@/Components/Table/Pagination.vue';
 import CardInfo from '@/Components/CardInfo.vue';
-import { usePage, Link, router } from '@inertiajs/vue3';
+import { usePage, router } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import Button from '@/Components/Form/Button.vue';
 import useFinancingStatus, { getStatusLabel } from '@/Composables/useFinancingStatus'
@@ -14,11 +14,7 @@ import ReviewIcon from '@/Icons/ReviewIcon.vue'
 
 const page = usePage();
 
-const user = computed(() => page.props.auth?.user || {
-    name: 'User',
-    email: 'user@example.com',
-    profile_picture: '/public/images/user/owner.jpg',
-})
+const role = computed(() => page.props.auth.role)
 
 const isLoading = ref(false);
 
@@ -32,23 +28,6 @@ const transactions = computed(() => page.props.financings ?? {
     data: [], current_page: 1, per_page: 10, total: 0, links: [],
 })
 
-const columns = computed(() => {
-    const baseColumns = [
-        { key: 'financing_transaction_code', label: 'No. Transaksi', align: 'center' },
-        { key: 'akad_date', label: 'Tanggal Akad', align: 'center' },
-        { key: 'user', label: 'Anggota', align: 'center' },
-        { key: 'product_name', label: 'Nama Produk', align: 'center' },
-        { key: 'financing_status', label: 'Status', align:'center' },
-        { key: 'aksi', label: 'Aksi', align:'center'}
-    ]
-
-    if (filters.tab === 'active') {
-        baseColumns.splice(3, 0, { key: 'tenor_left', label: 'Sisa Tenor', align: 'center' })
-    }
-
-    return baseColumns
-})
-
 const tabs = [
     { key: 'all', label: 'Semua' },
     { key: 'request', label: 'Permohonan Pembiayaan Murabahah' },
@@ -56,30 +35,12 @@ const tabs = [
     { key: 'active', label: 'Pembiayaan Aktif' },
 ]
 
-const tableTitle = computed(() => {
-    const map = {
-        all: 'Data Pembiayaan Murabahah',
-        request: 'Data Permintaan Pembiayaan',
-        active: 'Data Pembiayaan Aktif',
-    }
-    return map[filters.tab] ?? 'Data Pembiayaan Murabahah'
-})
-
 const filters = reactive({
     search: page.props.filters?.search ?? '',
     per_page: page.props.filters?.per_page ?? 10,
     tab: page.props.filters?.tab ?? 'all',
     sort_by: page.props.filters?.sort_by ?? 'created_at',
     sort_dir: page.props.filters?.sort_dir ?? 'desc',
-})
-
-const exportQuery = computed(() => {
-    const params = {}
-    if (filters.search) params.search = filters.search
-    if (filters.tab) params.tab = filters.tab
-    params.sort_by = filters.sort_by
-    params.sort_dir = filters.sort_dir
-    return new URLSearchParams(params).toString()
 })
 
 const applyFilters = () => {
@@ -101,6 +62,32 @@ const applyFilters = () => {
         }
     )
 }
+
+const tableTitle = computed(() => {
+    const map = {
+        all: 'Data Pembiayaan Murabahah',
+        request: 'Data Permintaan Pembiayaan',
+        active: 'Data Pembiayaan Aktif',
+    }
+    return map[filters.tab] ?? 'Data Pembiayaan Murabahah'
+})
+
+const columns = computed(() => {
+    const baseColumns = [
+        { key: 'financing_transaction_code', label: 'No. Transaksi', align: 'center' },
+        { key: 'akad_date', label: 'Tanggal Akad', align: 'center' },
+        { key: 'user', label: 'Anggota', align: 'center' },
+        { key: 'product_name', label: 'Nama Produk', align: 'center' },
+        { key: 'financing_status', label: 'Status', align:'center' },
+        { key: 'aksi', label: 'Aksi', align:'center'}
+    ]
+
+    if (filters.tab === 'active') {
+        baseColumns.splice(3, 0, { key: 'tenor_left', label: 'Sisa Tenor', align: 'center' })
+    }
+
+    return baseColumns
+})
 
 const toggleSort = (column) => {
     if (filters.sort_by === column) {
@@ -124,6 +111,7 @@ watch(() => filters.search, () => {
 })
 watch(() => filters.per_page, applyFilters)
 watch(() => filters.tab, applyFilters)
+
 </script>
 
 <template>
@@ -191,18 +179,17 @@ watch(() => filters.tab, applyFilters)
 
                     <template #cell-aksi="{ row }">
                         <div class="flex justify-center">
-
-                            <Button v-if="row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Ditolak' && user.role.role_name !== 'Staf Murabahah' || row.financing_status === 'Lunas' || row.financing_status === 'Menunggu Kelengkapan Dokumen' && user.role.role_name === 'Ketua'" :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
+                            <Button v-if="(role === 'Staf Murabahah' && (row.financing_status === 'Lunas' || row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Belum Ditinjau')) || (role === 'Ketua Murabahah' && row.financing_status !== 'Belum Ditinjau')" :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
                                 <Icon icon="mdi:eye-outline" class="w-5 h-5" />
                                 Lihat Detail
                             </Button>
 
-                            <Button v-else-if="row.financing_status === 'Menunggu Kelengkapan Dokumen' || row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' && user.role.role_name === 'Staf Murabahah'" :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
+                            <Button v-if="(role === 'Staf Murabahah' && (row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' || row.financing_status === 'Menunggu Kelengkapan Dokumen'))" :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
                                 <ReviewIcon width="18px" height="18px" />
                                 Lanjutkan
                             </Button>
 
-                            <Button v-else-if="row.financing_status === 'Belum Ditinjau'" :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
+                            <Button v-if="(role === 'Ketua Murabahah' && (row.financing_status === 'Belum Ditinjau'))" :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
                                 <ReviewIcon width="18px" height="18px" />
                                 Tinjau
                             </Button>

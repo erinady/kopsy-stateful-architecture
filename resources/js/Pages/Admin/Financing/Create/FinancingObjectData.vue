@@ -30,7 +30,6 @@ const handleProductTypeChange = (value) => {
     } else {
         showNewProductTypeInput.value = false
         props.form.financing.product_type_id = value
-        console.log('Product type selected:', value, props.form.financing.product_type_id) 
     }
 }
 
@@ -89,7 +88,7 @@ const closeModal = () => {
         <div class="grid grid-cols-2 gap-4 p-4">
             <BaseInputAdmin v-model="form.collateral.collateral_type" label="Jenis Agunan"
                 placeholder="Masukkan jenis agunan" required />
-            <BaseInputAdmin v-model="form.collateral.owner_name" label="Atas Nama" placeholder="Masukkan nama pemilik" />
+            <BaseInputAdmin v-model="form.collateral.owner_name" required label="Atas Nama" placeholder="Masukkan nama pemilik" />
             <BaseInputAdmin v-model="form.collateral.estimated_market_value" label="Nilai Perkiraan Pasar"
                 placeholder="Masukkan nilai perkiraan pasar" />
             <BaseInputAdmin v-model="form.collateral.collateral_location" label="Lokasi/Kondisi Agunan" type="textarea"

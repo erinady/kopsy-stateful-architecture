@@ -108,13 +108,13 @@ const heirInput = ref({
         <!-- Heirs section -->
         <div class="flex flex-col gap-4 w-full p-4 border-b border-gray-200">
             <div class="flex gap-4 w-full items-end">
-                <BaseInputAdmin label="Data Ahli Waris" max="16" pattern="[0-9]{16}"
+                <BaseInputAdmin label="Data Ahli Waris" required max="16" pattern="[0-9]{16}"
                     placeholder="Masukkan NIK Ahli Waris" v-model="heirInput.heir_nik" />
                 <BaseInputAdmin v-model="heirInput.heir_name" placeholder="Nama Ahli Waris" />
                 <BaseInputAdmin v-model="heirInput.relationship" type="select"
                     :selectables="data.relationships.map(unit => ({ value: unit, text: unit }))"
                     placeholder="Hubungan dengan anggota" />
-                <BaseInputAdmin v-model="heirInput.heir_contact" placeholder="Nomor Kontak" />
+                <BaseInputAdmin v-model="heirInput.heir_contact" max="20" placeholder="Nomor Kontak" />
                 <Button variant="primary" @click="$emit('addHeir', heirInput)">
                     Tambah
                 </Button>
@@ -153,7 +153,7 @@ const heirInput = ref({
         </div>
         <div class="flex flex-col gap-4 w-full p-4 border-b border-gray-200">
             <BaseInputAdmin type="file" label="Foto Kartu Keluarga" v-model="form.family_card_file"
-                accept=".jpg,.jpeg,.png, application/pdf" :error="errors.family_card_file" required />
+                accept=".jpg,.jpeg,.png, application/pdf" required />
             <div class="flex justify-between text-xs text-gray-400">
                 <p>Format: JPG, JPEG, PNG, PDF</p>
                 <p>Max. 5 MB per file</p>

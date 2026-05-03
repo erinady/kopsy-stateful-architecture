@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRoleEnum;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinancingController;
@@ -19,6 +20,17 @@ use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserRepaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+$adminRoles = [
+    UserRoleEnum::KETUA->value,
+    UserRoleEnum::SEKRETARIS->value,
+    UserRoleEnum::PENGAWAS->value,
+    UserRoleEnum::BENDAHARA->value,
+    UserRoleEnum::DPS->value,
+    UserRoleEnum::PENGAWAS->value,
+    UserRoleEnum::KETUAMURABAHAH->value,
+    UserRoleEnum::STAFMURABAHAH->value,
+];
 
 Route::get('/', function () {
     return Inertia::render('LandingPage', [
@@ -70,7 +82,7 @@ Route::post('/auth/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('auth.logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin', 'revalidate'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:' . implode('|', $adminRoles), 'revalidate'])->group(function () {
     Route::get('/list', [AdminController::class, 'index'])->name('index');
     Route::get('/create', [AdminController::class, 'create']);
     Route::post('/store', [AdminController::class, 'store']);

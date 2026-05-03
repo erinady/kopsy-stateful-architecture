@@ -81,8 +81,9 @@ class StoreFinancingRequest extends FormRequest
             'income_slip_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
             'bank_book_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
             'down_payment_proof_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'procurement_proof_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'purchase_receipt_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
             'akad_document_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'akad_wakalah_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
         ];;
     }
 }

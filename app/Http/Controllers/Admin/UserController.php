@@ -78,7 +78,7 @@ class UserController extends Controller
             ->whereHas(
                 'role',
                 fn($q) =>
-                $q->where('role_name', UserRoleEnum::ANGGOTA->value)
+                $q->where('name', UserRoleEnum::ANGGOTA->value)
             )
             ->whereNotNull('joined_date')
             ->whereNotNull('user_code');
@@ -86,7 +86,7 @@ class UserController extends Controller
         $memberBaseQuery = User::with('member.savingAccounts')->whereHas(
             'role',
             fn($q) =>
-            $q->where('role_name', UserRoleEnum::ANGGOTA->value)
+            $q->where('name', UserRoleEnum::ANGGOTA->value)
         );
 
         $verifiedMembersQuery = (clone $memberBaseQuery)

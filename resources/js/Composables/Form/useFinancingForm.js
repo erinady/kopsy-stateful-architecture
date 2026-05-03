@@ -60,6 +60,7 @@ export function useFinancingForm(initialData = null) {
             down_payment: initialData?.financing?.down_payment || null,
             notes: initialData?.financing?.notes || '',
             financing_status: initialData?.financing?.financing_status || 'Menunggu Kelengkapan Dokumen',
+            purchase_receipt: initialData?.financing?.purchase_receipt || null
         },
         collateral: {
             collateral_type: initialData?.collateral?.collateral_type || '',
@@ -71,10 +72,8 @@ export function useFinancingForm(initialData = null) {
             family_card: initialData?.documents?.family_card || null,
             income_slip: initialData?.documents?.income_slip || null,
             bank_book: initialData?.documents?.bank_book || null,
-            down_payment_proof: initialData?.documents?.down_payment_proof || null,
             purchase_receipt: initialData?.documents?.purchase_receipt || null,
             akad_document: initialData?.documents?.akad_document || null,
-            collateral_proof: initialData?.documents?.collateral_proof || null,
         },
         // Supplier data
         supplier: {
@@ -94,7 +93,7 @@ export function useFinancingForm(initialData = null) {
         family_card_file: null,
         income_slip_file: null,
         bank_book_file: null,
-        procurement_proof_file: null,
+        purchase_receipt_file: null,
         akad_document_file: null,
         akad_wakalah_file: null
     })
@@ -113,7 +112,6 @@ export function useFinancingForm(initialData = null) {
                 params: { q: query }
             })
             memberResults.value = response.data.members
-            console.log('Search results:', memberResults.value)
         } catch (error) {
             console.error('Error searching members:', error)
             memberResults.value = []
@@ -151,7 +149,6 @@ export function useFinancingForm(initialData = null) {
         form.member.expenses = member.expenses || []
         form.member.heirs = member.heirs || []
 
-        console.log('Selected member details:', form.member)
         memberResults.value = []
         isMemberSelected.value = true
     }
@@ -355,7 +352,7 @@ export function useFinancingForm(initialData = null) {
     })
 
     const submit = (status) => {
-        if (form.financing.financing_status === 'Menunggu Kelengkapan Dokumen' && status === 'PENDING_REVIEW') {
+        if ((form.financing.financing_status === 'Menunggu Kelengkapan Dokumen' || form.financing.financing_status === 'Ditolak') && status === 'PENDING_REVIEW') {
             form.financing.financing_status = 'Belum Ditinjau'
         }
 
@@ -387,8 +384,6 @@ export function useFinancingForm(initialData = null) {
                         }
                     },
                     onError: (errors) => {
-                        console.log('Validation errors:', errors)
-
                         // Show all errors
                         const errorMessages = Object.values(errors).flat()
 
