@@ -53,6 +53,7 @@ const props = withDefaults(defineProps<{
         tanggal_bergabung: '',
     }),
     savings: () => ({
+        total_saldo: 0,
         simpanan_pokok: 0,
         simpanan_wajib: 0,
         tabungan_anggota: 0,
@@ -117,11 +118,14 @@ const selectFilters = [
 ]
 
 const totalSavings = computed(() => {
-    return Object.values(props.savings ?? {}).reduce((total, amount) => total + (amount || 0), 0)
+    return Math.max(0, Number(props.savings?.total_saldo ?? 0))
 })
 
 const savingTypeCount = computed(() => {
-    return Object.values(props.savings ?? {}).filter((amount) => (amount || 0) > 0).length
+    return Object.entries(props.savings ?? {})
+        .filter(([key]) => key !== 'total_saldo')
+        .filter(([, amount]) => Number(amount || 0) > 0)
+        .length
 })
 
 const transactionCount = computed(() => props.transactions?.total ?? 0)
