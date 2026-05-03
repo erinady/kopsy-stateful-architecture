@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\Education;
-use App\Enums\Heir as HeirEnum;
-use App\Enums\MaritalStatus;
+use App\Enums\EducationEnum;
+use App\Enums\HeirEnum;
+use App\Enums\MaritalStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMemberRequest extends FormRequest
@@ -40,13 +40,13 @@ class StoreMemberRequest extends FormRequest
             'nik' => 'required|digits:16|unique:users,nik',
             'birth_place' => 'required|string|max:255',
             'birth_date' => 'required|date',
-            'marital_status' => 'required|in:' . implode(',', array_column(MaritalStatus::cases(), 'value')),
+            'marital_status' => 'required|in:' . implode(',', array_column(MaritalStatusEnum::cases(), 'value')),
             'phone_number' => 'required|string|max:20|unique:users,phone_number',
             'email' => 'nullable|email|max:255|unique:users,email',
-            'address' => 'required|string|max:500',
+            'domicile_address' => 'required|string|max:500',
             'residential_address' => 'nullable|string|max:500',
-            'last_education' => 'required|in:' . implode(',', array_column(Education::cases(), 'value')),
-            'heir_nik' => 'required|digits:16|unique:heirs,nik',
+            'last_education' => 'required|in:' . implode(',', array_column(EducationEnum::cases(), 'value')),
+            'heir_nik' => 'required|digits:16|unique:heirs,heir_nik',
             'heir_name' => 'required|string|max:255',
             'heir_relationship' => 'required|in:' . implode(',', array_column(HeirEnum::cases(), 'value')),
             'heir_contact' => 'required|string|max:20',

@@ -76,7 +76,7 @@ class UserController extends Controller
 
         $query = User::with('member.savingAccounts')
             ->whereHas(
-                'role',
+                'roles',
                 fn($q) =>
                 $q->where('name', UserRoleEnum::ANGGOTA->value)
             )
@@ -84,7 +84,7 @@ class UserController extends Controller
             ->whereNotNull('user_code');
 
         $memberBaseQuery = User::with('member.savingAccounts')->whereHas(
-            'role',
+            'roles',
             fn($q) =>
             $q->where('name', UserRoleEnum::ANGGOTA->value)
         );

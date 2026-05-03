@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Models\Loan;
+use App\Enums\InstallmentPaymentScheduleStatusEnum;
 use App\Models\Financing;
 use App\Models\LoanPayment;
 use App\Models\LoanPaymentSchedule;
@@ -24,23 +24,23 @@ class UserRepaymentController extends Controller
 
         $data = [];
         $data['financing'] = Financing::
-            with('user', 'loan.paymentSchedules.payment')
+            with('user', 'installment.paymentSchedules.payment')
             ->where('user_id', $user->id)
             ->findOrFail($id);
 
-        $data['total_paid_installments'] = $data['financing']->loan->paymentSchedules->where('status', LoanPaymentScheduleStatus::PAID->value)->count();
+        $data['total_paid_installments'] = $data['financing']->installment->paymentSchedules->where('status', InstallmentPaymentScheduleStatusEnum::PAID->value)->count();
 
         // Selisih harga cicilan dan tsaman naqdy
-        $marginDiff = $data['financing']->loan->total_loan - $data['financing']->tsaman_naqdy;
+        $marginDiff = $data['financing']->installment->total_loan - $data['financing']->tsaman_naqdy;
         // Selisih harga cicilan dan tsaman naqdy per bulan
-        if ($data['financing']->loan->tenor == 0) {
+        if ($data['financing']->installment->tenor == 0) {
             $data['margin_diff_per_month'] = 0;
         } else {
-            $data['margin_diff_per_month'] = $marginDiff / $data['financing']->loan->tenor;
+            $data['margin_diff_per_month'] = $marginDiff / $data['financing']->installment->tenor;
         }
 
         $data['qimah_haliyyah'] = $data['financing']->tsaman_naqdy + ($data['margin_diff_per_month'] * ($data['total_paid_installments'] + 1)); // tambah satu untuk installment saat ini
-        $data['payment_total'] = $data['financing']->loan->paymentSchedules->where('status', LoanPaymentScheduleStatus::PAID->value)->sum('total_amount');
+        $data['payment_total'] = $data['financing']->installment->paymentSchedules->where('status', InstallmentPaymentScheduleStatusEnum::PAID->value)->sum('total_amount');
         $data['repayment_total'] = $data['qimah_haliyyah'] - $data['payment_total'];
 
         return inertia('User/Financing/Repayment/Show', [

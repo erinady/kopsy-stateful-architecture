@@ -102,12 +102,14 @@ class AdminController extends Controller
         try {
             $data = $request->validated();
 
-            User::create([
+            $user = User::create([
                 ...$data,
                 'user_code' => 'KSP' . $data['role_id'] . (User::count() + 1),
                 'password' => bcrypt('Password123'),
                 'status' => UserStatusEnum::ACTIVE->value,
             ]);
+
+            $user->assignRole(Role::where('id', $data['role_id'])->first()->name);
 
             DB::commit();
 
