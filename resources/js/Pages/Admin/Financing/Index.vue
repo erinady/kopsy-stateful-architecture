@@ -14,7 +14,9 @@ import ReviewIcon from '@/Icons/ReviewIcon.vue'
 
 const page = usePage();
 
-const role = computed(() => page.props.auth.role)
+const role = computed(() => page.props.auth.role);
+
+const can = computed(() => page.props.auth.can);
 
 const isLoading = ref(false);
 
@@ -179,17 +181,17 @@ watch(() => filters.tab, applyFilters)
 
                     <template #cell-aksi="{ row }">
                         <div class="flex justify-center">
-                            <Button v-if="(role === 'Staf Murabahah' && (row.financing_status === 'Lunas' || row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Belum Ditinjau')) || (role === 'Ketua Murabahah' && row.financing_status !== 'Belum Ditinjau')" :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
+                            <Button v-if="can['view_murabahah'] || (role === 'Staf Murabahah' && (row.financing_status === 'Lunas' || row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Belum Ditinjau')) || (role === 'Ketua Murabahah' && row.financing_status !== 'Belum Ditinjau')" :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
                                 <Icon icon="mdi:eye-outline" class="w-5 h-5" />
                                 Lihat Detail
                             </Button>
 
-                            <Button v-if="(role === 'Staf Murabahah' && (row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' || row.financing_status === 'Menunggu Kelengkapan Dokumen'))" :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
+                            <Button v-if="can['edit_murabahah'] && (role === 'Staf Murabahah' && (row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' || row.financing_status === 'Menunggu Kelengkapan Dokumen'))" :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
                                 <ReviewIcon width="18px" height="18px" />
                                 Lanjutkan
                             </Button>
 
-                            <Button v-if="(role === 'Ketua Murabahah' && (row.financing_status === 'Belum Ditinjau'))" :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
+                            <Button v-if="can['validate_murabahah'] && (role === 'Ketua Murabahah' && (row.financing_status === 'Belum Ditinjau'))" :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
                                 <ReviewIcon width="18px" height="18px" />
                                 Tinjau
                             </Button>
