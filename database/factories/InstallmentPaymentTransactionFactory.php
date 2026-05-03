@@ -21,7 +21,7 @@ class InstallmentPaymentTransactionFactory extends Factory
             'principal_paid' => $this->faker->numberBetween(100000, 10000000),
             'margin_paid' => $this->faker->numberBetween(10000, 1000000),
             'payment_date' => $this->faker->dateTime(),
-            'schedule_id' => InstallmentPaymentSchedule::factory(),
+            'installment_payment_schedule_id' => InstallmentPaymentSchedule::factory(),
             'updated_by' => User::factory(),
             'installment_payment_receipt' => $this->faker->optional()->filePath(),
         ];

@@ -20,7 +20,7 @@ class InstallmentPaymentTransaction extends Model
         'principal_paid',
         'margin_paid', // margin_amount / tenor
         'payment_date',
-        'schedule_id',
+        'installment_payment_schedule_id',
         'updated_by',
         'installment_payment_receipt'
     ];
@@ -31,7 +31,7 @@ class InstallmentPaymentTransaction extends Model
 
     public function installmentPaymentSchedule()
     {
-        return $this->belongsTo(InstallmentPaymentSchedule::class);
+        return $this->belongsTo(InstallmentPaymentSchedule::class, 'installment_payment_schedule_id', 'id');
     }
 
     public function updatedBy()

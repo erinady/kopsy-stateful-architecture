@@ -8,7 +8,6 @@ ChartJS.register(ArcElement, Tooltip, Legend)
 const props = defineProps({
     paymentSchedules: {
         type: Array,
-        required: true
     }
 })
 
@@ -23,7 +22,7 @@ const statusCounts = computed(() => {
         'Dibatalkan': 0,
     }
 
-    props.paymentSchedules.forEach(schedule => {
+    props.paymentSchedule?.forEach(schedule => {
         if (counts.hasOwnProperty(schedule.status)) {
             counts[schedule.status]++
         }

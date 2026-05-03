@@ -49,21 +49,20 @@ const getScheduleStatusClass = (status) => {
             <div class="flex justify-between border-b border-gray-200 pb-4 px-8">
                 <div class="flex flex-col">
                     <h1 class="uppercase font-medium text-lg">Detail Pembiayaan Murabahah</h1>
-                    <p class="text-sm font-light text-gray-500">No. Pembiayaan: {{ data.transaction_code }}</p>
+                    <p class="text-sm font-light text-gray-500">No. Pembiayaan: {{ data.financing_transaction_code }}</p>
                 </div>
                 <span class="my-auto" :class="useFinancingStatus(data.financing_status)">{{ data.financing_status }}</span>
             </div>
             <div class="flex flex-col px-12 pb-2 pt-4 gap-2">
                 <h1>Detail Objek Pembiayaan Murabahah</h1>
                 <div class="card-layout grid grid-cols-2 gap-6">
-                    <Info label="Kategori Produk" :value="data.product_type" />
-                    <Info label="Nama Produk" :value="data.product_name" />
+                    <Info label="Kategori Produk" :value="data.financing_item?.product_type?.product_type_name" />
+                    <Info label="Nama Produk" :value="data.financing_item?.name" />
                     <Info label="Tanggal Akad" :value="data.akad_date" />
-                    <Info label="Jumlah/Kuantitas" :value="data.qty" />
-                    <Info label="Merek" :value="data.brand" />
-                    <Info label="Kondisi" :value="data.condition" />
-                    <Info label="Warna" :value="data.color" />
-                    <Info label="Deskripsi Spesifikasi" :value="data.description" />
+                    <Info label="Jumlah/Kuantitas" :value="data.financing_item?.qty" />
+                    <Info label="Merek" :value="data.financing_item?.brand" />
+                    <Info label="Kondisi" :value="data.financing_item?.condition" />
+                    <Info label="Deskripsi Spesifikasi" :value="data.financing_item?.request_description" />
                 </div>
             </div>
             <div class="flex flex-col px-12 py-2 gap-2">
@@ -76,18 +75,18 @@ const getScheduleStatusClass = (status) => {
                 </div>
                 <div class="card-layout px-0!">
                     <div class="grid grid-cols-2 gap-6 border-b border-gray-200 pb-4 px-8">
-                        <Info label="Harga Pokok" :value="moneyParser(data.cost_price)" />
-                        <Info label="Margin" :value="moneyParser(data.margin)" />
+                        <Info label="Harga Pokok" :value="moneyParser(data.financing_item?.cost_price)" />
+                        <Info label="Margin" :value="moneyParser(data.financing_item?.margin_amount)" />
                         <Info label="Uang Muka" :value="moneyParser(data.down_payment)" />
                         <Info label="Total Pembiayaan" :value="moneyParser(data.total_price)" />
                         <Info label="Total Dibayar" :value="moneyParser(data.total_paid)" />
                         <Info label="Sisa Tagihan" :value="moneyParser(data.remaining_balance)" />
-                        <Info label="Angsuran/Bulan" :value="moneyParser(data.loan.monthly_installment)" />
-                        <Info label="Tenor" :value="data.loan.tenor + ' Bulan'" />
+                        <Info label="Angsuran/Bulan" :value="moneyParser(data.installment_per_month)" />
+                        <Info v-if="data.installment?.tenor" label="Tenor" :value="data.installment?.tenor + ' Bulan'" />
                     </div>
-                    <div class="py-8 px-8">
+                    <div class="py-8 px-8" v-if="data.installment?.payment_schedules">
                         <h3 class="font-semibold mb-4">Status Angsuran</h3>
-                        <FinancingChart :payment-schedules="data.loan.payment_schedules" />
+                        <FinancingChart :payment-schedules="data.installment?.payment_schedules" />
                     </div>
                 </div>
             </div>
@@ -114,8 +113,8 @@ const getScheduleStatusClass = (status) => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody v-if="data.loan.payment_schedules && data.loan.payment_schedules.length > 0">
-                            <tr v-for="data in data.loan.payment_schedules"
+                        <tbody v-if="data.installment?.payment_schedules && data.installment?.payment_schedules?.length > 0">
+                            <tr v-for="data in data.installment?.payment_schedules"
                                 class="border-t border-gray-100 dark:border-gray-500 font-body">
                                 <td class="py-5 px-2 whitespace-nowrap">
                                     <p class="text-dark-text text-theme-sm dark:text-gray-400">

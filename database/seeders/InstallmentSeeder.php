@@ -42,7 +42,7 @@ class InstallmentSeeder extends Seeder
                 'margin_paid' => fake()->numberBetween(10000, 200000),
                 'installment_payment_method' => PaymentMethodsEnum::CASH->value,
                 'is_early_repayment' => false,
-                'schedule_id' => $installmentPaymentSchedule->id,
+                'installment_payment_schedule_id' => $installmentPaymentSchedule->id,
                 'payment_date' => now(),
                 'updated_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
             ]);
@@ -72,7 +72,7 @@ class InstallmentSeeder extends Seeder
                     'installment_payment_method' => PaymentMethodsEnum::CASH->value,
                     'is_early_repayment' => false,
                     'updated_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
-                    'schedule_id' => $installmentPaymentSchedule->id,
+                    'installment_payment_schedule_id' => $installmentPaymentSchedule->id,
                     'payment_date' => now(),
                 ]);
             }

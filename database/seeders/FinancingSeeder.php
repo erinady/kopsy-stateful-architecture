@@ -68,7 +68,7 @@ class FinancingSeeder extends Seeder
                     'margin_paid' => $monthlyPayment * 0.2,
                     'installment_payment_method' => PaymentMethodsEnum::CASH->value,
                     'is_early_repayment' => false,
-                    'schedule_id' => $schedule->id,
+                    'installment_payment_schedule_id' => $schedule->id,
                     'payment_date' => $dueDate,
                     'updated_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
                 ]);

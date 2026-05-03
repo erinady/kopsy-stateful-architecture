@@ -22,7 +22,7 @@ return new class extends Migration
             $table->datetime('payment_date');
             $table->string('installment_payment_receipt')->nullable();
 
-            $table->foreignId('schedule_id')->constrained('installment_payment_schedules')->onDelete('set null');
+            $table->foreignId('installment_payment_schedule_id')->constrained('installment_payment_schedules')->onDelete('set null');
             $table->foreignUuid('updated_by')->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

@@ -80,8 +80,8 @@ const columns = computed(() => {
         { key: 'akad_date', label: 'Tanggal Akad', align: 'center' },
         { key: 'user', label: 'Anggota', align: 'center' },
         { key: 'product_name', label: 'Nama Produk', align: 'center' },
-        { key: 'financing_status', label: 'Status', align:'center' },
-        { key: 'aksi', label: 'Aksi', align:'center'}
+        { key: 'financing_status', label: 'Status', align: 'center' },
+        { key: 'aksi', label: 'Aksi', align: 'center' }
     ]
 
     if (filters.tab === 'active') {
@@ -181,17 +181,23 @@ watch(() => filters.tab, applyFilters)
 
                     <template #cell-aksi="{ row }">
                         <div class="flex justify-center">
-                            <Button v-if="can['view_murabahah'] || (role === 'Staf Murabahah' && (row.financing_status === 'Lunas' || row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Belum Ditinjau')) || (role === 'Ketua Murabahah' && row.financing_status !== 'Belum Ditinjau')" :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
+
+                            <Button
+                                v-if="can['edit_murabahah'] && (role === 'Staf Murabahah' && (row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' || row.financing_status === 'Menunggu Kelengkapan Dokumen'))"
+                                :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
+                                <ReviewIcon width="18px" height="18px" />
+                                Lanjutkan
+                            </Button>
+                            <Button
+                                v-else-if="can['view_murabahah'] || (role === 'Staf Murabahah' && (row.financing_status === 'Lunas' || row.financing_status === 'Angsuran Berjalan' || row.financing_status === 'Belum Ditinjau')) || (role === 'Ketua Murabahah' && row.financing_status !== 'Belum Ditinjau')"
+                                :href="`/admin/financing/show/${row.id}`" size="small" variant="secondary">
                                 <Icon icon="mdi:eye-outline" class="w-5 h-5" />
                                 Lihat Detail
                             </Button>
 
-                            <Button v-if="can['edit_murabahah'] && (role === 'Staf Murabahah' && (row.financing_status === 'Disetujui' || row.financing_status === 'Ditolak' || row.financing_status === 'Menunggu Kelengkapan Dokumen'))" :href="`/admin/financing/draft/${row.id}`" size="small" variant="info">
-                                <ReviewIcon width="18px" height="18px" />
-                                Lanjutkan
-                            </Button>
-
-                            <Button v-if="can['validate_murabahah'] && (role === 'Ketua Murabahah' && (row.financing_status === 'Belum Ditinjau'))" :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
+                            <Button
+                                v-if="can['validate_murabahah'] && (role === 'Ketua Murabahah' && (row.financing_status === 'Belum Ditinjau'))"
+                                :href="`/admin/financing/validation/${row.id}`" size="small" variant="warning">
                                 <ReviewIcon width="18px" height="18px" />
                                 Tinjau
                             </Button>

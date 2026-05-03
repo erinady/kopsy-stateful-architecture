@@ -91,9 +91,6 @@ class FinancingController extends Controller
     {
         $user = auth()->user();
 
-        \Log::info('User:', ['user' => $user?->id, 'role' => $user?->role?->name]);
-        \Log::info('Permissions:', ['perms' => $user?->getPermissionsViaRoles()->pluck('name')->toArray()]);
-
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search');
         $tab = $request->input('tab', 'all');
@@ -225,20 +222,36 @@ class FinancingController extends Controller
 
     public function show(string $id)
     {
-        $financing = Financing::with(['installment', 'installment.paymentSchedules.payment'])->findOrFail($id);
-        $financing->total_price = $financing->cost_price + $financing->margin - $financing->down_payment;
-
+        $financing = Financing::with(['financingItem.productType', 'installment.paymentSchedules.payment'])->findOrFail($id);
+        $financing->total_price = ($financing->financingItem->cost_price ?? 0) + ($financing->financingItem->margin_amount ?? 0) - ($financing->down_payment ?? 0);
+    
         $installment = $financing->installment;
-        if ($installment !== null) {
-            $financing->total_paid = $installment->paymentSchedules
-                ->where('status', InstallmentPaymentScheduleStatusEnum::PAID->value)
-                ->sum('total_amount');
-            $financing->remaining_balance = $installment->remaining_margin + $installment->remaining_principal;
-        } else {
-            $financing->total_paid = 0;
-            $financing->remaining_balance = 0;
-        }
+        if ($installment && $installment->paymentSchedules?->count() > 0) {
+            $total_margin_paid = 0;
+            $total_principal_paid = 0;
+            
+            foreach ($installment->paymentSchedules as $schedule) {
+                if ($schedule->payment && $schedule->payment->count() > 0) {
+                    $total_margin_paid += $schedule->payment->sum('margin_paid') ?? 0;
+                    $total_principal_paid += $schedule->payment->sum('principal_paid') ?? 0;
+                }
+            }
+            
+            $financing->total_margin_paid = $total_margin_paid;
+            $financing->total_principal_paid = $total_principal_paid;
+            $financing->remaining_balance = $financing->total_price - ($total_margin_paid + $total_principal_paid);
 
+            if ($financing->installment?->tenor) {
+                $financing->installment_per_month = ($financing->total_price) / $financing->installment->tenor;
+            } else {
+                $financing->installment_per_month = 0;
+            }
+        } else {
+            $financing->total_margin_paid = 0;
+            $financing->total_principal_paid = 0;
+            $financing->remaining_balance = $financing->total_price;
+        }
+    
         return inertia('Admin/Financing/Show', [
             'data' => $financing
         ]);
