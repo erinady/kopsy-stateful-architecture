@@ -20,6 +20,10 @@ const user = computed(() => {
     return page.props.auth?.user || null
 })
 
+const role = computed(() => {
+    return page.props.auth?.role || null
+})
+
 // Get photo URL from profile_picture
 const photoUrl = computed(() => {
     if (user.value?.profile_picture) {
@@ -120,7 +124,7 @@ const logout = () => {
                 <!-- Authenticated User Section -->
                 <template v-else>
                     <!-- User Avatar & Dropdown -->
-                    <Link :href="user.role?.name === 'Anggota' ? '/user/dashboard' : '/admin/dashboard'"
+                    <Link :href="role === 'Anggota' ? '/user/dashboard' : '/admin/dashboard'"
                         class="relative flex items-center justify-center text-dark-text transition-colors bg-transparent border border-gray-200 rounded-full hover:text-dark-900 h-11 w-11 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
                         <span class="icon-[material-symbols-light--home-outline-rounded]"
                             style="width: 24px; height: 24px;"></span>

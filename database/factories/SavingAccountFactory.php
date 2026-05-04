@@ -18,6 +18,7 @@ class SavingAccountFactory extends Factory
             'saving_product_id' => SavingProduct::factory(),
             'saving_tenor' => $this->faker->numberBetween(12, 60),
             'target_amount' => $this->faker->numberBetween(1000000, 100000000),
+            'balance' => $this->faker->numberBetween(0, 100000000),
             'member_id' => Member::factory(),
         ];
     }

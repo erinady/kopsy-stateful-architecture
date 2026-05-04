@@ -21,7 +21,6 @@ class SavingAccountSeeder extends Seeder
         $members = Member::all();
         $transactionMethods = collect(PaymentMethodsEnum::cases())->map(fn($m) => $m->value)->all();
         $transactionTypes = collect(TransactionTypeEnum::cases())->map(fn($t) => $t->value)->all();
-        SavingProduct::factory()->count(5)->create();
 
         foreach ($members as $member) {
             $account = SavingAccount::create([
