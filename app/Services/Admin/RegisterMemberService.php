@@ -2,16 +2,17 @@
 
 namespace App\Services\Admin;
 
-use App\Enums\UserStatus;
+use App\Enums\UserStatusEnum;
 use App\Models\Heir;
-use Spatie\Permission\Models\Role;
+use App\Models\Member;
+use App\Models\MemberDoc;
 use App\Models\User;
-use App\Models\UserDoc;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Spatie\Permission\Models\Role;
 
 class RegisterMemberService
 {
@@ -33,10 +34,12 @@ class RegisterMemberService
         $initialPassword = Str::upper(Str::random(4)) . random_int(1000, 9999);
 
         DB::transaction(function () use ($validated, $request, $memberRole, $memberNumber, $initialPassword) {
-            $user = $this->createMemberUser($validated, $memberRole->id, $memberNumber, $initialPassword);
+            $user = $this->createUser($validated, $memberRole->id, $memberNumber, $initialPassword);
+            $member = $this->createMember($validated, $user->id);
 
-            $this->createMemberHeir($validated, $user->id);
-            $this->createMemberDocuments($request, $user->id);
+            $user->assignRole('Anggota');
+            $this->createMemberHeir($validated, $member->id);
+            $this->createMemberDocuments($request, $member->id);
         });
 
         return [
@@ -62,7 +65,7 @@ class RegisterMemberService
     /**
      * @param array<string, mixed> $validated
      */
-    private function createMemberUser(array $validated, string $roleId, string $memberNumber, string $initialPassword): User
+    private function createUser(array $validated, string $roleId, string $memberNumber, string $initialPassword): User
     {
         $email = $validated['email'] ?? null;
 
@@ -70,53 +73,59 @@ class RegisterMemberService
             'user_code' => $memberNumber,
             'name' => $validated['name'],
             'nik' => $validated['nik'],
-            'birth_place' => $validated['birth_place'],
-            'birth_date' => $validated['birth_date'],
-            'gender' => $validated['gender'],
-            'marital_status' => $validated['marital_status'],
             'phone_number' => $validated['phone_number'],
             'email' => $email,
-            'address' => $validated['address'],
-            'residential_address' => $validated['residential_address'] ?? null,
-            'last_education' => $validated['last_education'],
-            'status' => UserStatus::ACTIVE->value,
+            'status' => UserStatusEnum::ACTIVE->value,
             'joined_date' => now()->toDateString(),
             'password' => Hash::make($initialPassword),
-            'role_id' => $roleId,
+        ]);
+    }
+
+    private function createMember(array $validated, string $userId): Member
+    {
+        return Member::create([
+            'user_id' => $userId,
+            'gender' => $validated['gender'],
+            'birth_place' => $validated['birth_place'],
+            'birth_date' => $validated['birth_date'],
+            'marital_status' => $validated['marital_status'],
+            'domicile_address' => $validated['domicile_address'],
+            'residential_address' => $validated['residential_address'] ?? null,
+            'last_education' => $validated['last_education'],
         ]);
     }
 
     /**
      * @param array<string, mixed> $validated
      */
-    private function createMemberHeir(array $validated, string $userId): void
+    private function createMemberHeir(array $validated, string $memberId): void
     {
         Heir::create([
-            'nik' => $validated['heir_nik'],
-            'name' => $validated['heir_name'],
+            'heir_nik' => $validated['heir_nik'],
+            'heir_name' => $validated['heir_name'],
             'relationship' => $validated['heir_relationship'],
-            'contact' => $validated['heir_contact'],
-            'user_id' => $userId,
+            'heir_contact' => $validated['heir_contact'],
+            'member_id' => $memberId,
         ]);
     }
 
-    private function createMemberDocuments(Request $request, string $userId): void
+    private function createMemberDocuments(Request $request, string $memberId): void
     {
         if ($request->hasFile('ktp_photo')) {
-            $ktpPath = $request->file('ktp_photo')->store('user_docs', 'public');
-            UserDoc::create([
-                'name' => 'ktp',
-                'attachment' => $ktpPath,
-                'user_id' => $userId,
+            $ktpPath = $request->file('ktp_photo')->store('documents', 'public');
+            MemberDoc::create([
+                'doc_name' => 'ktp',
+                'doc_attachment' => $ktpPath,
+                'member_id' => $memberId,
             ]);
         }
 
         if ($request->hasFile('kk_photo')) {
-            $kkPath = $request->file('kk_photo')->store('user_docs', 'public');
-            UserDoc::create([
-                'name' => 'kk',
-                'attachment' => $kkPath,
-                'user_id' => $userId,
+            $kkPath = $request->file('kk_photo')->store('documents', 'public');
+            MemberDoc::create([
+                'doc_name' => 'kk',
+                'doc_attachment' => $kkPath,
+                'member_id' => $memberId,
             ]);
         }
     }
