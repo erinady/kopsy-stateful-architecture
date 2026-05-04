@@ -104,6 +104,16 @@ class MemberController extends Controller
             ]);
         }
 
+        $hasObligation = Financing::where('member_id', $user->member->id)
+            ->where('financing_status', FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value)
+            ->exists();
+
+        if ($hasObligation) {
+            return back()->withErrors([
+                'resign' => 'Anda masih memiliki kewajiban finansial yang belum dilunasi. Silakan selesaikan kewajiban tersebut sebelum mengajukan pengunduran diri.',
+            ]);
+        }
+
         $data = $request->validated();
 
         $path = $data['document']->store('resign_docs', 'public');
