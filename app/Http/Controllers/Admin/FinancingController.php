@@ -419,7 +419,7 @@ class FinancingController extends Controller
 
     public function validate(Request $request, string $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'financing_status' => 'required',
             'notes' => 'nullable|string',
         ]);
@@ -429,10 +429,12 @@ class FinancingController extends Controller
                 ->where('financing_status', FinancingReqStatusEnum::PENDING_REVIEW->value)
                 ->firstOrFail();
 
-            $financing->update([
-                'financing_status' => $request->input('financing_status'),
-                'notes' => $request->input('notes'),
+            $fi = $financing->update([
+                'financing_status' => $validated['financing_status'],
+                'notes' => $validated['notes'] ?? null,
             ]);
+
+            Log::info('Financing with ID ' . $id . ' updated with status: ' . $validated['notes']);
 
             return redirect()->route('admin.financing.index')->with('success', 'Keputusan validasi berhasil disimpan');
         } catch (Exception $e) {
@@ -476,6 +478,7 @@ class FinancingController extends Controller
 
             // Sync heirs
             $user->member->heirs()->delete();
+            Log::info('Syncing heirs: ' . !empty($validated['member']['heirs'] ?? []));
             if (!empty($validated['member']['heirs'] ?? [])) {
                 $user->member->heirs()->createMany($validated['member']['heirs']);
             }
@@ -643,7 +646,7 @@ class FinancingController extends Controller
      */
     public function searchSuppliers(Request $request)
     {
-        $query = $request->get('q');
+        $query = $request->input('q');
 
         $suppliers = DB::table('suppliers')
             ->where('supplier_name', 'ILIKE', "%{$query}%")

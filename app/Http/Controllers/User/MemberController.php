@@ -94,12 +94,6 @@ class MemberController extends Controller
     {
         $user = auth()->user()->load('member');
 
-        if ($user->member->status !== MemberStatusEnum::ACTIVE->value) {
-            return back()->withErrors([
-                'resign' => 'Status anggota tidak valid untuk pengajuan pengunduran diri.',
-            ]);
-        }
-
         $hasExistingResign = $user->member->status === MemberStatusEnum::RESIGNED_REQUESTED->value;
 
         Log::info('User ' . $user->id . ' is trying to submit resignation with existing resign: ' . ($hasExistingResign ? 'yes' : 'no')) ;
@@ -107,6 +101,12 @@ class MemberController extends Controller
         if ($hasExistingResign) {
             return back()->withErrors([
                 'resign' => 'Permohonan pengunduran diri sudah pernah diajukan. Anda tidak dapat mengajukan lagi.',
+            ]);
+        }
+
+        if ($user->member->status !== MemberStatusEnum::ACTIVE->value) {
+            return back()->withErrors([
+                'resign' => 'Status anggota tidak valid untuk pengajuan pengunduran diri.',
             ]);
         }
 

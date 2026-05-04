@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\EducationEnum;
+use App\Enums\MemberStatusEnum;
 use App\Enums\UserRoleEnum;
 use App\Enums\UserStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
 use App\Http\Requests\UpdateAdminRequest;
-use Spatie\Permission\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Log;
+use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
@@ -102,21 +104,35 @@ class AdminController extends Controller
         try {
             $data = $request->validated();
 
-            $user = User::create([
-                ...$data,
-                'user_code' => 'KSP' . $data['role_id'] . (User::count() + 1),
-                'password' => bcrypt('Password123'),
-                'status' => UserStatusEnum::ACTIVE->value,
-            ]);
+            if (isset($data['user_id']) && $data['user_id']) {
+                $user = User::findOrFail($data['user_id']);
+                $role = Role::findOrFail($data['role_id']);
 
-            $user->assignRole(Role::where('id', $data['role_id'])->first()->name);
+                $user->syncRoles([$role->name]);
 
+                DB::commit();
+                return redirect()->route('admin.index')->with('success', 'Pengurus berhasil ditambahkan dari member');
+            } else {
+
+                $user = User::create([
+                    'name' => $data['name'],
+                    'nik' => $data['nik'],
+                    'email' => $data['email'],
+                    'phone_number' => $data['phone_number'],
+                    'user_code' => 'KSP' . now()->format('Ym') . str_pad(User::count() + 1, 4, '0', STR_PAD_LEFT),
+                    'password' => bcrypt('Password123'),
+                    'status' => UserStatusEnum::ACTIVE->value,
+                ]);
+
+                $role = Role::findOrFail($data['role_id']);
+                $user->assignRole($role->name);
+            }
             DB::commit();
-
-            return redirect()->route('admin.index');
+            return redirect()->route('admin.index')->with('success', 'Admin berhasil ditambahkan');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput();
+            Log::error('Error storing admin: ' . $e->getMessage());
+            return redirect()->back()->withInput()->withErrors(['error' => 'Gagal menambahkan admin']);
         }
     }
 
@@ -170,5 +186,42 @@ class AdminController extends Controller
             DB::rollBack();
             return redirect()->back()->withInput();
         }
+    }
+
+    public function searchMember(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json(['members' => []]);
+        }
+
+        $members = User::with('member')
+            ->whereHas('member', function ($q) {
+                $q->where('status', MemberStatusEnum::ACTIVE->value);
+            })
+            ->whereHas('roles', function ($q) {
+                $q->where('name', UserRoleEnum::ANGGOTA->value);
+            })
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('user_code', 'like', "%{$query}%")
+                    ->orWhere('nik', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get(['id', 'user_code', 'name', 'nik', 'email', 'phone_number'])
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'user_code' => $user->user_code,
+                    'name' => $user->name,
+                    'nik' => $user->nik,
+                    'email' => $user->email,
+                    'phone_number' => $user->phone_number,
+                ];
+            });
+
+        return response()->json(['members' => $members]);
     }
 }

@@ -7,19 +7,15 @@ import { toast } from 'vue3-toastify';
 import BaseInputAdmin from '@/Components/Form/BaseInputAdmin.vue'
 import { useUserValidation } from '@/Composables/Validation/useUserValidation'
 import Button from '../../../Components/Form/Button.vue'
+import { ref, computed } from 'vue'
 
 const form = useForm({
+    user_id: '',
     email: '',
     nik: '',
     role_id: '',
     name: '',
-    domicile_address: '',
     phone_number: '',
-    gender: '',
-    birth_place: '',
-    birth_date: '',
-    last_education: '',
-    residential_address: '',
 })
 
 const props = defineProps({
@@ -35,20 +31,87 @@ const breadcrumbItems = [
 
 const { errors } = useUserValidation(form)
 
+// Search states
+const searchQuery = ref('')
+const searchResults = ref([])
+const isSearching = ref(false)
+const selectedMember = ref(null)
+
+// Computed - check if form is for new admin or existing member
+const isEditingExistingMember = computed(() => !!form.user_id)
+
+// Computed - filter roles for member promotion (only Ketua, Sekretaris, Bendahara)
+const allowedRoles = computed(() => {
+    if (!isEditingExistingMember.value) {
+        return props.roles
+    }
+    // Filter roles yang diizinkan untuk member (Ketua, Sekretaris, Bendahara)
+    const allowedRoleNames = ['Ketua', 'Sekretaris', 'Bendahara']
+    return props.roles.filter(role => allowedRoleNames.includes(role.name))
+})
+
+// Search members
+const searchMembers = async () => {
+    if (searchQuery.value.length < 2) {
+        searchResults.value = []
+        return
+    }
+
+    isSearching.value = true
+    try {
+        const response = await fetch(`/admin/members?q=${encodeURIComponent(searchQuery.value)}`)
+        const data = await response.json()
+        searchResults.value = data.members
+    } catch (error) {
+        console.error('Error searching members:', error)
+        toast("Gagal mencari member", {
+            "type": "error",
+            "position": "bottom-right",
+            "transition": "slide"
+        })
+    } finally {
+        isSearching.value = false
+    }
+}
+
+// Select a member
+const selectMember = (member) => {
+    selectedMember.value = member
+    form.user_id = member.id
+    form.name = member.name
+    form.nik = member.nik
+    form.email = member.email
+    form.phone_number = member.phone_number
+    searchQuery.value = ''
+    searchResults.value = []
+}
+
+// Clear selected member
+const clearSelectedMember = () => {
+    selectedMember.value = null
+    form.user_id = ''
+    form.name = ''
+    form.nik = ''
+    form.email = ''
+    form.phone_number = ''
+}
+
 const submitForm = () => {
     Swal.fire({
         title: 'Konfirmasi',
-        text: 'Apakah Anda yakin ingin menambahkan data admin ini?',
+        text: isEditingExistingMember.value
+            ? 'Apakah Anda yakin ingin mempromosikan member ini menjadi pengurus?'
+            : 'Apakah Anda yakin ingin menambahkan data admin ini?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Ya, tambahkan',
+        confirmButtonText: 'Ya, lanjutkan',
         cancelButtonText: 'Batal',
         confirmButtonColor: '#007943',
     }).then((result) => {
         if (result.isConfirmed) {
             form.post('/admin/store', {
                 onSuccess: () => {
-                    toast("Admin berhasil ditambahkan!", {
+                    toast(isEditingExistingMember.value ? "Member berhasil dipromosikan!" : "Admin berhasil ditambahkan!", {
                         "type": "success",
                         "position": "bottom-right",
                         "transition": "slide",
@@ -57,9 +120,9 @@ const submitForm = () => {
                         window.location.href = route('admin.index')
                     })
                 },
-
-                onError: () => {
-                    toast("Gagal menambahkan admin.", {
+                onError: (errors) => {
+                    console.error('Form errors:', errors)
+                    toast("Gagal menambahkan admin." , {
                         "type": "error",
                         "position": "bottom-right",
                         "transition": "slide",
@@ -78,62 +141,83 @@ const submitForm = () => {
         <div class="flex flex-col">
             <PageBreadcrumb page-title="Tambah Admin" :items="breadcrumbItems" />
             <div class="card-layout flex flex-col gap-10">
+                <!-- Search Member Section -->
+                <div class="space-y-4">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cari Member Aktif (Opsional)</label>
+                        <input
+                            v-model="searchQuery"
+                            @input="searchMembers"
+                            type="text"
+                            placeholder="Ketik nama, NIK, email, atau kode member untuk memilih member yang ada"
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                        />
+
+                        <!-- Search Results Dropdown -->
+                        <div v-if="searchResults.length > 0" class="absolute z-10 top-full left-0 right-0 mt-1 border rounded-lg bg-white shadow-lg">
+                            <div
+                                v-for="member in searchResults"
+                                :key="member.id"
+                                @click="selectMember(member)"
+                                class="px-4 py-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-100"
+                            >
+                                <div class="font-semibold">{{ member.name }}</div>
+                                <div class="text-sm text-gray-600">{{ member.user_code }} | NIK: {{ member.nik }}</div>
+                                <div class="text-sm text-gray-600">{{ member.email }}</div>
+                            </div>
+                        </div>
+
+                        <!-- No Results Message -->
+                        <div v-else-if="searchQuery.length >= 2 && !isSearching && searchResults.length === 0" class="absolute z-10 top-full left-0 right-0 mt-1 border rounded-lg bg-white shadow-lg p-4">
+                            <p class="text-gray-500 text-sm">Tidak ada member aktif yang ditemukan</p>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div v-if="isSearching" class="absolute z-10 top-full left-0 right-0 mt-1 border rounded-lg bg-white shadow-lg p-4">
+                            <p class="text-gray-500 text-sm">Mencari...</p>
+                        </div>
+                    </div>
+
+                    <!-- Selected Member Info -->
+                    <div v-if="selectedMember" class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-semibold text-green-900">Member Dipilih</p>
+                            </div>
+                            <button
+                                @click="clearSelectedMember"
+                                class="text-sm text-red-600 hover:text-red-800 font-semibold"
+                            >
+                                Ubah
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid md:grid-cols-2 grid-cols-1 gap-6">
                     <!-- NIK -->
                     <BaseInputAdmin v-model="form.nik" label="NIK" type="text" required
-                        placeholder="Masukkan 16 digit NIK" max="16" min="16" pattern="[0-9]*" :error="errors.nik">
+                        placeholder="Masukkan 16 digit NIK" max="16" min="16" pattern="[0-9]*"
+                        :error="errors.nik" :disabled="isEditingExistingMember">
                     </BaseInputAdmin>
 
                     <!-- Nama -->
                     <BaseInputAdmin v-model="form.name" label="Nama Lengkap" type="text" required
-                        placeholder="Masukkan nama lengkap" :error="errors.name"></BaseInputAdmin>
-
-                    <!-- Jenis Kelamin -->
-                    <BaseInputAdmin v-model="form.gender" label="Jenis Kelamin" type="radio" required :selectables="[
-                        { value: 'Laki-laki', text: 'Laki-laki' },
-                        { value: 'Perempuan', text: 'Perempuan' }
-                    ]" :error="errors.gender">
-                    </BaseInputAdmin>
-
-                    <div class="flex gap-6">
-                        <!-- Tempat Lahir -->
-                        <BaseInputAdmin v-model="form.birth_place" label="Tempat Lahir" type="text"
-                            placeholder="Masukkan tempat lahir" :error="errors.birth_place">
-                        </BaseInputAdmin>
-                        <!-- Tanggal Lahir -->
-                        <BaseInputAdmin v-model="form.birth_date" label="Tanggal Lahir" type="date"
-                            :error="errors.birth_date">
-                        </BaseInputAdmin>
-                    </div>
-
-                    <!-- Pendidikan Terakhir -->
-                    <BaseInputAdmin v-model="form.last_education" label="Pendidikan Terakhir" type="select"
-                        :selectables="educations.map(unit => ({ value: unit, text: unit }))"
-                        :error="errors.last_education">
-                    </BaseInputAdmin>
+                        placeholder="Masukkan nama lengkap" :error="errors.name" :disabled="isEditingExistingMember"></BaseInputAdmin>
 
                     <!-- Posisi -->
                     <BaseInputAdmin v-model="form.role_id" label="Posisi" type="select" required
-                        :selectables="roles.map(role => ({ value: role.id, text: role.name }))" :error="errors.role_id">
+                        :selectables="allowedRoles.map(role => ({ value: role.id, text: role.name }))" :error="errors.role_id">
                     </BaseInputAdmin>
 
                     <!-- Email -->
                     <BaseInputAdmin v-model="form.email" label="Email" type="email" required
-                        placeholder="Masukkan email" :error="errors.email"></BaseInputAdmin>
+                        placeholder="Masukkan email" :error="errors.email" :disabled="isEditingExistingMember"></BaseInputAdmin>
 
                     <!-- No. Telp -->
                     <BaseInputAdmin v-model="form.phone_number" max="20" required label="Nomor Telepon" type="text"
-                        placeholder="Masukkan nomor telepon" pattern="[0-9]*" :error="errors.phone_number">
-                    </BaseInputAdmin>
-
-                    <!-- Alamat (full width) -->
-                    <BaseInputAdmin v-model="form.domicile_address" label="Alamat" type="textarea"
-                        placeholder="Masukkan alamat lengkap sesuai KTP" rows="4" :error="errors.domicile_address">
-                    </BaseInputAdmin>
-
-                    <!-- Alamat Domisili (full width) -->
-                    <BaseInputAdmin v-model="form.residential_address" label="Alamat Domisili" type="textarea"
-                        placeholder="Masukkan alamat domisili" rows="4" :error="errors.residential_address">
+                        placeholder="Masukkan nomor telepon" pattern="[0-9]*" :error="errors.phone_number"
+                        :disabled="isEditingExistingMember">
                     </BaseInputAdmin>
                 </div>
 
@@ -141,7 +225,7 @@ const submitForm = () => {
                     <Button href="/admin/list" variant="light">
                         Batal
                     </Button>
-                    <Button @click="submitForm" variant="secondary">
+                    <Button @click="submitForm" variant="secondary" :disabled="!form.role_id || (isEditingExistingMember ? !selectedMember : !form.name || !form.nik || !form.email)">
                         {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                     </Button>
                 </div>

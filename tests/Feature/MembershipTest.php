@@ -226,7 +226,7 @@ test('Aplikasi harus memastikan bahwa nomor pengurus non-anggota bersifat unik d
 
 test('Aplikasi harus mencegah anggota mengajukan pengunduran diri baru apabila anggota tersebut sudah memiliki pengajuan pengunduran diri yang masih aktif (belum diproses) dalam aplikasi', function () {
     $anggotaBiasa = Member::factory()->create([
-        'status' => MemberStatusEnum::ACTIVE->value
+        'status' => MemberStatusEnum::RESIGNED_REQUESTED->value
     ]);
     $user = User::where('id', $anggotaBiasa->user_id)->first();
     $user->assignRole('Anggota');

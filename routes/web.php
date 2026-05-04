@@ -89,6 +89,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:' . implode('|
     Route::get('/edit/{id}', [AdminController::class, 'edit']);
     Route::put('/update/{id}', [AdminController::class, 'update'])->name('update')->middleware('role:Sekretaris');
     Route::get('/show/{id}', [AdminController::class, 'show']);
+    Route::get('members', [AdminController::class, 'searchMember'])->name('members.search');
 
     Route::get('/savings/show/{id}', [SavingController::class, 'show'])->name('savings.show');
     Route::put('/savings/validate/{id}', [SavingController::class, 'validateRequest'])->name('savings.validate');

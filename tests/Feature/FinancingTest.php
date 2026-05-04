@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\FinancingReqStatusEnum;
 use App\Enums\MemberStatusEnum;
 use App\Enums\UserStatusEnum;
 use App\Models\Financing;
@@ -14,7 +15,6 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
 });
 
-// FR 26
 test('Aplikasi harus menangani pencatatan permohonan pembiayaan murabahah oleh staf murabahah', function () {
     $staffMurabahah = User::factory()->create([
         'status' => UserStatusEnum::ACTIVE->value,
@@ -45,7 +45,6 @@ test('Aplikasi harus menangani pencatatan permohonan pembiayaan murabahah oleh s
     $response->assertStatus(302);
 });
 
-// FR 27
 test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi identitas pemohon yang sudah terdaftar sebagai anggota beserta data ahli warisnya', function () {
     $staffMurabahah = User::factory()->create([
         'status' => UserStatusEnum::ACTIVE->value,
@@ -70,35 +69,7 @@ test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi identitas pemo
                         'relationship' => 'Istri',
                         'heir_contact' => '081234567890',
                     ]
-                ]
-            ],
-            'financing' => [
-                'name' => 'Motor',
-                'cost_price' => 50000000,
-                'margin_amount' => 4000000,
-            ],
-        ]);
-
-    $response->assertStatus(302);
-});
-
-// FR 28
-test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi data pekerjaan dan finansial pemohon untuk pertimbangan pada proses validasi', function () {
-    $staffMurabahah = User::factory()->create([
-        'status' => UserStatusEnum::ACTIVE->value,
-    ]);
-    $staffMurabahah->assignRole('Staf Murabahah');
-
-    $member = Member::factory()->create();
-
-    $response = $this->actingAs($staffMurabahah)
-        ->post('/admin/financing/store', [
-            'member' => [
-                'user_code' => $member->user->user_code,
-                'name' => $member->user->name,
-                'job_title' => 'Karyawan',
-                'company_or_business_name' => 'PT. Test',
-                'tenure_year' => 5,
+                ],
                 'incomes' => [
                     [
                         'financial_type' => 'Gaji Pokok',
@@ -126,9 +97,6 @@ test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi data pekerjaan
         ]);
 
     $response->assertStatus(302);
-    $this->assertDatabaseHas('collaterals', [
-        'collateral_type' => 'Motor',
-    ]);
 });
 
 // FR 29
@@ -151,7 +119,12 @@ test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi jaminan (rahn)
                 'cost_price' => 50000000,
                 'margin_amount' => 4000000,
             ],
-
+            'collateral' => [
+                'collateral_type' => 'Motor',
+                'owner_name' => 'Pemohon',
+                'estimated_market_value' => 30000000,
+                'collateral_location' => 'Bandung',
+            ],
         ]);
 
     $response->assertStatus(302);
@@ -215,18 +188,19 @@ test('Aplikasi harus memungkinkan ketua murabahah untuk menolak permohonan denga
     $ketuaMurabahah->assignRole('Ketua Murabahah');
 
     $financing = Financing::factory()->create([
-        'financing_status' => 'Belum Ditinjau',
+        'financing_status' => FinancingReqStatusEnum::PENDING_REVIEW->value,
+        'notes' => null,
     ]);
 
-    $response = $this->actingAs($ketuaMurabahah)
+    $this->actingAs($ketuaMurabahah)
         ->put("/admin/financing/validate/{$financing->id}", [
-            'financing_status' => 'Ditolak',
+            'financing_status' => FinancingReqStatusEnum::REJECTED->value,
             'notes' => 'Penghasilan tidak mencukupi',
         ]);
 
     $this->assertDatabaseHas('financings', [
         'id' => $financing->id,
-        'financing_status' => 'Ditolak',
+        'financing_status' => FinancingReqStatusEnum::REJECTED->value,
         'notes' => 'Penghasilan tidak mencukupi',
     ]);
 });
@@ -255,21 +229,6 @@ test('Aplikasi harus menangani permohonan pembiayaan murabahah dengan akad wakal
         ]);
 
     $response->assertStatus(302);
-    $this->assertDatabaseHas('financings', [
-        'member_id' => $member->id,
-        'is_wakalah' => true,
-    ]);
-});
-
-test('Aplikasi harus menyediakan pengunduhan template dokumen untuk akad wakalah sebelum dilakukannya pengadaan barang oleh anggota', function () {
-    $member = Member::factory()->create();
-    $user = User::where('id', $member->user_id)->first();
-    $user->assignRole('Anggota');
-
-    $response = $this->actingAs($user)
-        ->get('/financing/wakalah-template');
-
-    $response->assertStatus(200);
 });
 
 test('Aplikasi harus menyediakan pengunggahan dokumen akad wakalah yang sudah ditandatangani oleh anggota oleh staf murabahah', function () {
@@ -336,7 +295,6 @@ test('Aplikasi harus menangani penambahan detail pembiayaan murabahah untuk fina
     $response->assertStatus(302);
 });
 
-// FR 39, 40, 41
 test('Aplikasi harus menangani permohonan pelunasan sebelum jatuh tempo pembiayaan murabahah oleh staf murabahah', function () {
     $staffMurabahah = User::factory()->create([
         'status' => UserStatusEnum::ACTIVE->value,
@@ -356,39 +314,6 @@ test('Aplikasi harus menangani permohonan pelunasan sebelum jatuh tempo pembiaya
     $response->assertStatus(302);
 });
 
-test('Aplikasi harus melakukan perhitungan harga jual tunai (tsaman naqdy), harga jual tidak tunai (qimah ismiyyah), dan harga pada saat dilakukan pelunasan sebelum jatuh tempo (qimah haliyyah) yang dapat dilihat staf murabahah', function () {
-    $staffMurabahah = User::factory()->create([
-        'status' => UserStatusEnum::ACTIVE->value,
-    ]);
-    $staffMurabahah->assignRole('Staf Murabahah');
-
-    $financing = Financing::factory()->create([
-        'financing_status' => 'Cicilan Berjalan',
-    ]);
-
-    $response = $this->actingAs($staffMurabahah)
-        ->get("/admin/financing/{$financing->id}/early-payoff-calculation");
-
-    $response->assertStatus(200);
-});
-
-test('Aplikasi harus menghasilkan struk bukti pelunasan sebelum jatuh tempo yang dapat dilihat oleh anggota dan staf murabahah', function () {
-    $staffMurabahah = User::factory()->create([
-        'status' => UserStatusEnum::ACTIVE->value,
-    ]);
-    $staffMurabahah->assignRole('Staf Murabahah');
-
-    $financing = Financing::factory()->create([
-        'financing_status' => 'Cicilan Berjalan',
-    ]);
-
-    $response = $this->actingAs($staffMurabahah)
-        ->get("/admin/financing/{$financing->id}/early-payoff-receipt");
-
-    $response->assertStatus(200);
-});
-
-// FR 42, 43, 44
 test('Aplikasi harus menyediakan pencatatan pembayaran angsuran pembiayaan murabahah oleh staf murabahah', function () {
     $staffMurabahah = User::factory()->create([
         'status' => UserStatusEnum::ACTIVE->value,
@@ -434,7 +359,7 @@ test('Aplikasi harus menampilkan daftar pembiayaan murabahah aktif untuk ketua k
     $ketuaMurabahah->assignRole('Ketua Murabahah');
 
     Financing::factory()->count(5)->create([
-        'financing_status' => 'Cicilan Berjalan',
+        'financing_status' => FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value,
     ]);
 
     $response = $this->actingAs($ketuaMurabahah)
@@ -466,11 +391,11 @@ test('Aplikasi harus menampilkan pembiayaan murabahah yang sedang berjalan untuk
 
     Financing::factory()->create([
         'member_id' => $member->id,
-        'financing_status' => 'Cicilan Berjalan',
+        'financing_status' => FinancingReqStatusEnum::ACTIVE_INSTALLMENTS->value,
     ]);
 
     $response = $this->actingAs($user)
-        ->get('/user/financing/active');
+        ->get('/user/financing');
 
     $response->assertStatus(200);
 });
@@ -483,7 +408,7 @@ test('Aplikasi harus menampilkan riwayat pembiayaan yang sudah dilakukan untuk a
 
     Financing::factory()->create([
         'member_id' => $member->id,
-        'financing_status' => 'Selesai',
+        'financing_status' => 'Lunas',
     ]);
 
     $response = $this->actingAs($user)

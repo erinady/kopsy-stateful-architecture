@@ -15,7 +15,7 @@ class UserFinancingController extends Controller
     {
         $user = auth()->user();
         $member = $user->member;
-        
+
         if (!$member) {
             return inertia('User/Financing/List', [
                 'financings' => [
@@ -35,7 +35,7 @@ class UserFinancingController extends Controller
                 ],
             ]);
         }
-        
+
         $perPage = (int) $request->integer('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 10;
 
@@ -43,7 +43,7 @@ class UserFinancingController extends Controller
         $productName = trim((string) $request->input('product_name', ''));
 
         $query = Financing::query()
-            ->with(['financingItem.product.productType'])
+            ->with(['financingItem.productType'])
             ->where('member_id', $member->id)
             ->whereIn('financing_status', ['Lunas', 'Angsuran Berjalan'])
             ->when($search !== '', function ($q) use ($search) {
@@ -58,10 +58,10 @@ class UserFinancingController extends Controller
         $productNames = Financing::query()
             ->where('member_id', $member->id)
             ->whereIn('financing_status', ['Lunas', 'Angsuran Berjalan'])
-            ->with('financingItem.product')
+            ->with('financingItem')
             ->get()
             ->filter(fn($f) => $f->financingItem && $f->financingItem->product)
-            ->pluck('financingItem.product.name')
+            ->pluck('financingItem.name')
             ->unique()
             ->sort()
             ->values();
@@ -72,7 +72,7 @@ class UserFinancingController extends Controller
             ->through(fn (Financing $financing) => $this->mapFinancingForList($financing));
 
         $activeFinancingModel = Financing::query()
-            ->with(['financingItem.product.productType'])
+            ->with(['financingItem.productType'])
             ->where('member_id', $member->id)
             ->where('financing_status', 'Angsuran Berjalan')
             ->orderByDesc('akad_date')
@@ -91,14 +91,14 @@ class UserFinancingController extends Controller
         ]);
     }
 
-    private function mapFinancingForList(Financing $financing): array
+    private function mapFinancingForList($financing): array
     {
         $productName = null;
         $productBrand = null;
-        
-        if ($financing->financingItem && $financing->financingItem->product) {
-            $productName = $financing->financingItem->product->name;
-            $productBrand = $financing->financingItem->product->brand;
+
+        if ($financing->financingItem && $financing->financingItem) {
+            $productName = $financing->financingItem->name;
+            $productBrand = $financing->financingItem->brand;
         }
 
         return [
@@ -136,11 +136,11 @@ class UserFinancingController extends Controller
     {
         $user = auth()->user();
         $member = $user->member;
-        
+
         if (!$member) {
             abort(404);
         }
-        
+
         $financing = Financing::with(['financingItem.product'])
             ->where('member_id', $member->id)
             ->findOrFail($id);
