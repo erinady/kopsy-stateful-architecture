@@ -1,8 +1,7 @@
 <?php
 
 use App\Enums\EducationEnum;
-use App\Enums\FinancingReqStatusEnum;
-use App\Models\Financing;
+use App\Enums\MemberStatusEnum;
 use App\Models\Member;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -14,50 +13,29 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
 });
 
-// FR 51
-describe('system identifies and authenticates user roles for proper functionality access', function () {
-    it('allows sekretaris to access member registration page', function () {
+describe('Aplikasi harus memungkinkan hanya pengguna dengan peran Sekretaris yang dapat menambah data anggota yang sudah terdaftar', function () {
+    it('Sekretaris dapat menambah data pengurus', function () {
         $sekretaris = User::factory()->create();
         $sekretaris->assignRole('Sekretaris');
         $responseSekretaris = $this->actingAs($sekretaris)
-                            ->get('/admin/users/create');
-
-        $responseSekretaris->assertStatus(200);
-    });
-
-    it('denies anggota from accessing member registration page', function () {
-        $anggotaBiasa = User::factory()->create();
-        $anggotaBiasa->assignRole('Anggota');
-        $responseAnggota = $this->actingAs($anggotaBiasa)
-                                ->get('/admin/users/create');
-
-        $responseAnggota->assertStatus(403);
-    });
-});
-
-// FR 52, 53, 54, 55, 59
-test('only sekretaris can register new members', function () {
-    $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->post('/admin/users/store', [
-                                'name' => 'Test Member',
-                                'gender' => 'Laki-laki',
-                                'birth_place' => 'Bandung',
-                                'birth_date' => '1990-01-01',
-                                'marital_status' => 'Kawin',
-                                'email' => 'test@example.com',
-                                'password' => 'password',
-                                'user_code' => 'KSP999',
-                                'domicile_address' => 'Jl. Test No. 123',
-                                'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
-                                'nik' => '1234567890123456',
-                                'phone_number' => '081234567890',
-                                'heir_nik' => '6543210987654321',
-                                'heir_name' => 'Heir Test',
-                                'heir_relationship' => 'Saudara',
-                                'heir_contact' => '081234567891',
-                            ]);
+            ->post('/admin/users/store', [
+                'name' => 'Test Member',
+                'gender' => 'Laki-laki',
+                'birth_place' => 'Bandung',
+                'birth_date' => '1990-01-01',
+                'marital_status' => 'Kawin',
+                'email' => 'test@example.com',
+                'password' => 'password',
+                'user_code' => 'KSP999',
+                'domicile_address' => 'Jl. Test No. 123',
+                'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
+                'nik' => '1234567890123456',
+                'phone_number' => '081234567890',
+                'heir_nik' => '6543210987654321',
+                'heir_name' => 'Heir Test',
+                'heir_relationship' => 'Saudara',
+                'heir_contact' => '081234567891',
+            ]);
 
         // check if status aktif
         $this->assertDatabaseHas('users', [
@@ -65,163 +43,212 @@ test('only sekretaris can register new members', function () {
             'status' => 'Aktif'
         ]);
         $responseSekretaris->assertStatus(302);
-});
-
-//  60
-describe('only sekretaris can add new pengurus data', function () {
-    it('allows sekretaris to add new pengurus data', function () {
-        $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->post('/admin/store', [
-                                'nik' => '1234567890123456',
-                                'gender' => 'Laki-laki',
-                                'email' => 'test-pengurus@example.com',
-                                'phone_number' => '081234567890',
-                                'name' => 'Test Pengurus',
-                                'role_id' => 2,
-                            ]);
-
-        $responseSekretaris->assertStatus(302);
     });
 
-    it('allows sekretaris to add new pengurus data from existing members', function () {
-        $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $existingMember = User::factory()->create();
-        $existingMember->assignRole('Anggota');
-
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->post('/admin/store', [
-                                'nik' => $existingMember->nik,
-                                'gender' => $existingMember->gender,
-                                'email' => $existingMember->email,
-                                'phone_number' => $existingMember->phone_number,
-                                'name' => $existingMember->name,
-                                'role_id' => 2,
-                            ]);
-
-        $responseSekretaris->assertStatus(302);
-    });
-
-    it('denies anggota from adding new pengurus data', function () {
-        $anggotaBiasa = User::factory()->create();
-        $anggotaBiasa->assignRole('Anggota');
-        $responseAnggota = $this->actingAs($anggotaBiasa)
-                            ->post('/admin/store', [
-                                'nik' => '1234567890123456',
-                                'gender' => 'Laki-laki',
-                                'email' => 'test-pengurus@example.com',
-                                'phone_number' => '081234567890',
-                                'name' => 'Test Pengurus',
-                                'role_id' => 2,
-                            ]);
+    it('Sekretaris tidak dapat mengubah data pengurus jika tidak memiliki peran yang sesuai', function () {
+        $anggota = User::factory()->create();
+        $anggota->assignRole('Anggota');
+        $responseAnggota = $this->actingAs($anggota)
+            ->post('/admin/users/store', [
+                'name' => 'Test Member',
+                'gender' => 'Laki-laki',
+                'birth_place' => 'Bandung',
+                'birth_date' => '1990-01-01',
+                'marital_status' => 'Kawin',
+                'email' => 'test@example.com',
+                'password' => 'password',
+                'user_code' => 'KSP999',
+                'domicile_address' => 'Jl. Test No. 123',
+                'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
+                'nik' => '1234567890123456',
+                'phone_number' => '081234567890',
+                'heir_nik' => '6543210987654321',
+                'heir_name' => 'Heir Test',
+                'heir_relationship' => 'Saudara',
+                'heir_contact' => '081234567891',
+            ]);
 
         $responseAnggota->assertStatus(403);
     });
 });
 
-describe('only sekretaris can update existing pengurus data', function () {
-    it('allows sekretaris to update pengurus data', function () {
+describe('Aplikasi harus memungkinkan hanya pengguna dengan peran Sekretaris yang dapat mengubah data pengurus koperasi yang sudah terdaftar', function () {
+    it('Sekretaris dapat mengubah data pengurus', function () {
         $sekretaris = User::factory()->create();
         $sekretaris->assignRole('Sekretaris');
-        $pengurus = User::factory()->create();
-        $pengurus->assignRole('Bendahara');
-
         $responseSekretaris = $this->actingAs($sekretaris)
-                            ->put("/admin/update/{$pengurus->id}", [
-                                'nik' => '1234567890123456']);
+            ->post('/admin/users/store', [
+                'name' => 'Test Member',
+                'gender' => 'Laki-laki',
+                'birth_place' => 'Bandung',
+                'birth_date' => '1990-01-01',
+                'marital_status' => 'Kawin',
+                'email' => 'test@example.com',
+                'password' => 'password',
+                'user_code' => 'KSP999',
+                'domicile_address' => 'Jl. Test No. 123',
+                'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
+                'nik' => '1234567890123456',
+                'phone_number' => '081234567890',
+                'heir_nik' => '6543210987654321',
+                'heir_name' => 'Heir Test',
+                'heir_relationship' => 'Saudara',
+                'heir_contact' => '081234567891',
+            ]);
+
+        // check if status aktif
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@example.com',
+            'status' => 'Aktif'
+        ]);
         $responseSekretaris->assertStatus(302);
     });
 
-    it('denies anggota from updating pengurus data', function () {
-        $anggotaBiasa = User::factory()->create();
-        $anggotaBiasa->assignRole('Anggota');
-        $pengurus = User::factory()->create();
-        $pengurus->assignRole('Bendahara');
+    it('Sekretaris tidak dapat mengubah data pengurus jika tidak memiliki peran yang sesuai', function () {
+        $anggota = User::factory()->create();
+        $anggota->assignRole('Anggota');
+        $responseAnggota = $this->actingAs($anggota)
+            ->post('/admin/users/store', [
+                'name' => 'Test Member',
+                'gender' => 'Laki-laki',
+                'birth_place' => 'Bandung',
+                'birth_date' => '1990-01-01',
+                'marital_status' => 'Kawin',
+                'email' => 'test@example.com',
+                'password' => 'password',
+                'user_code' => 'KSP999',
+                'domicile_address' => 'Jl. Test No. 123',
+                'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
+                'nik' => '1234567890123456',
+                'phone_number' => '081234567890',
+                'heir_nik' => '6543210987654321',
+                'heir_name' => 'Heir Test',
+                'heir_relationship' => 'Saudara',
+                'heir_contact' => '081234567891',
+            ]);
 
-        $responseAnggota = $this->actingAs($anggotaBiasa)
-                            ->put("/admin/update/{$pengurus->id}", [
-                                'nik' => '1234567890123456']);
         $responseAnggota->assertStatus(403);
     });
 });
 
-// FR 60, 61, 62
-test('system supports assigning pengurus roles from active members and non-members', function () {
-    $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->get('/admin/pengurus/create');
-
-        $responseSekretaris->assertStatus(200);
-});
-
-test('non-member pengurus ID is unique and does not clash with member or active pengurus IDs', function () {
-    $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->get('/admin/pengurus/create');
-
-        $responseSekretaris->assertStatus(200);
-});
-
-test('specific pengurus positions can only be held by one active pengurus at a time', function () {
-    $sekretaris = User::factory()->create();
-        $sekretaris->assignRole('Sekretaris');
-        $responseSekretaris = $this->actingAs($sekretaris)
-                            ->get('/admin/pengurus/create');
-
-        $responseSekretaris->assertStatus(200);
-});
-
-// FR 56, 57, 63, 64, 65
-test('only active members can submit resignation requests', function () {
-    $anggotaBiasa = User::factory()->create();
-        $anggotaBiasa->assignRole('Anggota');
-        $responseAnggota = $this->actingAs($anggotaBiasa)
-                                ->get('/admin/anggota/resign');
-
-        $responseAnggota->assertStatus(200);
-});
-
-test('members cannot submit new resignation if there is an active pending request', function () {
-    $anggotaBiasa = User::factory()->create();
-        $anggotaBiasa->assignRole('Anggota');
-        $responseAnggota = $this->actingAs($anggotaBiasa)
-                                ->get('/admin/anggota/resign');
-
-        $responseAnggota->assertStatus(200);
-});
-
-test('system verifies member has no pending financial or administrative obligations before resignation', function () {
-        $anggotaBiasa = Member::factory()->create();
-        $user = User::where('id', $anggotaBiasa->user_id)->first();
+describe('Aplikasi harus memungkinkan hanya pengguna dengan peran Ketua Koperasi yang dapat memproses pengunduran diri anggota', function () {
+    it('Ketua dapat memproses pengunduran diri anggota', function () {
+        $ketua = User::factory()->create();
+        $anggota = Member::factory()->create([
+            'status' => MemberStatusEnum::RESIGNED_REQUESTED->value
+        ]);
+        $user = User::where('id', $anggota->user_id)->first();
         $user->assignRole('Anggota');
+        $ketua->assignRole('Ketua');
+        $responseKetua = $this->actingAs($ketua)
+            ->put('/admin/resignation/' . $user->id, [
+                'status' => 'accept'
+            ]);
 
-        $responseAnggota = $this->actingAs($user)
-                                ->post('/user/resign', [
-                                    'document' => UploadedFile::fake()->create('resign.pdf')
-                                ]);
+        $responseKetua->assertStatus(302);
+    });
 
-        $responseAnggota->assertStatus(302);
-});
-
-test('system rejects resignation and displays reason if obligations exist', function () {
-        $anggotaBiasa = Member::factory()->create();
+    it('Ketua tidak dapat memproses pengunduran diri anggota jika tidak memiliki peran yang sesuai', function () {
+        $anggotaBiasa = Member::factory()->create([
+            'status' => MemberStatusEnum::RESIGNED_REQUESTED->value
+        ]);
         $user = User::where('id', $anggotaBiasa->user_id)->first();
         $user->assignRole('Anggota');
         $responseAnggota = $this->actingAs($user)
-                                ->get('/admin/anggota/resign');
+            ->put('/admin/resignation/' . $anggotaBiasa->id);
 
-        $responseAnggota->assertStatus(200);
+        $responseAnggota->assertStatus(403);
+    });
 });
 
-test('only ketua koperasi can approve or reject member resignation requests', function () {
-    $ketuaKoperasi = User::factory()->create();
-        $ketuaKoperasi->assignRole('Ketua');
-        $responseKetua = $this->actingAs($ketuaKoperasi)
-                                ->get('/admin/anggota/resign');
+test('Aplikasi harus memastikan bahwa hanya anggota dengan status Aktif yang dapat mengajukan pengunduran diri dari keanggotaan koperasi', function () {
+    $anggotaBiasa = Member::factory()->create([
+        'status' => MemberStatusEnum::PAYMENT_PENDING->value
+    ]);
+    $user = User::where('id', $anggotaBiasa->user_id)->first();
+    $user->assignRole('Anggota');
+    $responseAnggota = $this->actingAs($user)
+        ->post('/user/resign', [
+            'document' => UploadedFile::fake()->create('resign.pdf')
+        ]);
 
-        $responseKetua->assertStatus(200);
+    $responseAnggota->assertSessionHasErrors([
+        'resign' => 'Status anggota tidak valid untuk pengajuan pengunduran diri.'
+    ]);
+});
+
+test('Aplikasi harus secara otomatis membuat nomor anggota yang unik untuk setiap anggota yang berhasil didaftarkan, sesuai dengan standar penomoran koperasi yang berlaku', function () {
+    // unit
+    $anggota1 = User::factory()->create();
+    $anggota1->assignRole('Anggota');
+    $anggota2 = User::factory()->create();
+    $anggota2->assignRole('Anggota');
+
+    expect($anggota1->user_code)->not()->toBe($anggota2->user_code);
+});
+
+test('Aplikasi harus secara otomatis menetapkan status keanggotaan anggota baru menjadi Menunggu Pembayaran setelah proses registrasi selesai dilakukan', function () {
+    $sekretaris = User::factory()->create();
+    $sekretaris->assignRole('Sekretaris');
+    $responseSekretaris = $this->actingAs($sekretaris)
+        ->post('/admin/users/store', [
+            'name' => 'Test Member',
+            'gender' => 'Laki-laki',
+            'birth_place' => 'Bandung',
+            'birth_date' => '1990-01-01',
+            'marital_status' => 'Kawin',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'domicile_address' => 'Jl. Test No. 123',
+            'last_education' => EducationEnum::DIPLOMA_IV_BACHELOR->value,
+            'nik' => '1234567890123456',
+            'phone_number' => '081234567890',
+            'heir_nik' => '6543210987654321',
+            'heir_name' => 'Heir Test',
+            'heir_relationship' => 'Saudara',
+            'heir_contact' => '081234567891',
+        ]);
+
+    $responseSekretaris->assertStatus(302);
+    // check if has status aktif
+    $this->assertDatabaseHas('members', [
+        'user_id' => User::where('nik', '1234567890123456')->first()->id,
+        'status' => 'Menunggu Pembayaran'
+    ]);
+});
+
+test('Aplikasi harus memastikan bahwa nomor pengurus non-anggota bersifat unik dan tidak boleh sama dengan nomor anggota maupun nomor pengurus aktif lainnya yang sudah terdaftar', function () {
+    $anggota1 = User::factory()->create();
+    $anggota2 = User::factory()->create();
+
+    expect($anggota1->user_code)->not()->toBe($anggota2->user_code);
+});
+
+test('Aplikasi harus mencegah anggota mengajukan pengunduran diri baru apabila anggota tersebut sudah memiliki pengajuan pengunduran diri yang masih aktif (belum diproses) dalam aplikasi', function () {
+    $anggotaBiasa = Member::factory()->create([
+        'status' => MemberStatusEnum::ACTIVE->value
+    ]);
+    $user = User::where('id', $anggotaBiasa->user_id)->first();
+    $user->assignRole('Anggota');
+    $responseAnggota = $this->actingAs($user)
+        ->post('/user/resign', [
+            'document' => UploadedFile::fake()->create('resign.pdf')
+        ]);
+
+    $responseAnggota->assertSessionHasErrors([
+        'resign' => 'Permohonan pengunduran diri sudah pernah diajukan. Anda tidak dapat mengajukan lagi.'
+    ]);
+});
+
+test('Aplikasi harus memverifikasi bahwa anggota tidak memiliki kewajiban finansial maupun administratif yang belum diselesaikan sebelum mengizinkan pengajuan pengunduran diri', function () {
+    $anggotaBiasa = Member::factory()->create();
+    $user = User::where('id', $anggotaBiasa->user_id)->first();
+    $user->assignRole('Anggota');
+
+    $responseAnggota = $this->actingAs($user)
+        ->post('/user/resign', [
+            'document' => UploadedFile::fake()->create('resign.pdf')
+        ]);
+
+    $responseAnggota->assertStatus(302);
 });

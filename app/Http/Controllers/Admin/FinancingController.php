@@ -225,19 +225,19 @@ class FinancingController extends Controller
     {
         $financing = Financing::with(['financingItem.productType', 'installment.paymentSchedules.payment'])->findOrFail($id);
         $financing->total_price = ($financing->financingItem->cost_price ?? 0) + ($financing->financingItem->margin_amount ?? 0) - ($financing->down_payment ?? 0);
-    
+
         $installment = $financing->installment;
         if ($installment && $installment->paymentSchedules?->count() > 0) {
             $total_margin_paid = 0;
             $total_principal_paid = 0;
-            
+
             foreach ($installment->paymentSchedules as $schedule) {
                 if ($schedule->payment && $schedule->payment->count() > 0) {
                     $total_margin_paid += $schedule->payment->sum('margin_paid') ?? 0;
                     $total_principal_paid += $schedule->payment->sum('principal_paid') ?? 0;
                 }
             }
-            
+
             $financing->total_margin_paid = $total_margin_paid;
             $financing->total_principal_paid = $total_principal_paid;
             $financing->remaining_balance = $financing->total_price - ($total_margin_paid + $total_principal_paid);
@@ -252,7 +252,7 @@ class FinancingController extends Controller
             $financing->total_principal_paid = 0;
             $financing->remaining_balance = $financing->total_price;
         }
-    
+
         return inertia('Admin/Financing/Show', [
             'data' => $financing
         ]);
@@ -571,7 +571,7 @@ class FinancingController extends Controller
                     ]
                 );
 
-                if (isset($validated['collateral']['collateral_type'])) {
+                if ($validated['collateral']['collateral_type']) {
                     $financing->collateral()->updateOrCreate(
                         ['financing_id' => $financing->id],
                         [

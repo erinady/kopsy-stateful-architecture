@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Enums\MemberStatusEnum;
 use App\Enums\UserStatusEnum;
 use App\Models\Heir;
 use App\Models\Member;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Log;
 use RuntimeException;
 use Spatie\Permission\Models\Role;
 
@@ -38,6 +40,8 @@ class RegisterMemberService
             $member = $this->createMember($validated, $user->id);
 
             $user->assignRole('Anggota');
+
+            Log::info("User {$user->id} registered as member with user code {$memberNumber}");
             $this->createMemberHeir($validated, $member->id);
             $this->createMemberDocuments($request, $member->id);
         });
@@ -92,6 +96,7 @@ class RegisterMemberService
             'domicile_address' => $validated['domicile_address'],
             'residential_address' => $validated['residential_address'] ?? null,
             'last_education' => $validated['last_education'],
+            'status' => MemberStatusEnum::PAYMENT_PENDING->value,
         ]);
     }
 

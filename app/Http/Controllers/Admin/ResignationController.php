@@ -8,6 +8,7 @@ use App\Enums\UserRoleEnum;
 use App\Enums\UserStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Financing;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -23,7 +24,7 @@ class ResignationController extends Controller
         $sort_by = $request->input('sort_by', 'created_at');
         $sort_dir = $request->input('sort_dir', 'desc');
 
-        $query = User::whereHas('role', function ($q) {
+        $query = User::whereHas('roles', function ($q) {
                 $q->where('name', UserRoleEnum::ANGGOTA->value);
             })
             ->whereHas('member', function ($q) {
@@ -86,11 +87,12 @@ class ResignationController extends Controller
         ]);
     }
 
-    public function validate(Request $request, string $id)
+    public function validate(string $id)
     {
-        $user = User::where('status', UserStatusEnum::RESIGNED_REQUESTED)->findOrFail($id);
-        $request->status === 'reject' ? $user->status = UserStatusEnum::RESIGNED_REJECTED : $user->status = UserStatusEnum::INACTIVE;
-        $user->save();
+        $member = Member::with('user')->where('status', MemberStatusEnum::RESIGNED_REQUESTED)->where('user_id', $id)->firstOrFail();
+        $member->status = MemberStatusEnum::RESIGNED->value;
+        $member->user->status = UserStatusEnum::INACTIVE->value;
+        $member->save();
 
         return to_route('admin.resignations.index')->with('success', 'Pengunduran diri berhasil divalidasi.');
     }

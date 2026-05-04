@@ -201,9 +201,9 @@ class LedgerController extends Controller
     public function index(Request $request)
     {
         $userId = auth()->id();
-        $month = $request->get('month');
-        $search = $request->get('search');
-        $perPage = (int) $request->get('per_page', 10);
+        $month = $request->input('month');
+        $search = $request->input('search');
+        $perPage = (int) $request->input('per_page', 10);
 
         $query = $this->buildLedgerTransactionQuery($userId, $month, $search);
 
@@ -222,7 +222,7 @@ class LedgerController extends Controller
             'nama' => $member->name,
             'no_anggota' => $member->user_code,
             'status' => $member->status,
-            'tanggal_bergabung' => optional($member->created_at)->format('d F Y'),
+            'tanggal_bergabung' => $member->joined_date->format('d F Y'),
         ];
 
         [$savingSummary, $savingMeta] = $this->buildSavingSummaryAndMeta($userId);

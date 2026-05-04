@@ -1,46 +1,493 @@
 <?php
 
-// FR 26, 27, 28, 29, 30
-test('staf murabahah can record new murabahah application')->todo();
-test('staf murabahah can complete applicant identity and heir data')->todo();
-test('staf murabahah can complete applicant occupational and financial data')->todo();
-test('staf murabahah can complete rahn (collateral) data for application')->todo();
-test('staf murabahah can save murabahah application form as draft')->todo();
+use App\Enums\MemberStatusEnum;
+use App\Enums\UserStatusEnum;
+use App\Models\Financing;
+use App\Models\Member;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+
+uses(RefreshDatabase::class);
+beforeEach(function () {
+    $this->seed(RoleSeeder::class);
+});
+
+// FR 26
+test('Aplikasi harus menangani pencatatan permohonan pembiayaan murabahah oleh staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $member = Member::factory()->create([
+        'status' => MemberStatusEnum::ACTIVE->value,
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+                'nik' => $member->user->nik,
+            ],
+            'financing' => [
+                'name' => 'Motor Honda',
+                'cost_price' => 50000000,
+                'margin_amount' => 4000000,
+                'down_payment' => 10000000,
+                'payment_method' => 'Cicilan',
+            ],
+            'tenor' => 24,
+        ]);
+
+    $response->assertStatus(302);
+});
+
+// FR 27
+test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi identitas pemohon yang sudah terdaftar sebagai anggota beserta data ahli warisnya', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $member = Member::factory()->create();
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+                'nik' => $member->user->nik,
+                'gender' => 'Laki-Laki',
+                'birth_date' => '1990-01-01',
+                'marital_status' => 'Sudah Menikah',
+                'heirs' => [
+                    [
+                        'heir_name' => 'Ahli Waris 1',
+                        'heir_nik' => '1234567890654321',
+                        'relationship' => 'Istri',
+                        'heir_contact' => '081234567890',
+                    ]
+                ]
+            ],
+            'financing' => [
+                'name' => 'Motor',
+                'cost_price' => 50000000,
+                'margin_amount' => 4000000,
+            ],
+        ]);
+
+    $response->assertStatus(302);
+});
+
+// FR 28
+test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi data pekerjaan dan finansial pemohon untuk pertimbangan pada proses validasi', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $member = Member::factory()->create();
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+                'job_title' => 'Karyawan',
+                'company_or_business_name' => 'PT. Test',
+                'tenure_year' => 5,
+                'incomes' => [
+                    [
+                        'financial_type' => 'Gaji Pokok',
+                        'amount' => 5000000,
+                    ]
+                ],
+                'expenses' => [
+                    [
+                        'financial_type' => 'Cicilan Rumah',
+                        'amount' => 2000000,
+                    ]
+                ]
+            ],
+            'financing' => [
+                'name' => 'Motor',
+                'cost_price' => 50000000,
+                'margin_amount' => 4000000,
+            ],
+            'collateral' => [
+                'collateral_type' => 'Motor',
+                'owner_name' => 'Pemohon',
+                'estimated_market_value' => 30000000,
+                'collateral_location' => 'Bandung',
+            ],
+        ]);
+
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('collaterals', [
+        'collateral_type' => 'Motor',
+    ]);
+});
+
+// FR 29
+test('Aplikasi harus memungkinkan staf murabahah untuk melengkapi jaminan (rahn) yang diajukan untuk permohonan murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $member = Member::factory()->create();
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+            ],
+            'financing' => [
+                'name' => 'Motor',
+                'cost_price' => 50000000,
+                'margin_amount' => 4000000,
+            ],
+
+        ]);
+
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('collaterals', [
+        'collateral_type' => 'Motor',
+    ]);
+});
+
+// FR 30
+test('Aplikasi harus memungkinkan staf murabahah untuk menyimpan sementara isian form permohonan murabahah yang sedang diisi', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $member = Member::factory()->create();
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+            ],
+            'financing' => [
+                'name' => 'Motor',
+                'financing_status' => 'Menunggu Kelengkapan Dokumen',
+            ],
+        ]);
+
+    $response->assertStatus(302);
+});
 
 // FR 31
-test('ketua murabahah or ketua koperasi can approve or reject application with reasons')->todo();
+test('Aplikasi harus memungkinkan ketua murabahah atau ketua koperasi untuk memberikan persetujuan atau penolakan permohonan pembiayaan murabahah beserta alasan penolakan', function () {
+    $ketuaMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $ketuaMurabahah->assignRole('Ketua Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Belum Ditinjau',
+    ]);
+
+    $response = $this->actingAs($ketuaMurabahah)
+        ->put("/admin/financing/validate/{$financing->id}", [
+            'financing_status' => 'Disetujui',
+            'notes' => 'Permohonan disetujui',
+        ]);
+
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('financings', [
+        'id' => $financing->id,
+        'financing_status' => 'Disetujui',
+    ]);
+});
+
+test('Aplikasi harus memungkinkan ketua murabahah untuk menolak permohonan dengan alasan', function () {
+    $ketuaMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $ketuaMurabahah->assignRole('Ketua Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Belum Ditinjau',
+    ]);
+
+    $response = $this->actingAs($ketuaMurabahah)
+        ->put("/admin/financing/validate/{$financing->id}", [
+            'financing_status' => 'Ditolak',
+            'notes' => 'Penghasilan tidak mencukupi',
+        ]);
+
+    $this->assertDatabaseHas('financings', [
+        'id' => $financing->id,
+        'financing_status' => 'Ditolak',
+        'notes' => 'Penghasilan tidak mencukupi',
+    ]);
+});
 
 // FR 32, 33, 34
-test('system handles wakalah akad application by member as muwakkil')->todo();
-test('system provides wakalah akad document template download')->todo();
-test('staf murabahah can upload signed wakalah akad document')->todo();
+test('Aplikasi harus menangani permohonan pembiayaan murabahah dengan akad wakalah oleh anggota sebagai perwakilan (muwakkil) dari koperasi', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
 
-// FR 35, 38
-test('staf murabahah can add supplier info and procurement proof after approval')->todo();
-test('staf murabahah can add murabahah details including tenor and signed document for finalization')->todo();
+    $member = Member::factory()->create();
 
-// FR 36 (Bisa dipindah ke tests/Unit/MurabahahSimulationTest.php)
-test('system displays monthly installment simulation for staf murabahah before finalization')->todo();
+    $response = $this->actingAs($staffMurabahah)
+        ->post('/admin/financing/store', [
+            'member' => [
+                'user_code' => $member->user->user_code,
+                'name' => $member->user->name,
+            ],
+            'financing' => [
+                'name' => 'Motor',
+                'cost_price' => 50000000,
+                'margin_amount' => 4000000,
+                'is_wakalah' => true,
+            ],
+        ]);
 
-// FR 37
-test('system provides murabahah akad document template download before finalization')->todo();
+    $response->assertStatus(302);
+    $this->assertDatabaseHas('financings', [
+        'member_id' => $member->id,
+        'is_wakalah' => true,
+    ]);
+});
+
+test('Aplikasi harus menyediakan pengunduhan template dokumen untuk akad wakalah sebelum dilakukannya pengadaan barang oleh anggota', function () {
+    $member = Member::factory()->create();
+    $user = User::where('id', $member->user_id)->first();
+    $user->assignRole('Anggota');
+
+    $response = $this->actingAs($user)
+        ->get('/financing/wakalah-template');
+
+    $response->assertStatus(200);
+});
+
+test('Aplikasi harus menyediakan pengunggahan dokumen akad wakalah yang sudah ditandatangani oleh anggota oleh staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'is_wakalah' => true,
+        'financing_status' => 'Disetujui',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post("/admin/financing/store", [
+            'akad_wakalah_file' => UploadedFile::fake()->create('wakalah.pdf'),
+        ]);
+
+    $response->assertStatus(302);
+});
+
+// FR 35
+test('Aplikasi harus memungkinkan staf murabahah untuk menambahkan informasi pemasok dan bukti pengadaan objek pembiayaan murabahah setelah permohonan diterima', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Disetujui',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post("/admin/financing/store", [
+            'supplier' => [
+                'supplier_name' => 'PT. Supplier Jaya',
+                'contact' => '081234567890',
+                'address' => 'Jl. Supplier No. 1',
+            ],
+            'purchase_receipt_file' => UploadedFile::fake()->create('receipt.pdf'),
+        ]);
+
+    $response->assertStatus(302);
+});
+
+// FR 38
+test('Aplikasi harus menangani penambahan detail pembiayaan murabahah untuk finalisasi akad murabahah yang mencakup tenor cicilan dan dokumen akad bertanda tangan oleh staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Disetujui',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post("/admin/financing/store", [
+            'tenor' => 24,
+            'akad_date' => '2024-01-15',
+            'akad_document_file' => UploadedFile::fake()->create('akad.pdf'),
+        ]);
+
+    $response->assertStatus(302);
+});
 
 // FR 39, 40, 41
-test('staf murabahah can process early payoff application')->todo();
-test('system calculates tsaman naqdy, qimah ismiyyah, and qimah haliyyah for early payoff')->todo();
-test('system generates early payoff proof receipt for member and staff')->todo();
+test('Aplikasi harus menangani permohonan pelunasan sebelum jatuh tempo pembiayaan murabahah oleh staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
 
-// FR 42, 43, 44, 45
-test('staf murabahah can record murabahah installment payments')->todo();
-test('system calculates remaining balance and installment amount based on tsaman al-murabahah divided by tenor')->todo();
-test('system generates installment payment proof receipt')->todo();
-test('system calculates member points based on payment punctuality and nominal')->todo();
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post("/admin/financing/{$financing->id}/early-payoff", [
+            'payoff_date' => now()->addMonths(6)->format('Y-m-d'),
+            'payoff_amount' => 40000000,
+        ]);
+
+    $response->assertStatus(302);
+});
+
+test('Aplikasi harus melakukan perhitungan harga jual tunai (tsaman naqdy), harga jual tidak tunai (qimah ismiyyah), dan harga pada saat dilakukan pelunasan sebelum jatuh tempo (qimah haliyyah) yang dapat dilihat staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->get("/admin/financing/{$financing->id}/early-payoff-calculation");
+
+    $response->assertStatus(200);
+});
+
+test('Aplikasi harus menghasilkan struk bukti pelunasan sebelum jatuh tempo yang dapat dilihat oleh anggota dan staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->get("/admin/financing/{$financing->id}/early-payoff-receipt");
+
+    $response->assertStatus(200);
+});
+
+// FR 42, 43, 44
+test('Aplikasi harus menyediakan pencatatan pembayaran angsuran pembiayaan murabahah oleh staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->post("/admin/financing/{$financing->id}/record-payment", [
+            'schedule_id' => 1,
+            'payment_amount' => 1833333,
+            'payment_date' => now()->format('Y-m-d'),
+            'payment_method' => 'Tunai',
+        ]);
+
+    $response->assertStatus(302);
+});
+
+test('Aplikasi harus menghasilkan struk bukti pembayaran angsuran yang dapat dilihat oleh anggota dan staf murabahah', function () {
+    $staffMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $staffMurabahah->assignRole('Staf Murabahah');
+
+    $financing = Financing::factory()->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($staffMurabahah)
+        ->get("/admin/financing/{$financing->id}/payment-receipt");
+
+    $response->assertStatus(200);
+});
+
+// FR 45
+test('Aplikasi harus menampilkan daftar pembiayaan murabahah aktif untuk ketua koperasi, ketua murabahah, dan staf murabahah', function () {
+    $ketuaMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $ketuaMurabahah->assignRole('Ketua Murabahah');
+
+    Financing::factory()->count(5)->create([
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($ketuaMurabahah)
+        ->get('/admin/financing');
+
+    $response->assertStatus(200);
+});
 
 // FR 46
-test('system sends email notification H-1 and on installment due date')->todo();
+test('Aplikasi harus memungkinkan ketua dan staf murabahah untuk melihat riwayat pembiayaan murabahah semua anggota', function () {
+    $ketuaMurabahah = User::factory()->create([
+        'status' => UserStatusEnum::ACTIVE->value,
+    ]);
+    $ketuaMurabahah->assignRole('Ketua Murabahah');
 
-// FR 47, 48, 49, 50
-test('ketua and staf murabahah can view active murabahah list')->todo();
-test('ketua and staf murabahah can view murabahah history of all members')->todo();
-test('members can view their own ongoing murabahah financings')->todo();
-test('members can view their own murabahah financing history')->todo();
+    Financing::factory()->count(5)->create();
+
+    $response = $this->actingAs($ketuaMurabahah)
+        ->get('/admin/financing?tab=all');
+
+    $response->assertStatus(200);
+});
+
+// FR 47
+test('Aplikasi harus menampilkan pembiayaan murabahah yang sedang berjalan untuk anggota', function () {
+    $member = Member::factory()->create();
+    $user = User::where('id', $member->user_id)->first();
+    $user->assignRole('Anggota');
+
+    Financing::factory()->create([
+        'member_id' => $member->id,
+        'financing_status' => 'Cicilan Berjalan',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get('/user/financing/active');
+
+    $response->assertStatus(200);
+});
+
+// FR 48
+test('Aplikasi harus menampilkan riwayat pembiayaan yang sudah dilakukan untuk anggota', function () {
+    $member = Member::factory()->create();
+    $user = User::where('id', $member->user_id)->first();
+    $user->assignRole('Anggota');
+
+    Financing::factory()->create([
+        'member_id' => $member->id,
+        'financing_status' => 'Selesai',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get('/user/financing');
+
+    $response->assertStatus(200);
+});
