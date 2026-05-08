@@ -118,7 +118,7 @@ class RegisterMemberService
     private function createMemberDocuments(Request $request, string $memberId): void
     {
         if ($request->hasFile('ktp_photo')) {
-            $ktpPath = $request->file('ktp_photo')->store('documents', 'public');
+            $ktpPath = $request->file('ktp_photo')->store('documents', config('filesystems.default'));
             MemberDoc::create([
                 'doc_name' => 'ktp',
                 'doc_attachment' => $ktpPath,
@@ -127,7 +127,7 @@ class RegisterMemberService
         }
 
         if ($request->hasFile('kk_photo')) {
-            $kkPath = $request->file('kk_photo')->store('documents', 'public');
+            $kkPath = $request->file('kk_photo')->store('documents', config('filesystems.default'));
             MemberDoc::create([
                 'doc_name' => 'kk',
                 'doc_attachment' => $kkPath,

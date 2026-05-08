@@ -3,6 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
+use League\Flysystem\Filesystem;
+use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +24,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Storage::extend('azure', function ($app, $config) {
+            try {
+                $connectionString = 'DefaultEndpointsProtocol=https;AccountName=' . $config['account_name'] . ';AccountKey=' . $config['account_key'] . ';EndpointSuffix=core.windows.net';
+                
+                $blobClient = BlobRestProxy::createBlobService($connectionString);
+                $adapter = new AzureBlobStorageAdapter($blobClient, $config['container']);
+                $filesystem = new Filesystem($adapter);
+                
+                return new FilesystemAdapter($filesystem, $adapter, $config);
+            } catch (\Exception $e) {
+                throw new \RuntimeException('Azure Blob Storage initialization failed: ' . $e->getMessage());
+            }
+        });
     }
 }

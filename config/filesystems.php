@@ -60,6 +60,16 @@ return [
             'report' => false,
         ],
 
+        'azure' => [
+            'driver' => 'azure',
+            'account_name' => env('AZURE_ACCOUNT_NAME'),
+            'account_key' => env('AZURE_ACCOUNT_KEY'),
+            'container' => env('AZURE_BLOB_CONTAINER'),
+            'endpoint' => env('AZURE_BLOB_ENDPOINT'),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

@@ -347,7 +347,7 @@ class FinancingController extends Controller
 
     private function getDocumentUrl($path)
     {
-        return $path ? asset('storage/' . $path) : null;
+        return $path ? (\Storage::disk(config('filesystems.default'))->url($path)) : null;
     }
 
     public function showValidation(string $id)
@@ -493,7 +493,7 @@ class FinancingController extends Controller
                 if ($request->hasFile($fileField)) {
                     $user->member->memberDocs()->updateOrCreate(
                         ['doc_name' => $docName],
-                        ['doc_attachment' => $request->file($fileField)->store('documents', 'public')]
+                        ['doc_attachment' => $request->file($fileField)->store('documents', config('filesystems.default'))]
                     );
                 }
             }
@@ -569,7 +569,7 @@ class FinancingController extends Controller
                         'product_type_id' => $validated['financing']['product_type_id'] ?? null,
                         'supplier_id' => $supplier?->id ?? null,
                         'purchase_receipt' => $request->hasFile('purchase_receipt_file')
-                            ? $request->file('purchase_receipt_file')->store('documents', 'public')
+                            ? $request->file('purchase_receipt_file')->store('documents', config('filesystems.default'))
                             : null,
                     ]
                 );
@@ -588,7 +588,7 @@ class FinancingController extends Controller
 
                 if ($request->hasFile('akad_document_file')) {
                     $financing->update([
-                        'signed_akad_document' => $request->file('akad_document_file')->store('documents', 'public'),
+                        'signed_akad_document' => $request->file('akad_document_file')->store('documents', config('filesystems.default')),
                     ]);
                 }
 

@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\Admin\RegisterMemberService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use RuntimeException;
 
@@ -137,7 +138,7 @@ class UserController extends Controller
                     '.'
                 ),
                 'avatar' => $user->profile_picture
-                    ? asset('storage/' . $user->profile_picture)
+                    ? Storage::disk(config('filesystems.default'))->url($user->profile_picture)
                     : null,
             ]);
 
@@ -183,7 +184,7 @@ class UserController extends Controller
             'member.financings.financingItem',
         ])->findOrFail($id);
 
-        $user->profile_picture = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+        $user->profile_picture = $user->profile_picture ? Storage::disk(config('filesystems.default'))->url($user->profile_picture) : null;
         $ktpDoc = $user->member->memberDocs->firstWhere('name', 'ktp');
         $kkDoc = $user->member->memberDocs->firstWhere('name', 'kk');
 
@@ -208,8 +209,8 @@ class UserController extends Controller
 
         return inertia('Admin/User/Show', [
             'user' => $user,
-            'ktp_photo' => $ktpDoc?->attachment ? asset('storage/' . $ktpDoc->attachment) : null,
-            'kk_photo' => $kkDoc?->attachment ? asset('storage/' . $kkDoc->attachment) : null,
+            'ktp_photo' => $ktpDoc?->attachment ? Storage::disk(config('filesystems.default'))->url($ktpDoc->attachment) : null,
+            'kk_photo' => $kkDoc?->attachment ? Storage::disk(config('filesystems.default'))->url($kkDoc->attachment) : null,
         ]);
     }
 
@@ -235,10 +236,10 @@ class UserController extends Controller
     {
         $user->load('userDocs');
 
-        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+        $photoUrl = $user->profile_picture ? Storage::disk(config('filesystems.default'))->url($user->profile_picture) : null;
         $idCard = $user->userDocs
             ->firstWhere('name', 'ktp');
-        $idCardUrl = $idCard?->attachment ? asset('storage/' . $idCard->attachment) : null;
+        $idCardUrl = $idCard?->attachment ? Storage::disk(config('filesystems.default'))->url($idCard->attachment) : null;
 
         return Inertia::render('Admin/User/Verification/Show', [
             'member' => [

@@ -18,7 +18,7 @@ class UserProfileController extends Controller
         $user = auth()->user();
         $user->load(['role']);
 
-        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+        $photoUrl = $user->profile_picture ? \Storage::disk(config('filesystems.default'))->url($user->profile_picture) : null;
 
         return Inertia::render('User/Profile/Show', [
             'user' => [
@@ -42,7 +42,7 @@ class UserProfileController extends Controller
         $user = auth()->user();
         $user->load(['role']);
 
-        $photoUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+        $photoUrl = $user->profile_picture ? \Storage::disk(config('filesystems.default'))->url($user->profile_picture) : null;
 
         return Inertia::render('User/Profile/Edit', [
             'user' => [
@@ -104,12 +104,12 @@ class UserProfileController extends Controller
             return back()->withErrors(['profile_picture' => 'File tidak valid sebagai gambar.']);
         }
 
-        if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
-            \Storage::disk('public')->delete($user->profile_picture);
+        if ($user->profile_picture && \Storage::disk(config('filesystems.default'))->exists($user->profile_picture)) {
+            \Storage::disk(config('filesystems.default'))->delete($user->profile_picture);
         }
 
         // Store new profile picture
-        $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+        $path = $request->file('profile_picture')->store('profile_pictures', config('filesystems.default'));
 
         $user->update([
             'profile_picture' => $path
@@ -125,8 +125,8 @@ class UserProfileController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->profile_picture && \Storage::disk('public')->exists($user->profile_picture)) {
-            \Storage::disk('public')->delete($user->profile_picture);
+        if ($user->profile_picture && \Storage::disk(config('filesystems.default'))->exists($user->profile_picture)) {
+            \Storage::disk(config('filesystems.default'))->delete($user->profile_picture);
         }
 
         $user->update([
