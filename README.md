@@ -1,17 +1,43 @@
-# E-KSWP (Koperasi Syariah Warga Polban Elektronik)
+# KopSy - Stateful Architecture & Data Persistence
 
-## About E-KSWP
-E-KSWP (Koperasi Syariah Warga Polban Elektronik) is a web application built using the Laravel framework and Inertia. It serves as a platform for managing cooperative activities, providing users with a seamless experience for various cooperative-related tasks.
+## About KopSy
+KopSy is a cloud-based cooperative management web application developed as part of Module 5: Stateful Architecture & Data Persistence for the Pengembangan Perangkat Lunak Berbasis Cloud course.
 
-Features of E-KSWP include:
-- User authentication and registration
+This project focuses on implementing stateful application architecture by integrating managed database services (DBaaS) and persistent data storage within a modern web application environment. The application is built using the Laravel framework and Inertia to support scalable and persistent cooperative data management.
+
+## Module Focus
+This module emphasizes:
+- Stateful application architecture
+- Data persistence implementation
+- Managed Database (DBaaS) integration
+- Persistent storage management in cloud environments
+- Web application deployment and cloud-based data handling
+
+## Features
+- User authentication and authorization
 - Cooperative member management
 - Savings management
 - Murabahah financing management
 - Murabahah installment tracking
+- Persistent data storage using managed database services
+- Stateful session and application data management
+
+## Technology Stack
+- Laravel
+- Inertia.js
+- PostgreSQL
+- Tailwind CSS
+- Cloud-based managed database service (DBaaS)
+
+## Course Information
+This repository was developed for the course:
+**Pengembangan Perangkat Lunak Berbasis Cloud**
+
+Module:
+**Modul Praktikum 5 — Stateful Architecture & Data Persistence**
 
 ## Installation
-To set up the E-KSWP application locally, follow these steps:
+To set up the kopsy application locally, follow these steps:
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/e-kswp.git
