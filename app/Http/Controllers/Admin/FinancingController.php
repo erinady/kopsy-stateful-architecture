@@ -24,6 +24,8 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 
 class FinancingController extends Controller
 {
@@ -347,7 +349,51 @@ class FinancingController extends Controller
 
     private function getDocumentUrl($path)
     {
-        return $path ? (\Storage::disk(config('filesystems.default'))->url($path)) : null;
+        if (!$path) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return $path;
+    }
+
+    private function storeDocumentAsUrl($file): string
+    {
+        $accountName = config('filesystems.disks.azure.account_name');
+        $accountKey = config('filesystems.disks.azure.account_key');
+        $container = config('filesystems.disks.azure.container');
+        $endpoint = config('filesystems.disks.azure.endpoint');
+
+        if (!$accountName || !$accountKey || !$container || !$endpoint) {
+            throw new Exception('Konfigurasi Azure Blob Storage belum lengkap.');
+        }
+
+        $connectionString = 'DefaultEndpointsProtocol=https;AccountName=' . $accountName . ';AccountKey=' . $accountKey . ';EndpointSuffix=core.windows.net';
+        $options = [];
+        // Development only: disable SSL verification to work around certificate issues
+        if (config('app.env') === 'local') {
+            $options['http'] = [
+                'verify' => false
+            ];
+        }
+        $blobClient = BlobRestProxy::createBlobService($connectionString, $options);
+        $blobName = 'documents/' . Str::uuid()->toString() . '.' . $file->extension();
+
+        $content = file_get_contents($file->getRealPath());
+        if ($content === false) {
+            throw new Exception('Gagal membaca file upload.');
+        }
+
+        try {
+            $blobClient->createBlockBlob($container, $blobName, $content);
+        } catch (\Exception $e) {
+            throw new Exception('Gagal upload ke Azure: ' . $e->getMessage());
+        }
+
+        return rtrim($endpoint, '/') . '/' . $container . '/' . $blobName;
     }
 
     public function showValidation(string $id)
@@ -493,7 +539,7 @@ class FinancingController extends Controller
                 if ($request->hasFile($fileField)) {
                     $user->member->memberDocs()->updateOrCreate(
                         ['doc_name' => $docName],
-                        ['doc_attachment' => $request->file($fileField)->store('documents', config('filesystems.default'))]
+                        ['doc_attachment' => $this->storeDocumentAsUrl($request->file($fileField))]
                     );
                 }
             }
@@ -569,7 +615,7 @@ class FinancingController extends Controller
                         'product_type_id' => $validated['financing']['product_type_id'] ?? null,
                         'supplier_id' => $supplier?->id ?? null,
                         'purchase_receipt' => $request->hasFile('purchase_receipt_file')
-                            ? $request->file('purchase_receipt_file')->store('documents', config('filesystems.default'))
+                            ? $this->storeDocumentAsUrl($request->file('purchase_receipt_file'))
                             : null,
                     ]
                 );
@@ -588,7 +634,7 @@ class FinancingController extends Controller
 
                 if ($request->hasFile('akad_document_file')) {
                     $financing->update([
-                        'signed_akad_document' => $request->file('akad_document_file')->store('documents', config('filesystems.default')),
+                        'signed_akad_document' => $this->storeDocumentAsUrl($request->file('akad_document_file')),
                     ]);
                 }
 

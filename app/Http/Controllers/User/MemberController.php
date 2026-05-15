@@ -134,7 +134,7 @@ class MemberController extends Controller
         try {
             MemberDoc::create([
                 'doc_name' => 'Dokumen Pengunduran Diri',
-                'doc_attachment' => $path,
+                'doc_attachment' => Storage::disk('public')->url($path),
                 'member_id' => $user->member->id,
             ]);
             $user->member->status = MemberStatusEnum::RESIGNED_REQUESTED->value;

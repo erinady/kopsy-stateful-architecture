@@ -9,11 +9,13 @@ use App\Models\Member;
 use App\Models\MemberDoc;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Log;
 use RuntimeException;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Spatie\Permission\Models\Role;
 
 class RegisterMemberService
@@ -118,7 +120,7 @@ class RegisterMemberService
     private function createMemberDocuments(Request $request, string $memberId): void
     {
         if ($request->hasFile('ktp_photo')) {
-            $ktpPath = $request->file('ktp_photo')->store('documents', config('filesystems.default'));
+            $ktpPath = $this->storeDocumentAsUrl($request->file('ktp_photo'));
             MemberDoc::create([
                 'doc_name' => 'ktp',
                 'doc_attachment' => $ktpPath,
@@ -127,12 +129,48 @@ class RegisterMemberService
         }
 
         if ($request->hasFile('kk_photo')) {
-            $kkPath = $request->file('kk_photo')->store('documents', config('filesystems.default'));
+            $kkPath = $this->storeDocumentAsUrl($request->file('kk_photo'));
             MemberDoc::create([
                 'doc_name' => 'kk',
                 'doc_attachment' => $kkPath,
                 'member_id' => $memberId,
             ]);
         }
+    }
+
+    private function storeDocumentAsUrl(UploadedFile $file): string
+    {
+        $accountName = config('filesystems.disks.azure.account_name');
+        $accountKey = config('filesystems.disks.azure.account_key');
+        $container = config('filesystems.disks.azure.container');
+        $endpoint = config('filesystems.disks.azure.endpoint');
+
+        if (!$accountName || !$accountKey || !$container || !$endpoint) {
+            throw new RuntimeException('Konfigurasi Azure Blob Storage belum lengkap.');
+        }
+
+        $connectionString = 'DefaultEndpointsProtocol=https;AccountName=' . $accountName . ';AccountKey=' . $accountKey . ';EndpointSuffix=core.windows.net';
+        $options = [];
+        // Development only: disable SSL verification to work around certificate issues
+        if (config('app.env') === 'local') {
+            $options['http'] = [
+                'verify' => false
+            ];
+        }
+        $blobClient = BlobRestProxy::createBlobService($connectionString, $options);
+        $blobName = 'documents/' . Str::uuid()->toString() . '.' . $file->extension();
+
+        $content = file_get_contents($file->getRealPath());
+        if ($content === false) {
+            throw new RuntimeException('Gagal membaca file upload.');
+        }
+
+        try {
+            $blobClient->createBlockBlob($container, $blobName, $content);
+        } catch (\Exception $e) {
+            throw new RuntimeException('Gagal upload ke Azure: ' . $e->getMessage());
+        }
+
+        return rtrim($endpoint, '/') . '/' . $container . '/' . $blobName;
     }
 }
