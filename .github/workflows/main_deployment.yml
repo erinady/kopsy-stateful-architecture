@@ -1,0 +1,35 @@
+name: Laravel CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout source code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Authentication using GitHub Secrets
+      - name: Authenticate Cloud Provider
+        run: |
+          echo "${{ secrets.CLOUD_PROVIDER_CREDENTIALS }}"
+
+      # Build Docker image
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.SERVICE_NAME }} .
+
+      # Push image to Container Registry
+      - name: Push Docker Image
+        run: |
+          echo "Push image to ${{ secrets.CONTAINER_REGISTRY_URL }}"
+
+      # Deploy latest image
+      - name: Deploy Service
+        run: |
+          echo "Deploying latest version of ${{ secrets.SERVICE_NAME }}"
