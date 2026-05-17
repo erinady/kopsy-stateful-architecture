@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -15,10 +15,10 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     zip
 
-# Enable Apache rewrite
+# Enable rewrite
 RUN a2enmod rewrite
 
-# Configure Apache document root
+# Set Apache document root
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
@@ -31,16 +31,15 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
 # Copy project
 COPY . .
 
-# Install Laravel dependencies
+# Install dependencies
 RUN composer install --ignore-platform-reqs --no-dev --optimize-autoloader
 
-# Laravel permissions
+# Permissions
 RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 80
