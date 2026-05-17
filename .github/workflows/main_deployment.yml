@@ -14,22 +14,32 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Authentication using GitHub Secrets
-      - name: Authenticate Cloud Provider
+      # Login ke Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Login ke Azure Container Registry
+      - name: Login to Azure Container Registry
         run: |
-          echo "${{ secrets.CLOUD_PROVIDER_CREDENTIALS }}"
+          docker login ${{ secrets.REGISTRY_LOGIN_SERVER }} \
+          -u ${{ secrets.REGISTRY_USERNAME }} \
+          -p ${{ secrets.REGISTRY_PASSWORD }}
 
       # Build Docker image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.SERVICE_NAME }} .
+          docker build -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/kopsy-app:${{ github.sha }} .
 
-      # Push image to Container Registry
+      # Push image ke Azure Container Registry
       - name: Push Docker Image
         run: |
-          echo "Push image to ${{ secrets.CONTAINER_REGISTRY_URL }}"
+          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/kopsy-app:${{ github.sha }}
 
-      # Deploy latest image
+      # Deploy ke Azure Web App
       - name: Deploy Service
-        run: |
-          echo "Deploying latest version of ${{ secrets.SERVICE_NAME }}"
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.WEBAPP_NAME }}
+          images: ${{ secrets.REGISTRY_LOGIN_SERVER }}/kopsy-app:${{ github.sha }}
