@@ -1,3 +1,19 @@
+FROM node:18 AS node_builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# build vite
+RUN npm run build
+
+
+# =========================
+# PHP + Apache stage
+# =========================
 FROM php:8.2-apache
 
 # Install dependencies
@@ -9,16 +25,16 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev
 
-# Install PHP extensions
+# PHP extensions
 RUN docker-php-ext-install \
     pdo \
     pdo_pgsql \
     zip
 
-# Enable rewrite
+# Enable apache rewrite
 RUN a2enmod rewrite
 
-# Set Apache document root
+# set document root ke public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
@@ -28,27 +44,29 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-# Install Composer
+# install composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy project
+# copy app
 COPY . .
 
-# Install dependencies
+# copy hasil Vite build dari node stage
+COPY --from=node_builder /app/public/build ./public/build
+
+# install php dependencies
 RUN composer install --ignore-platform-reqs --no-dev --optimize-autoloader
 
-RUN mkdir -p /var/www/html/storage/framework/cache/data \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/views \
-    /var/www/html/storage/logs \
-    /var/www/html/bootstrap/cache
+# storage permission
+RUN mkdir -p storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 80
 
