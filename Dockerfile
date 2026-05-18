@@ -1,7 +1,7 @@
 # =========================
 # NODE BUILD STAGE (VITE)
 # =========================
-FROM node:18 AS node_builder
+FROM node:22 AS node_builder
 
 WORKDIR /app
 
