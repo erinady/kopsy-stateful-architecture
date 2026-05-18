@@ -52,7 +52,7 @@ import { ref } from 'vue'
 import { useSidebar } from '../../Composables/useSidebar'
 import ThemeToggler from '../../Components/ThemeToggler.vue'
 import HeaderLogo from './Header/HeaderLogo.vue'
-import NotificationMenu from './header/NotificationMenu.vue'
+import NotificationMenu from './Header/NotificationMenu.vue'
 import UserMenu from './Header/UserMenu.vue'
 
 const { toggleSidebar, toggleMobileSidebar, isMobileOpen } = useSidebar()
